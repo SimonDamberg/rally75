@@ -141,7 +141,8 @@ Every stage agent appends a section here when it finishes: what was done, deviat
 - Supabase advisors list every RPC as "SECURITY DEFINER executable by anon". That is by design (they
   are the only write path and check the token/password inside); the secret tables "RLS without
   policy" notices are also intentional (deny all).
-- The Vercel CLI token on this Mac is invalid, so the Vercel env vars were not added by the agent.
+- Vercel project is linked (`.vercel/`, gitignored). The Supabase Vercel integration also added its own
+  `SUPABASE_*` / `NEXT_PUBLIC_SUPABASE_*` / `POSTGRES_*` vars (same project); the app ignores them.
 - GM brute force is only slowed by bcrypt; use a long password (the generated one is).
 
 **Manual steps for Simon**
@@ -149,9 +150,10 @@ Every stage agent appends a section here when it finishes: what was done, deviat
 1. **GM password**: generated and set on the hosted project; it is in `.env.local` as
    `GM_PASSWORD` (gitignored). To change it, run `supabase/snippets/set_gm_password.sql` with
    the new password in the Supabase SQL editor, and update `.env.local`.
-2. **Vercel env vars**: Vercel > rally75 > Settings > Environment Variables, add
-   `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` (values from `.env.local`) for Production and
-   Preview, then redeploy. Do **not** add `GM_PASSWORD` to Vercel.
+2. ~~Vercel env vars~~ Done by the agent: `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` set for
+   Production and Preview (stored non-sensitive, since they ship in the JS bundle anyway; verified
+   with `vercel env pull`). They take effect on the next deploy (next push to `main`). Never add
+   `GM_PASSWORD` to Vercel.
 3. The free Supabase project pauses after 7 days idle; open the dashboard before the party.
 4. Local stack (optional): Docker Desktop + `npx supabase start`; `npx supabase stop` when done.
 

@@ -5,3 +5,7 @@ dist
 .vercel
 .DS_Store
 *.tsbuildinfo
+.env*
+
+# Keep the committed template
+!.env.example
