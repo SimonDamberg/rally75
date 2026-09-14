@@ -1,0 +1,99 @@
+import { describe, expect, it } from 'vitest'
+import { createRng } from './rng'
+import { buildField, buildRaceCard, finalWord, FIELD_SIZE } from './field'
+import { NAMED_KUSKAR } from '../content/kuskar'
+import { SUBST } from '../content/names'
+import { KOMMENTARER, TIPS } from '../content/race'
+
+const SEEDS = Array.from({ length: 1000 }, (_, i) => i * 7919 + 1)
+const namedNames = new Set(NAMED_KUSKAR.map((k) => k.name))
+
+describe('buildField', () => {
+  it('respects all per-field constraints', () => {
+    for (const seed of SEEDS) {
+      const { horses, stats } = buildField(FIELD_SIZE, NAMED_KUSKAR, createRng(seed))
+      expect(horses.map((h) => h.n)).toEqual([1, 2, 3, 4, 5, 6])
+      expect(stats.map((s) => s.n)).toEqual([1, 2, 3, 4, 5, 6])
+
+      const names = horses.map((h) => h.name)
+      expect(new Set(names).size, `dubbla namn, seed ${seed}`).toBe(6)
+      expect(new Set(names.map(finalWord)).size, `dubbla slutord, seed ${seed}: ${names}`).toBe(6)
+      expect(new Set(horses.map((h) => h.jockey)).size).toBe(6)
+      expect(new Set(horses.map((h) => h.note)).size).toBe(6)
+      expect(new Set(horses.map((h) => h.tip)).size).toBe(6)
+
+      const named = horses.filter((h) => namedNames.has(h.jockey)).length
+      expect(named).toBeGreaterThanOrEqual(2)
+      expect(named).toBeLessThanOrEqual(4)
+
+      for (const h of horses) {
+        expect(h.baseOdds).toBeGreaterThanOrEqual(1.45)
+        expect(h.baseOdds).toBeLessThanOrEqual(58)
+        expect(Math.round(h.baseOdds * 100) / 100).toBe(h.baseOdds)
+        expect(h.form).toMatch(/^([1-9gd]-){4}[1-9gd]$/)
+        expect(KOMMENTARER).toContain(h.note)
+        expect(TIPS).toContain(h.tip)
+        for (const text of [h.name, h.jockey, h.title, h.story, h.jnote]) {
+          expect(text).toBeTruthy()
+          expect(text).not.toContain('undefined')
+        }
+      }
+      for (const s of stats) {
+        expect(s.strength >= 0.72 && s.strength <= 1.32).toBe(true)
+        expect(s.stamina >= 0.8 && s.stamina <= 1.2).toBe(true)
+        expect(s.temper >= 0.02 && s.temper <= 0.16).toBe(true)
+      }
+    }
+  })
+
+  it('named kuskar use their own title and notes', () => {
+    for (const seed of SEEDS.slice(0, 200)) {
+      for (const h of buildField(6, NAMED_KUSKAR, createRng(seed)).horses) {
+        const k = NAMED_KUSKAR.find((x) => x.name === h.jockey)
+        if (!k) continue
+        expect(h.title).toBe(k.title)
+        expect(k.notes).toContain(h.jnote)
+      }
+    }
+  })
+
+  it('caps named kuskar by how many exist', () => {
+    for (const seed of SEEDS.slice(0, 100)) {
+      expect(buildField(6, [], createRng(seed)).horses.some((h) => namedNames.has(h.jockey))).toBe(false)
+      const one = buildField(6, NAMED_KUSKAR.slice(0, 1), createRng(seed)).horses
+      expect(one.filter((h) => h.jockey === NAMED_KUSKAR[0].name)).toHaveLength(1)
+    }
+  })
+
+  it('falls back to a generic note when a named kusk has no notes', () => {
+    const kusk = { name: 'Testkusk', title: 'ny', notes: [] }
+    const { horses } = buildField(6, [kusk, { ...kusk, name: 'Testkusk2' }], createRng(3))
+    for (const h of horses.filter((x) => x.jockey.startsWith('Testkusk'))) {
+      expect(h.jnote).toContain(h.jockey)
+    }
+  })
+
+  it('is deterministic per seed', () => {
+    expect(buildRaceCard(NAMED_KUSKAR, createRng(99))).toEqual(buildRaceCard(NAMED_KUSKAR, createRng(99)))
+    expect(buildRaceCard(NAMED_KUSKAR, createRng(99))).not.toEqual(buildRaceCard(NAMED_KUSKAR, createRng(100)))
+  })
+
+  it('race card has distance and conditions', () => {
+    const card = buildRaceCard(NAMED_KUSKAR, createRng(5))
+    expect(card.dist).toMatch(/\d m/)
+    expect(card.cond).toBeTruthy()
+  })
+})
+
+describe('content rules', () => {
+  it('SUBST nouns are in definite form (-en, -et, -an)', () => {
+    for (const s of SUBST) expect(s, s).toMatch(/(n|t)$/)
+  })
+
+  it('every named kusk has a title and seven notes', () => {
+    for (const k of NAMED_KUSKAR) {
+      expect(k.title).toBeTruthy()
+      expect(k.notes, k.name).toHaveLength(7)
+    }
+  })
+})

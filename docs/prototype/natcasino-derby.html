@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>NAT CASINO DERBY</title>
+<style>
+:root{
+  --felt:#06160f;
+  --felt2:#0b2418;
+  --gold:#f5c542;
+  --gold2:#b8860b;
+  --neon:#39ff9e;
+  --hot:#ff2d78;
+  --ink:#f3ede0;
+  --dim:#9bb0a4;
+  --danger:#ff4d4d;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  margin:0;
+  background:
+    radial-gradient(120% 90% at 50% -10%, #12402a 0%, var(--felt2) 45%, var(--felt) 100%);
+  color:var(--ink);
+  font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
+  overflow:hidden;
+  user-select:none;
+}
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:9999;
+  background:repeating-linear-gradient(0deg,rgba(0,0,0,.14) 0 1px,transparent 1px 3px);
+  opacity:.5;
+}
+.app{position:fixed;inset:0;display:flex;flex-direction:column}
+
+/* ---------- chrome ---------- */
+.bonusbar{
+  flex:0 0 auto;
+  background:linear-gradient(90deg,var(--hot),#ff8a00,var(--hot));
+  background-size:200% 100%;
+  animation:slide 6s linear infinite;
+  color:#fff;font-weight:800;font-size:12px;letter-spacing:.08em;
+  text-align:center;padding:5px 8px;text-transform:uppercase;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+@keyframes slide{to{background-position:200% 0}}
+
+.topbar{
+  flex:0 0 auto;display:flex;align-items:center;gap:12px;
+  padding:8px 14px;border-bottom:1px solid rgba(245,197,66,.25);
+  background:rgba(0,0,0,.35);
+}
+.brand{font-weight:900;letter-spacing:.14em;font-size:15px;color:var(--gold);white-space:nowrap}
+.brand small{display:block;font-size:9px;letter-spacing:.22em;color:var(--dim);font-weight:700}
+.live{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:800;color:var(--hot);letter-spacing:.1em}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--hot);animation:pulse 1.1s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.75)}}
+.spacer{flex:1}
+.meta{font-size:11px;color:var(--dim);text-align:right;line-height:1.35;white-space:nowrap}
+.meta b{color:var(--neon)}
+.iconbtn{
+  background:rgba(255,255,255,.07);border:1px solid rgba(245,197,66,.3);
+  color:var(--ink);border-radius:10px;padding:7px 11px;font-size:16px;cursor:pointer;
+}
+.iconbtn.off{opacity:.35}
+
+/* ---------- screens ---------- */
+.screens{flex:1;position:relative;overflow:hidden}
+.screen{position:absolute;inset:0;display:none;flex-direction:column;overflow:hidden}
+.screen.on{display:flex}
+.scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px}
+
+.footerbar{
+  flex:0 0 auto;display:flex;gap:10px;align-items:center;
+  padding:10px 14px;border-top:1px solid rgba(245,197,66,.25);
+  background:rgba(0,0,0,.45);
+}
+
+/* ---------- buttons ---------- */
+.btn{
+  border:0;border-radius:14px;padding:16px 22px;font-size:17px;font-weight:900;
+  letter-spacing:.06em;text-transform:uppercase;cursor:pointer;color:#0a1f14;
+  background:linear-gradient(180deg,#ffe27a,var(--gold) 45%,var(--gold2));
+  box-shadow:0 6px 0 #6b4e05, 0 10px 26px rgba(245,197,66,.28);
+  transition:transform .06s ease, box-shadow .06s ease;
+}
+.btn:active{transform:translateY(4px);box-shadow:0 2px 0 #6b4e05}
+.btn.big{width:100%;padding:20px;font-size:21px}
+.btn.ghost{
+  background:rgba(255,255,255,.06);color:var(--ink);
+  border:1px solid rgba(245,197,66,.35);box-shadow:none;
+}
+.btn.ghost:active{transform:translateY(2px)}
+.btn.hot{
+  background:linear-gradient(180deg,#ff7ab0,var(--hot) 45%,#b3004e);color:#fff;
+  box-shadow:0 6px 0 #780034, 0 10px 26px rgba(255,45,120,.3);
+}
+.btn[disabled]{opacity:.4;pointer-events:none}
+
+/* ---------- lobby ---------- */
+.lobby{align-items:center;justify-content:center;text-align:center;gap:6px;padding:20px;flex:1;display:flex;flex-direction:column}
+.logo{
+  font-size:clamp(34px,7vw,66px);font-weight:900;letter-spacing:.06em;line-height:.95;
+  background:linear-gradient(180deg,#fff6cf,var(--gold) 50%,#8a6508);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  text-shadow:0 0 48px rgba(245,197,66,.28);
+}
+.tagline{color:var(--dim);font-size:13px;letter-spacing:.24em;text-transform:uppercase;margin-bottom:6px}
+.lobbystats{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin:12px 0 18px}
+.stat{background:rgba(0,0,0,.4);border:1px solid rgba(245,197,66,.22);border-radius:12px;padding:9px 14px;min-width:96px}
+.stat b{display:block;font-size:19px;color:var(--neon)}
+.stat span{font-size:9.5px;letter-spacing:.14em;color:var(--dim);text-transform:uppercase}
+.legal{font-size:10px;color:#5d7367;max-width:640px;line-height:1.5;margin-top:16px}
+
+/* ---------- race card ---------- */
+.raceheader{
+  flex:0 0 auto;padding:10px 14px;background:rgba(0,0,0,.4);
+  border-bottom:1px solid rgba(245,197,66,.2);
+  display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;
+}
+.raceheader h2{margin:0;font-size:18px;letter-spacing:.06em;color:var(--gold)}
+.raceheader .cond{font-size:11px;color:var(--dim)}
+
+.horse{
+  display:flex;gap:11px;align-items:flex-start;
+  background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.02));
+  border:1px solid rgba(245,197,66,.18);border-left-width:6px;
+  border-radius:13px;padding:11px 12px;margin-bottom:9px;cursor:pointer;
+}
+.horse.sel{border-color:var(--neon);border-left-color:var(--neon);background:rgba(57,255,158,.09)}
+.num{
+  flex:0 0 auto;width:40px;height:40px;border-radius:9px;display:grid;place-items:center;
+  font-weight:900;font-size:19px;color:#08150e;
+}
+.hbody{flex:1;min-width:0}
+.hname{font-size:17px;font-weight:900;letter-spacing:.02em;line-height:1.15}
+.hjockey{font-size:12px;color:var(--gold);margin-top:2px}
+.hstory{font-size:12.5px;color:var(--dim);line-height:1.45;margin-top:6px}
+.hform{font-size:11px;color:#7f948a;margin-top:5px;letter-spacing:.04em}
+.hform b{color:var(--ink);letter-spacing:.14em}
+.odds{
+  flex:0 0 auto;text-align:right;min-width:74px;
+}
+.oddsval{
+  font-size:25px;font-weight:900;color:var(--neon);line-height:1;
+  font-variant-numeric:tabular-nums;transition:color .25s;
+}
+.oddsval.up{color:var(--danger)}
+.oddsval.down{color:#7dff6a}
+.oddslbl{font-size:9px;letter-spacing:.14em;color:var(--dim);text-transform:uppercase;margin-top:3px}
+.pool{font-size:10px;color:#6f8479;margin-top:4px}
+
+/* ---------- betting ---------- */
+.betgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;flex:1;min-height:0}
+@media (max-width:760px){.betgrid{grid-template-columns:1fr}}
+.panel{background:rgba(0,0,0,.34);border:1px solid rgba(245,197,66,.2);border-radius:14px;padding:12px;display:flex;flex-direction:column;min-height:0}
+.panel h3{margin:0 0 9px;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold)}
+input[type=text]{
+  width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(245,197,66,.3);
+  color:var(--ink);border-radius:11px;padding:14px;font-size:17px;font-family:inherit;margin-bottom:9px;
+}
+input::placeholder{color:#6f8479}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.chip{
+  border:2px dashed rgba(255,255,255,.35);background:radial-gradient(circle at 40% 30%,#2a5b40,#0d2a1b);
+  color:var(--ink);border-radius:50%;width:56px;height:56px;display:grid;place-items:center;
+  font-weight:900;font-size:14px;cursor:pointer;
+}
+.chip.sel{border-color:var(--gold);color:var(--gold);box-shadow:0 0 0 3px rgba(245,197,66,.2)}
+.picklist{flex:1;overflow-y:auto;min-height:0;margin-bottom:10px}
+.pick{
+  display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:10px;
+  border:1px solid rgba(245,197,66,.16);margin-bottom:6px;cursor:pointer;
+}
+.pick.sel{border-color:var(--neon);background:rgba(57,255,158,.1)}
+.pick .num{width:29px;height:29px;font-size:14px;border-radius:7px}
+.pick .pn{flex:1;font-weight:700;font-size:14px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pick .po{color:var(--neon);font-weight:900;font-variant-numeric:tabular-nums}
+.slips{flex:1;overflow-y:auto;min-height:0}
+.slip{
+  display:flex;justify-content:space-between;align-items:center;gap:8px;
+  background:rgba(255,255,255,.05);border-left:4px solid var(--gold);
+  border-radius:8px;padding:9px 11px;margin-bottom:6px;font-size:13px;
+}
+.slip b{color:var(--gold)}
+.slip .amt{color:var(--neon);font-weight:900;white-space:nowrap}
+.empty{color:#5d7367;font-size:13px;text-align:center;padding:26px 10px;line-height:1.6}
+
+/* ---------- race ---------- */
+.track{flex:1;display:flex;flex-direction:column;gap:6px;padding:12px 14px;min-height:0;position:relative}
+.lane{
+  flex:1;position:relative;border-radius:9px;min-height:0;
+  background:linear-gradient(180deg,rgba(120,72,30,.45),rgba(80,46,18,.6));
+  border:1px solid rgba(0,0,0,.4);overflow:visible;
+}
+.lane::after{
+  content:"";position:absolute;right:7%;top:0;bottom:0;width:4px;
+  background:repeating-linear-gradient(0deg,#fff 0 7px,#111 7px 14px);opacity:.85;
+}
+.lanelabel{
+  position:absolute;left:11px;bottom:3px;
+  font-size:12px;font-weight:800;color:rgba(255,255,255,.4);
+  text-shadow:0 2px 6px #000;white-space:nowrap;pointer-events:none;
+  max-width:60%;overflow:hidden;text-overflow:ellipsis;letter-spacing:.02em;
+}
+.runner{
+  position:absolute;top:50%;transform:translate(-50%,-50%);
+  transition:left .22s linear;
+}
+.runner .num{
+  width:clamp(34px,4.6vh,46px);height:clamp(34px,4.6vh,46px);
+  font-size:clamp(17px,2.4vh,23px);border-radius:10px;
+  box-shadow:0 3px 12px rgba(0,0,0,.75), 0 0 0 2px rgba(0,0,0,.45);
+}
+.runner.lead .num{box-shadow:0 3px 12px rgba(0,0,0,.75), 0 0 0 3px var(--gold), 0 0 22px rgba(245,197,66,.6)}
+.runner.broke .num{animation:wobble .3s infinite}
+@keyframes wobble{0%,100%{transform:rotate(-16deg)}50%{transform:rotate(16deg)}}
+.commentary{
+  flex:0 0 auto;background:rgba(0,0,0,.66);border-top:2px solid rgba(245,197,66,.35);
+  padding:14px 18px;font-size:clamp(18px,3.1vw,30px);font-weight:900;line-height:1.28;
+  min-height:92px;display:flex;align-items:center;color:var(--ink);
+  letter-spacing:.01em;text-shadow:0 2px 10px rgba(0,0,0,.8);
+}
+.commentary.hype{color:var(--gold)}
+.commentary.flash{animation:cflash .45s ease}
+@keyframes cflash{from{opacity:.15;transform:translateX(-10px)}to{opacity:1;transform:none}}
+
+/* ---------- result ---------- */
+.podium{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.pod{
+  flex:1;min-width:150px;background:rgba(0,0,0,.4);border:1px solid rgba(245,197,66,.25);
+  border-radius:13px;padding:12px;text-align:center;
+}
+.pod .pl{font-size:11px;letter-spacing:.2em;color:var(--dim);text-transform:uppercase}
+.pod .pname{font-size:17px;font-weight:900;margin:5px 0 3px;line-height:1.2}
+.pod .pj{font-size:11px;color:var(--gold)}
+.pod.first{border-color:var(--gold);background:linear-gradient(180deg,rgba(245,197,66,.18),rgba(0,0,0,.4))}
+.payout{
+  display:flex;justify-content:space-between;align-items:center;gap:10px;
+  padding:12px 13px;border-radius:11px;margin-bottom:7px;font-size:15px;
+  background:rgba(255,255,255,.05);border-left:5px solid #44584d;
+}
+.payout.win{border-left-color:var(--neon);background:rgba(57,255,158,.1)}
+.payout .who{font-weight:800}
+.payout .res{font-weight:900;font-variant-numeric:tabular-nums;white-space:nowrap}
+.payout.win .res{color:var(--neon)}
+.payout .res.loss{color:#7c8f84}
+
+/* ---------- overlays ---------- */
+.overlay{
+  position:fixed;inset:0;z-index:500;display:none;place-items:center;
+  background:rgba(2,10,6,.93);padding:22px;text-align:center;
+}
+.overlay.on{display:grid}
+.ovbox{max-width:560px;width:100%}
+.ovtitle{font-size:clamp(24px,5vw,42px);font-weight:900;color:var(--gold);letter-spacing:.06em;line-height:1.1}
+.ovtext{color:var(--dim);margin:14px 0 20px;font-size:14px;line-height:1.6}
+.spin{
+  width:56px;height:56px;border-radius:50%;margin:0 auto 18px;
+  border:5px solid rgba(245,197,66,.2);border-top-color:var(--gold);animation:sp .8s linear infinite;
+}
+@keyframes sp{to{transform:rotate(360deg)}}
+.inquiry .ovtitle{color:var(--danger)}
+
+/* ---------- toasts ---------- */
+.toasts{position:fixed;left:10px;bottom:82px;z-index:400;display:flex;flex-direction:column;gap:7px;pointer-events:none;transition:opacity .3s}
+.toasts.hidden{opacity:0}
+.toast{
+  background:rgba(0,0,0,.82);border:1px solid rgba(57,255,158,.4);border-left:4px solid var(--neon);
+  border-radius:9px;padding:8px 12px;font-size:11.5px;color:var(--dim);max-width:290px;
+  animation:pop .35s ease;
+}
+.toast b{color:var(--neon)}
+@keyframes pop{from{opacity:0;transform:translateX(-24px)}}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="bonusbar" id="bonusbar">Välkomstbonus 500 % • Omsättningskrav 40x • Licensierad i Curaçao • 18+ • Spela lagom</div>
+
+  <div class="topbar">
+    <div class="brand">NAT CASINO<small>DERBY &amp; TRAVBANA</small></div>
+    <div class="live"><span class="dot"></span>LIVE</div>
+    <div class="spacer"></div>
+    <div class="meta">Tittare just nu: <b id="viewers">4 312</b><br>Utbetalt i kväll: <b id="paidout">0 kr</b></div>
+  </div>
+
+  <div class="screens">
+
+    <!-- LOBBY -->
+    <section class="screen on" id="s-lobby">
+      <div class="lobby">
+        <div class="tagline">Kvällens största trav</div>
+        <div class="logo">NAT CASINO<br>DERBY</div>
+        <div class="lobbystats">
+          <div class="stat"><b id="lsRaces">0</b><span>Lopp i kväll</span></div>
+          <div class="stat"><b id="lsBets">0</b><span>Spel lagda</span></div>
+          <div class="stat"><b id="lsTurnover">0</b><span>Omsättning</span></div>
+        </div>
+        <button class="btn big" style="max-width:420px" id="btnNewRace">Starta nytt lopp</button>
+        <div class="legal">
+          Nat Casino Derby drivs av Nat Holdings Ltd, reg.nr 000-000-000, Willemstad. Odds kan ändras utan förvarning. Vinster betalas ut i handling, sällskap eller inget alls. Bandomarnas beslut kan inte överklagas. Spelproblem? Prata med någon i köket.
+        </div>
+      </div>
+    </section>
+
+    <!-- PADDOCK -->
+    <section class="screen" id="s-paddock">
+      <div class="raceheader">
+        <h2 id="pdTitle">Lopp 1</h2>
+        <div class="cond" id="pdCond"></div>
+      </div>
+      <div class="scroll" id="pdList"></div>
+      <div class="footerbar">
+        <button class="btn ghost" id="btnReroll">Nytt startfält</button>
+        <div class="spacer"></div>
+        <button class="btn" id="btnOpenBetting">Öppna spel</button>
+      </div>
+    </section>
+
+    <!-- BETTING -->
+    <section class="screen" id="s-betting">
+      <div class="raceheader">
+        <h2 id="btTitle">Spel öppet</h2>
+        <div class="cond">Odds rör sig med pengarna. Sista chansen.</div>
+      </div>
+      <div class="scroll">
+        <div class="betgrid">
+          <div class="panel">
+            <h3>Lägg ett spel</h3>
+            <input type="text" id="betName" placeholder="Vem spelar? (namn)" autocomplete="off" spellcheck="false">
+            <div class="picklist" id="betPicks"></div>
+            <div class="chips" id="betChips"></div>
+            <button class="btn hot" id="btnPlaceBet" style="width:100%">Lägg spel</button>
+          </div>
+          <div class="panel">
+            <h3>Spelkupong (<span id="slipCount">0</span>)</h3>
+            <div class="slips" id="slipList"><div class="empty">Inga spel lagda än.<br>Ingen tror på något.</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="footerbar">
+        <button class="btn ghost" id="btnBackPaddock">Tillbaka</button>
+        <div class="spacer"></div>
+        <button class="btn" id="btnStartRace">Loppet börjar</button>
+      </div>
+    </section>
+
+    <!-- RACE -->
+    <section class="screen" id="s-race">
+      <div class="track" id="track"></div>
+      <div class="commentary" id="comment">Hästarna går mot start.</div>
+      <div class="footerbar">
+        <div class="meta" id="raceClock" style="text-align:left">0 m</div>
+        <div class="spacer"></div>
+        <button class="btn ghost" id="btnSkip">Snabbspola</button>
+      </div>
+    </section>
+
+    <!-- RESULT -->
+    <section class="screen" id="s-result">
+      <div class="raceheader"><h2 id="reTitle">Resultat</h2><div class="cond" id="reCond"></div></div>
+      <div class="scroll">
+        <div class="podium" id="podium"></div>
+        <h3 style="font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin:4px 0 10px">Utbetalningar</h3>
+        <div id="payouts"></div>
+      </div>
+      <div class="footerbar">
+        <button class="btn ghost" id="btnLobby">Till lobbyn</button>
+        <div class="spacer"></div>
+        <button class="btn" id="btnNextRace">Nästa lopp</button>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<div class="overlay" id="ovConnect"><div class="ovbox">
+  <div class="spin"></div>
+  <div class="ovtitle">Ansluter till servern</div>
+  <div class="ovtext" id="connectText">Upprättar säker anslutning till Willemstad...</div>
+</div></div>
+
+<div class="overlay" id="ovKyc"><div class="ovbox">
+  <div class="ovtitle">Verifiera din identitet</div>
+  <div class="ovtext">Enligt gällande regelverk måste vi veta ungefär vem du är innan du får spela. Ange valfritt namn. Vi kontrollerar ingenting.</div>
+  <input type="text" id="kycInput" placeholder="Namn, smeknamn eller lögn" autocomplete="off">
+  <button class="btn big" id="kycOk">Jag intygar att detta stämmer</button>
+</div></div>
+
+<div class="overlay inquiry" id="ovInquiry"><div class="ovbox">
+  <div class="ovtitle">Bandomarna utreder</div>
+  <div class="ovtext" id="inquiryText">Videogranskning pågår.</div>
+  <button class="btn big hot" id="inquiryOk" style="display:none">Visa beslutet</button>
+</div></div>
+
+<div class="toasts" id="toasts"></div>
+
+<script>
+"use strict";
+
+/* =========================================================
+   INNEHÅLL
+   ========================================================= */
+
+const ORTER = ["Bålsta","Enköping","Tierp","Gottsunda","Sävja","Knivsta","Storvreta","Björklinge","Vaksala","Flogsta","Librobäck","Gränby","Årsta","Rosendal","Ultuna","Skutskär","Östhammar","Alunda","Heby","Sala","Hallstahammar","Surahammar","Skultuna","Irsta","Hökåsen","Tillberga","Dingtuna","Kolbäck","Kvicksund","Salabacke"];
+
+const EPITET = ["Blixten","Bruden","Bulten","Dunder","Express","Fasan","Fröjd","Furian","Gubben","Hjälten","Jarlen","Kungen","Lyxen","Mirakel","Orkanen","Pärlan","Prinsen","Raketen","Rebellen","Skrället","Spöket","Stormen","Tornado","Turbo","Vinden","Vråken","Åskan","Ärkebiskopen","Ödet","Bomben"];
+
+const FORLED = ["Nordens","Stormens","Nattens","Ödets","Himlens","Kungens","Vinterns","Höstens","Månens","Havets","Bergens","Skogens","Åskans","Sorgens","Lyckans","Dimmans","Gryningens","Skymningens","Frostens","Avgrundens"];
+
+const EFTERLED = ["Vattenskada","Deklaration","Pendeltåg","Pantbank","Bolåneränta","Hyreskontrakt","Soptunna","Fikarast","Kösystem","Tandläkartid","Parkeringsböter","Elräkning","Kollektivavtal","Föräldramöte","Hemförsäkring","Kaffeautomat","Julbord","Semesterdag","Månadskort","Bilbesiktning","Avloppsrör","Brandvarnare","Kvartalsrapport","Kylskåpsmagnet","Torkskåp","Tvättstuga","Gräsklippare","Altandörr","Grannsämja","Vinterdäck","Rotavdrag","Stängselstolpe","Bankkö"];
+
+const ADJ = ["Galopperande","Rasande","Ödmjuka","Bittra","Stilla","Vilda","Sista","Blyga","Hungriga","Sömniga","Envisa","Hemliga","Trötta","Farliga","Förlorade","Stolta","Ensamma","Snabba","Dyra","Dömda"];
+
+const SUBST = ["Ångesten","Blygsamheten","Sanningen","Lösningen","Fredagen","Räkningen","Möjligheten","Ursäkten","Förhandlingen","Överenskommelsen","Missförståndet","Genvägen","Uppsägningen","Reservplanen","Kompromissen","Avfarten","Utsikten","Förklaringen","Anmälan","Påminnelsen"];
+
+const FORNAMN = ["Kenneth","Bosse","Ann-Christin","Roger","Yvonne","Stig-Åke","Lillemor","Conny","Birgitta","Tommy","Maj-Britt","Leffe","Gunilla","Jörgen","Siv","Ronny","Berit","Mikael","Torbjörn","Margaretha","Håkan","Doris","Kjell-Åke","Solveig","Benny","Agneta","Rune","Marianne","Sixten","Elvy","Göran","Britt-Marie","Lasse","Gun","Åke","Vivianne","Örjan","Majken"];
+
+const EFTERNAMN = ["Sjöberg","Hagström","Lundkvist","Bergqvist","Palmgren","Wikström","Norrback","Öberg","Thulin","Ekdahl","Hjort","Sandelin","Brännström","Löwenhielm","Kviberg","Rosendahl","Dahlbäck","Nyqvist","Stenmark","Falk","Grönvall","Åkerlund","Möller","Frisk","Hammarlund","Svedberg","Törnqvist","Bjurström","Kettil","Vretlund"];
+
+const KUSKTITEL = ["ökänd","regerande bankättare","avstängd hela 2019","kontroversiell","nybliven pensionär","tidigare tulltjänsteman","obesegrad på grusbana","svårt förälskad i sin häst","tillbaka efter skandalen","den enda som vågar","femfaldig segrare i Hökåsen","aldrig nykter före start","utpekad i rapporten","har aldrig kört förut"];
+
+const YRKEN = ["tandläkare","kommunekonom","rörmokare","gymnasielärare","bilhandlare","hovslagare","frisör","polis","hemslöjdskonsulent","begravningsentreprenör","IT-konsult","fastighetsmäklare","veterinär","bagare","lantmätare","brandman"];
+
+const HANDELSER = ["förlorade ett vad","aldrig fick förklara varför","hade druckit sedan lunch","just blivit lämnad","missförstod annonsen","ville imponera på sin svärmor","trodde det var en ponny","precis vunnit på trisslott","var på fel auktion","inte kunde säga nej"];
+
+const BEDRIFTER = ["vunnit tre lopp och tappat två skor","aldrig kommit i mål på rätt varv","blivit utvisad från två banor","fått en gata uppkallad efter sig i hemorten","vägrat springa i regn","slagit banrekordet baklänges","varit med i lokaltidningen fyra gånger","levt på rykten","sponsrats av en pizzeria som gått i konkurs","utvecklat en stark motvilja mot publik"];
+
+const OMSTANDIGHETER = ["ett strömavbrott","en midsommarfest som spårade ur","kraftig snöyra","en pågående grannfejd","oväntat besök av Skatteverket","ett solförmörkelse-firande","en bandyfinal","total tystnad"];
+
+const KRAV = ["det spelas musik","någon tittar på","banan är blöt","det är före klockan tolv","publiken klappar för tidigt","en annan häst nyser","det luktar korv"];
+
+const TIDIGARE = ["dressyrhäst","polishäst","statist i en reklamfilm","maskot åt ett byggföretag","turistattraktion","fotomodell för ett foderföretag","dragdjur på en julmarknad"];
+
+const CITAT = ["en katastrof som råkar vara snabb","tekniskt sett en häst","min enda vän","oberäknelig men ärlig","bättre än sitt rykte, tyvärr inte mycket","en investering jag helst inte diskuterar","full av potential och lite annat"];
+
+const KOMMENTARER = ["Går bäst från ledningen.","Hatar innerspår.","Kan vinna om allt stämmer.","Har inte visat något på månader.","Formen pekar uppåt.","Byter skor idag.","Osäker på distansen.","Storfavorit hos publiken, inte hos oss.","Har galopperat i tre raka.","Tränaren är ovanligt tyst.","Ny kusk, nya problem.","Vunnit senast, blev då diskad."];
+
+const STORY_MALLAR = [
+  (h,k)=>`${h} köptes för ${pris()} kronor av en ${pick(YRKEN)} från ${pick(ORTER)} som ${pick(HANDELSER)}. Har sedan dess ${pick(BEDRIFTER)}.`,
+  (h,k)=>`Föddes i ${pick(ORTER)} under ${pick(OMSTANDIGHETER)}. Vägrar springa om ${pick(KRAV)}.`,
+  (h,k)=>`Var ${pick(TIDIGARE)} innan olyckan i ${pick(ORTER)}. ${k} beskriver hästen som "${pick(CITAT)}".`,
+  (h,k)=>`Såldes tre gånger på ett halvår. Nuvarande ägare, en ${pick(YRKEN)}, ${pick(HANDELSER)} och ångrar sig fortfarande.`,
+  (h,k)=>`Tränas numera i en hage utanför ${pick(ORTER)} eftersom ${h} ${pick(BEDRIFTER)}. Springer bara om ${pick(KRAV)}.`,
+  (h,k)=>`Har ett förflutet som ${pick(TIDIGARE)}. Kom till travet efter ${pick(OMSTANDIGHETER)} och har aldrig riktigt förklarat sig.`,
+  (h,k)=>`${k} tog över efter att förra kusken ${pick(HANDELSER)}. Hästen kostade ${pris()} kronor och har ${pick(BEDRIFTER)}.`,
+  (h,k)=>`Beskrivs i stallet som "${pick(CITAT)}". Föddes i ${pick(ORTER)}, uppfostrades av en ${pick(YRKEN)}, litar på ingen.`,
+  (h,k)=>`Kom sist i sitt första lopp och har byggt hela sin karriär på det. Vägrar springa om ${pick(KRAV)}.`,
+  (h,k)=>`Lämnade ${pick(ORTER)} efter ${pick(OMSTANDIGHETER)}. ${k} hävdar att ${h} är "${pick(CITAT)}" och vägrar utveckla.`
+];
+
+const KUSK_NOTER = [
+  k=>`${k} har inte vunnit sedan ${2015+Math.floor(Math.random()*9)} men talar gärna om det.`,
+  k=>`${k} kör i lånad sulky och vill inte prata om varför.`,
+  k=>`${k} lovade publiken seger redan i våras.`,
+  k=>`${k} vägrar värma upp, vilket syns.`,
+  k=>`${k} har bytt stall fyra gånger i år.`,
+  k=>`${k} är enligt egen utsago "i sitt livs form".`,
+  k=>`${k} kom till banan i taxi och verkar stressad.`,
+  k=>`${k} har med sig hela familjen på läktaren. Det brukar sluta illa.`
+];
+
+/* ---- Stallets egna kuskar. Dessa dyker upp blandat med de slumpade. ---- */
+const NAMED_KUSKAR = [
+  {
+    name:"Jesper", title:"banans äldsta",
+    notes:[
+      "Jesper vägrar uppge sin ålder, men banan byggdes efter honom.",
+      "Jesper minns när sulkyn hade trähjul. Han var vuxen då.",
+      "Jesper värmer upp i fyrtio minuter och kör i tre.",
+      "Jespers rekord sattes under en regering ingen minns.",
+      "Jesper har en pensionsförsäkring som hunnit löpa ut två gånger.",
+      "Jesper tar en tupplur mellan varven. Det har aldrig kostat honom ett lopp, säger han.",
+      "Jesper kallar alla under sextio för \"grabben\". Det inkluderar hästen."
+    ]
+  },
+  {
+    name:"GP", title:"intensiteten själv",
+    notes:[
+      "GP laddade i två veckor och glömde sedan bort vilket lopp det var.",
+      "GP skriker instruktioner till en häst som inte är med i det här loppet.",
+      "GP har glömt piskan, hjälmen och loppets namn, men inte att vinna.",
+      "GP lovade att ta det lugnt idag. Det höll i elva sekunder.",
+      "GP hade en plan. GP har tappat bort planen.",
+      "GP kom först till banan i morse och letar fortfarande efter stallet.",
+      "GP kör som om det vore final. Det är det aldrig."
+    ]
+  },
+  {
+    name:"Emma", title:"kör med slutna ögon",
+    notes:[
+      "Emma kör hela loppet med slutna ögon och hävdar att det går fortare så.",
+      "Emma har inte sett en målkamera på fyra år.",
+      "Emma känner sig fram längs innerstaketet. Det har fungerat förvånansvärt ofta.",
+      "Emma öppnade ögonen i sista kurvan en gång och blev omkörd av ren chock.",
+      "Emma har aldrig sett sin egen häst. Hon känner igen den på ljudet.",
+      "Emma blinkade 2021 och missade hela upploppet.",
+      "Emma säger att hon ser bättre så här. Ingen vågar fråga vidare."
+    ]
+  },
+  {
+    name:"Axel", title:"gentlemannen",
+    notes:[
+      "Axel kör i kostym och vägrar erkänna att sulkyn är av plast.",
+      "Axel anser att omkörningar är ohyfsat och undviker dem när det går.",
+      "Axel hälsar på varje medtävlande före start och tappar tre längder på det.",
+      "Axel vägrar delta i lopp som avgörs efter klockan nio på kvällen.",
+      "Axel har samma piska som sin far och samma åsikter.",
+      "Axel tycker att det nya banunderlaget är en modefluga.",
+      "Axel bugar för publiken innan han kommer sist."
+    ]
+  },
+  {
+    name:"Erik", title:"avstängd på tre banor",
+    notes:[
+      "Erik har blivit avstängd på tre banor och inbjuden tillbaka till två.",
+      "Erik startade förra loppet före startbilen och vann ändå inte.",
+      "Erik kör stående. Det finns inget regelverk för det.",
+      "Erik lovade att ta det försiktigt och skrattade sedan i fyra minuter.",
+      "Erik tog innerspåret genom en häck en gång. Han pratar gärna om det.",
+      "Erik har ingen plan och är stolt över det.",
+      "Erik kastades ut ur paddocken i morse och är redan tillbaka."
+    ]
+  },
+  {
+    name:"Kajsa", title:"hästexpert av annat slag",
+    notes:[
+      "Kajsa avgör en hästs form genom att titta i boxen. Bara genom att titta i boxen.",
+      "Kajsa höll ett tjugominuters föredrag om hästspillning i paddocken. Ingen kom undan.",
+      "Kajsa vägrar satsa på en häst innan hon inspekterat gödselstacken.",
+      "Kajsa har fotograferat allt hon hittat på banan idag. Vi visar inte bilderna.",
+      "Kajsa säger att den här hästen har ätit något den inte borde. Hon har alltid rätt.",
+      "Kajsa luktade på banan före start och såg bekymrad ut.",
+      "Kajsa är faktiskt publicerad i ämnet. Det gör det inte mindre obehagligt."
+    ]
+  },
+  {
+    name:"Simon", title:"webbansvarig",
+    notes:[
+      "Simon kör med laptop i knät och håller hemsidan uppe under loppet.",
+      "Simon startade om servern i sista kurvan och tappade ledningen.",
+      "Simon lovar att oddsen uppdateras i realtid. Det gör de ibland.",
+      "Simon kör med en hand och felsöker med den andra.",
+      "Simon säger att det inte är hans fel utan cachen.",
+      "Simon deployade en fix mitt under loppet. Något gick sönder.",
+      "Simon har inte sovit sedan sajten gick live. Det syns."
+    ]
+  },
+  {
+    name:"Palm", title:"ekonomiansvarig",
+    notes:[
+      "Palm har räknat ut exakt vad det här loppet är värt och tänker inte berätta.",
+      "Palm vägrar starta innan startpengen ligger på kontot.",
+      "Palm äger tre procent av hästen och nittio procent av åsikterna.",
+      "Palm har hedgat sig genom att satsa på alla utom sin egen häst.",
+      "Palm tog betalt för att över huvud taget vara med i det här loppet.",
+      "Palm förhandlade fram en bonus per längd. Det märks på körningen.",
+      "Palm frågade vad andraplatsen ger. Det var ett dåligt tecken."
+    ]
+  }
+];
+
+const TIPS = ["Vår expert: spik.","Vår expert: gardera.","Vår expert: skippa.","Vår expert: chansen i loppet.","Vår expert: har slutat svara i telefon.","Vår expert: blockerad av tränaren.","Vår expert: säkert vinnarval, som förra veckan."];
+
+const BANOR = ["lätt bana, växlande vind","tung bana efter regn","snabb bana, publiken laddad","blöt bana, dålig sikt","hård bana, kylslaget","perfekt bana, misstänkt perfekt"];
+const DISTANSER = ["1 640 m autostart","2 140 m voltstart","1 609 m autostart","2 640 m voltstart","1 200 m, kortloppet"];
+
+const TOAST_NAMN = ["Kenneth","Yvonne","Bosse","Ann-Christin","Roger","Siv","Conny","Birgitta","Leffe","Doris","Ronny","Agneta","Håkan","Gun","Örjan","Majken"];
+
+/* =========================================================
+   HJÄLPARE
+   ========================================================= */
+const $ = id => document.getElementById(id);
+const pick = a => a[Math.floor(Math.random()*a.length)];
+const rnd = (a,b) => a + Math.random()*(b-a);
+function pris(){ return fmt(Math.round(rnd(1,320))*1000); }
+function fmt(n){ return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," "); }
+function dec(n){ return n.toFixed(2).replace(".",","); }
+function shuffle(a){ for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+
+const SILKS = [
+  {bg:"linear-gradient(135deg,#ff2d78,#ffd166)", edge:"#ff2d78"},
+  {bg:"linear-gradient(135deg,#39ff9e,#0aa5ff)", edge:"#39ff9e"},
+  {bg:"linear-gradient(135deg,#ffd166,#ff7b00)", edge:"#ffd166"},
+  {bg:"linear-gradient(135deg,#b388ff,#5e2bff)", edge:"#b388ff"},
+  {bg:"linear-gradient(135deg,#fff,#9bb0a4)",    edge:"#ffffff"},
+  {bg:"linear-gradient(135deg,#00e5ff,#0066ff)", edge:"#00e5ff"},
+  {bg:"linear-gradient(135deg,#ff5252,#7a0000)", edge:"#ff5252"},
+  {bg:"linear-gradient(135deg,#c8ff00,#4b8a00)", edge:"#c8ff00"}
+];
+
+/* =========================================================
+   TILLSTÅND
+   ========================================================= */
+const state = {
+  raceNo: 0,
+  field: [],
+  bets: [],
+  cond: "",
+  dist: "",
+  selHorse: null,
+  selStake: 50,
+  totalBets: 0,
+  turnover: 0,
+  paidOut: 0,
+  kycDone: false,
+  finished: null
+};
+
+/* =========================================================
+   GENERERING
+   ========================================================= */
+function horseName(){
+  const r = Math.random();
+  if(r < .42) return pick(ORTER) + " " + pick(EPITET);
+  if(r < .83) return pick(FORLED) + " " + pick(EFTERLED);
+  return "Den " + pick(ADJ) + " " + pick(SUBST);
+}
+function jockeyName(){ return pick(FORNAMN) + " " + pick(EFTERNAMN); }
+function formLine(){
+  const marks = [];
+  for(let i=0;i<5;i++){
+    const r = Math.random();
+    marks.push(r<.12 ? "g" : r<.18 ? "d" : String(1+Math.floor(Math.random()*9)));
+  }
+  return marks.join("-");
+}
+
+function buildField(n){
+  n = n || 6;
+  const usedNames = new Set();
+  const field = [];
+
+  // 2 till 4 av startfältet körs av stallets egna. Resten är slumpade kuskar.
+  const namedPool = shuffle(NAMED_KUSKAR.slice());
+  const namedCount = Math.min(namedPool.length, 2 + Math.floor(Math.random()*3));
+  const namedSlots = new Set(shuffle([...Array(n).keys()]).slice(0, namedCount));
+
+  // Inga dubbletter av kommentar eller experttips i samma startfält
+  const tipPool = shuffle(TIPS.slice());
+  const notePool = shuffle(KOMMENTARER.slice());
+
+  const usedJ = new Set(), usedTails = new Set();
+  for(let i=0;i<n;i++){
+    let name, guard=0;
+    // Undvik både samma namn och samma sista ord (två Soptunnor i ett lopp)
+    do {
+      name = horseName(); guard++;
+    } while((usedNames.has(name) || usedTails.has(name.split(" ").pop())) && guard<80);
+    usedNames.add(name);
+    usedTails.add(name.split(" ").pop());
+
+    let j, jTitle, jNote;
+    if(namedSlots.has(i) && namedPool.length){
+      const k = namedPool.pop();
+      j = k.name; jTitle = k.title; jNote = pick(k.notes);
+    } else {
+      guard = 0;
+      do { j = jockeyName(); guard++; } while(usedJ.has(j) && guard<60);
+      jTitle = pick(KUSKTITEL);
+      jNote = pick(KUSK_NOTER)(j);
+    }
+    usedJ.add(j);
+
+    const strength = rnd(0.72, 1.32);
+    const h = {
+      n: i+1,
+      name,
+      jockey: j,
+      title: jTitle,
+      story: pick(STORY_MALLAR)(name, j),
+      jnote: jNote,
+      form: formLine(),
+      note: notePool[i % notePool.length],
+      tip: tipPool[i % tipPool.length],
+      strength,
+      stamina: rnd(0.8, 1.2),
+      temper: rnd(0.02, 0.16),
+      silk: SILKS[i % SILKS.length],
+      pool: 0,
+      pos: 0,
+      broke: false
+    };
+    field.push(h);
+  }
+  // Odds från styrka, med brus så favoriten inte alltid vinner
+  const tot = field.reduce((s,h)=>s+Math.pow(h.strength,3.2),0);
+  field.forEach(h=>{
+    const p = Math.pow(h.strength,3.2)/tot;
+    h.baseOdds = Math.min(58, Math.max(1.45, (1/p) * 0.86 * rnd(0.88,1.16)));
+    h.odds = h.baseOdds;
+  });
+  return field;
+}
+
+// Totalisator med "virtuella pengar" från morgonoddsen.
+// Utan spel ligger oddsen kvar på morgonlinjen. Pengar på en häst
+// sänker dess odds och höjer de andras, mjukt och åt rätt håll.
+const VIRTUAL_POOL = 700;   // kr "huset" redan lagt ut enligt morgonlinjen
+const TAKEOUT = 0.87;       // husets snitt
+function currentOdds(h){
+  const impl = state.field.map(x => 1/x.baseOdds);
+  const implSum = impl.reduce((a,b)=>a+b,0);
+  let total = 0;
+  const eff = state.field.map((x,i)=>{
+    const v = VIRTUAL_POOL * (impl[i]/implSum) + x.pool;
+    total += v;
+    return v;
+  });
+  const i = state.field.indexOf(h);
+  const share = eff[i] / total;
+  return Math.min(80, Math.max(1.15, (1/share) * TAKEOUT));
+}
+function refreshOdds(){
+  state.field.forEach(h=>{
+    const old = h.odds;
+    h.odds = currentOdds(h);
+    h.drift = h.odds > old + 0.01 ? "up" : h.odds < old - 0.01 ? "down" : "";
+  });
+}
+
+/* =========================================================
+   SKÄRMAR
+   ========================================================= */
+function show(id){
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("on"));
+  $(id).classList.add("on");
+  // Inga falska vinnarnotiser mitt i loppet, de tar plats från speakern
+  $("toasts").classList.toggle("hidden", id === "s-race");
+}
+
+function numStyle(h){
+  return `background:${h.silk.bg}`;
+}
+
+function renderPaddock(){
+  $("pdTitle").textContent = "Lopp " + state.raceNo;
+  $("pdCond").textContent = state.dist + " • " + state.cond;
+  const wrap = $("pdList");
+  wrap.innerHTML = "";
+  state.field.forEach(h=>{
+    const el = document.createElement("div");
+    el.className = "horse";
+    el.style.borderLeftColor = h.silk.edge;
+    el.innerHTML = `
+      <div class="num" style="${numStyle(h)}">${h.n}</div>
+      <div class="hbody">
+        <div class="hname">${h.name}</div>
+        <div class="hjockey">Kusk: ${h.jockey} (${h.title})</div>
+        <div class="hstory">${h.story}</div>
+        <div class="hstory" style="color:#7f948a">${h.jnote}</div>
+        <div class="hform">Form: <b>${h.form}</b> &nbsp;•&nbsp; ${h.note} &nbsp;•&nbsp; ${h.tip}</div>
+      </div>
+      <div class="odds">
+        <div class="oddsval">${dec(h.odds)}</div>
+        <div class="oddslbl">Odds</div>
+      </div>`;
+    // Markera den häst du presenterar just nu
+    el.addEventListener("click", ()=>{
+      const already = el.classList.contains("sel");
+      wrap.querySelectorAll(".horse").forEach(x=>x.classList.remove("sel"));
+      if(!already) el.classList.add("sel");
+    });
+    wrap.appendChild(el);
+  });
+}
+
+function renderBetting(){
+  $("btTitle").textContent = "Lopp " + state.raceNo + " • spel öppet";
+  refreshOdds();
+  const picks = $("betPicks");
+  picks.innerHTML = "";
+  state.field.forEach(h=>{
+    const el = document.createElement("div");
+    el.className = "pick" + (state.selHorse === h.n ? " sel" : "");
+    el.innerHTML = `
+      <div class="num" style="${numStyle(h)}">${h.n}</div>
+      <div class="pn">${h.name}</div>
+      <div class="po">${dec(h.odds)}</div>`;
+    el.addEventListener("click", ()=>{ state.selHorse = h.n; renderBetting(); });
+    picks.appendChild(el);
+  });
+
+  const chips = $("betChips");
+  if(!chips.dataset.built){
+    [10,25,50,100,250].forEach(v=>{
+      const c = document.createElement("div");
+      c.className = "chip";
+      c.textContent = v;
+      c.dataset.v = v;
+      c.addEventListener("click", ()=>{ state.selStake = v; renderChips(); });
+      chips.appendChild(c);
+    });
+    chips.dataset.built = "1";
+  }
+  renderChips();
+  renderSlips();
+}
+function renderChips(){
+  document.querySelectorAll("#betChips .chip").forEach(c=>{
+    c.classList.toggle("sel", Number(c.dataset.v) === state.selStake);
+  });
+}
+function renderSlips(){
+  const list = $("slipList");
+  $("slipCount").textContent = state.bets.length;
+  if(!state.bets.length){
+    list.innerHTML = `<div class="empty">Inga spel lagda än.<br>Ingen tror på något.</div>`;
+    return;
+  }
+  list.innerHTML = "";
+  state.bets.slice().reverse().forEach(b=>{
+    const h = state.field.find(x=>x.n===b.horse);
+    const el = document.createElement("div");
+    el.className = "slip";
+    el.style.borderLeftColor = h.silk.edge;
+    el.innerHTML = `<div><b>${b.who}</b><br>${h.n}. ${h.name} @ ${dec(b.odds)}</div>
+                    <div class="amt">${b.stake} kr<br><span style="color:var(--dim);font-weight:600">ger ${fmt(b.stake*b.odds)} kr</span></div>`;
+    list.appendChild(el);
+  });
+}
+
+/* =========================================================
+   LOPPET
+   ========================================================= */
+let raceTimer = null, raceTick = 0, raceDone = false;
+const TICKS = 68;
+const TICK_MS = 300;
+
+function renderTrack(){
+  const t = $("track");
+  t.innerHTML = "";
+  state.field.forEach(h=>{
+    const lane = document.createElement("div");
+    lane.className = "lane";
+    lane.innerHTML = `<div class="lanelabel">${h.n}. ${h.name}</div>
+      <div class="runner" id="r${h.n}" style="left:6%">
+        <div class="num" style="${numStyle(h)}">${h.n}</div>
+      </div>`;
+    t.appendChild(lane);
+  });
+}
+
+let lastCommentTick = -99, lastLeader = null;
+function setComment(txt, hype){
+  const c = $("comment");
+  c.textContent = txt;
+  c.classList.remove("flash");
+  void c.offsetWidth;
+  c.classList.add("flash");
+  c.classList.toggle("hype", !!hype);
+  lastCommentTick = raceTick;
+}
+
+function startRace(){
+  show("s-race");
+  raceTick = 0; raceDone = false;
+  lastCommentTick = -99; lastLeader = null;
+  state.field.forEach(h=>{ h.pos = 0; h.broke = false; h.brokeTicks = 0; });
+  renderTrack();
+  setComment("Och de är iväg i lopp " + state.raceNo + "!", true);
+  clearInterval(raceTimer);
+  raceTimer = setInterval(step, TICK_MS);
+}
+
+function step(){
+  raceTick++;
+  const prog = raceTick / TICKS;
+
+  state.field.forEach(h=>{
+    if(h.brokeTicks > 0){ h.brokeTicks--; if(h.brokeTicks === 0) h.broke = false; }
+    else if(Math.random() < h.temper * 0.045){
+      h.broke = true; h.brokeTicks = 3 + Math.floor(Math.random()*4);
+      if(raceTick < TICKS-6) setComment(h.name + " gör en galopp! Katastrof för " + h.jockey + "!", true);
+    }
+    const stam = 1 - Math.max(0, prog - 0.55) * (1.25 - h.stamina) * 0.9;
+    const speed = h.strength * stam * rnd(0.72, 1.3) * (h.broke ? 0.25 : 1);
+    h.pos += speed;
+  });
+
+  // kommentar vid milstolpar, plus varje gång ledningen byter ägare
+  const order = state.field.slice().sort((a,b)=>b.pos-a.pos);
+  const leader = order[0], last = order[order.length-1];
+  if(raceTick === 12) setComment(leader.name + " tar ledningen, " + order[1].name + " sitter i ryggen.");
+  else if(raceTick === 26) setComment("Halvvägs. " + leader.name + " leder och " + last.name + " är redan bortkörd.");
+  else if(raceTick === 40) setComment(order[1].name + " kommer på utsidan! " + leader.jockey + " försvarar sig.");
+  else if(raceTick === 52) setComment("Upploppet! " + leader.name + " och " + order[1].name + " sida vid sida!", true);
+  else if(raceTick === 60) setComment("Hundra meter kvar och detta blir jämnt!", true);
+  else if(lastLeader && leader !== lastLeader && raceTick > 6 && raceTick - lastCommentTick >= 7){
+    setComment(pick([
+      leader.name + " går förbi och tar över ledningen!",
+      leader.jockey + " tar kommandot med " + leader.name + "!",
+      "Ledningsbyte! " + leader.name + " tränger sig förbi " + lastLeader.name + ".",
+      lastLeader.name + " släpper till, " + leader.name + " tar över."
+    ]), true);
+  }
+  lastLeader = leader;
+
+  // Ledaren driver fältet framåt, övriga placeras efter faktiskt avstånd i längder
+  const maxPos = order[0].pos;
+  const leadLeft = 6 + prog * 85;
+  state.field.forEach(h=>{
+    const el = $("r"+h.n);
+    if(!el) return;
+    el.style.left = Math.max(4, leadLeft - (maxPos - h.pos) * 2.2) + "%";
+    el.classList.toggle("broke", h.broke);
+    el.classList.toggle("lead", h === order[0]);
+  });
+  $("raceClock").textContent = Math.round(prog * 2140) + " m";
+
+  if(raceTick >= TICKS){ clearInterval(raceTimer); finishRace(); }
+}
+
+function skipRace(){
+  clearInterval(raceTimer);
+  while(raceTick < TICKS) step();
+}
+
+function finishRace(){
+  if(raceDone) return;
+  raceDone = true;
+  const order = state.field.slice().sort((a,b)=>b.pos-a.pos);
+  const margin = order[0].pos - order[1].pos;
+  const photo = margin < 1.6;
+
+  state.field.forEach(h=>{
+    const el = $("r"+h.n);
+    if(el) el.style.left = Math.max(4, 91 - (order[0].pos - h.pos) * 2.2) + "%";
+  });
+
+  setComment(photo
+    ? "MÅLFOTO! Det går inte att se med blotta ögat!"
+    : order[0].name + " vinner lopp " + state.raceNo + "!", true);
+
+  const inquiry = Math.random() < 0.10;
+  setTimeout(()=>{
+    if(inquiry) runInquiry(order);
+    else showResult(order, null);
+  }, photo ? 2600 : 1900);
+}
+
+function runInquiry(order){
+  const ov = $("ovInquiry");
+  $("inquiryText").textContent = "Videogranskning pågår. " + order[0].jockey + " misstänks ha " +
+    pick(["hindrat en medtävlande","använt piskan på ett sätt som upprör","startat innan startbilen släppt","kört fel varv och haft tur","vägrat lämna in urinprov till huset"]) + ".";
+  $("inquiryOk").style.display = "none";
+  ov.classList.add("on");
+  setTimeout(()=>{ $("inquiryOk").style.display = ""; }, 3200);
+  $("inquiryOk").onclick = ()=>{
+    ov.classList.remove("on");
+    const demoted = order.shift();
+    order.push(demoted);
+    showResult(order, demoted);
+  };
+}
+
+/* =========================================================
+   RESULTAT
+   ========================================================= */
+function showResult(order, demoted){
+  state.finished = order;
+  show("s-result");
+  $("reTitle").textContent = "Lopp " + state.raceNo + " • resultat";
+  $("reCond").textContent = demoted
+    ? demoted.name + " diskvalificerad efter utredning. Huset behåller insatserna. Beklagar."
+    : state.dist + " • " + state.cond;
+
+  const pod = $("podium");
+  pod.innerHTML = "";
+  ["Vinnare","Tvåa","Trea"].forEach((lbl,i)=>{
+    const h = order[i];
+    if(!h) return;
+    const el = document.createElement("div");
+    el.className = "pod" + (i===0 ? " first" : "");
+    el.innerHTML = `<div class="pl">${lbl}</div>
+      <div class="num" style="${numStyle(h)};margin:6px auto 0">${h.n}</div>
+      <div class="pname">${h.name}</div>
+      <div class="pj">${h.jockey} • odds ${dec(h.odds)}</div>`;
+    pod.appendChild(el);
+  });
+
+  const winner = order[0];
+  const out = $("payouts");
+  out.innerHTML = "";
+  if(!state.bets.length){
+    out.innerHTML = `<div class="empty">Ingen spelade på det här loppet.<br>Huset vinner ändå.</div>`;
+  } else {
+    let paid = 0;
+    state.bets.forEach(b=>{
+      const won = b.horse === winner.n;
+      const amount = won ? b.stake * b.odds : 0;
+      paid += amount;
+      const h = state.field.find(x=>x.n===b.horse);
+      const el = document.createElement("div");
+      el.className = "payout" + (won ? " win" : "");
+      el.innerHTML = `<div class="who">${b.who}<br><span style="font-weight:600;color:var(--dim);font-size:12px">${h.n}. ${h.name} @ ${dec(b.odds)}</span></div>
+        <div class="res${won ? "" : " loss"}">${won ? "+" + fmt(amount) + " kr" : "-" + b.stake + " kr"}</div>`;
+      out.appendChild(el);
+    });
+    state.paidOut += paid;
+    $("paidout").textContent = fmt(state.paidOut) + " kr";
+  }
+}
+
+/* =========================================================
+   FLÖDE
+   ========================================================= */
+function newRace(){
+  state.raceNo++;
+  state.field = buildField(6);
+  state.bets = [];
+  state.selHorse = null;
+  state.cond = pick(BANOR);
+  state.dist = pick(DISTANSER);
+  state.finished = null;
+  renderPaddock();
+  show("s-paddock");
+  updateLobbyStats();
+}
+
+function updateLobbyStats(){
+  $("lsRaces").textContent = state.raceNo;
+  $("lsBets").textContent = state.totalBets;
+  $("lsTurnover").textContent = fmt(state.turnover) + " kr";
+}
+
+/* =========================================================
+   HÄNDELSER
+   ========================================================= */
+$("btnNewRace").addEventListener("click", newRace);
+$("btnReroll").addEventListener("click", ()=>{
+  state.field = buildField(6);
+  state.cond = pick(BANOR);
+  state.dist = pick(DISTANSER);
+  renderPaddock();
+});
+$("btnOpenBetting").addEventListener("click", ()=>{
+  if(!state.kycDone){ $("ovKyc").classList.add("on"); $("kycInput").focus(); return; }
+  show("s-betting"); renderBetting();
+});
+$("kycOk").addEventListener("click", ()=>{
+  state.kycDone = true;
+  $("ovKyc").classList.remove("on");
+  const v = $("kycInput").value.trim();
+  if(v) $("betName").value = v;
+  show("s-betting"); renderBetting();
+});
+$("btnBackPaddock").addEventListener("click", ()=>{ renderPaddock(); show("s-paddock"); });
+
+$("btnPlaceBet").addEventListener("click", ()=>{
+  const who = $("betName").value.trim() || "Anonym spelare";
+  if(state.selHorse == null){ setTemporary("Välj en häst först."); return; }
+  const h = state.field.find(x=>x.n===state.selHorse);
+  const odds = currentOdds(h);
+  state.bets.push({who, horse:h.n, stake:state.selStake, odds});
+  h.pool += state.selStake;
+  state.totalBets++;
+  state.turnover += state.selStake;
+  $("betName").value = "";
+  state.selHorse = null;
+  renderBetting();
+  updateLobbyStats();
+  toast(`<b>${who}</b> satsade ${state.selStake} kr på ${h.name}`);
+});
+function setTemporary(msg){
+  const b = $("btnPlaceBet"); const old = b.textContent;
+  b.textContent = msg; setTimeout(()=>{ b.textContent = old; }, 1200);
+}
+
+$("btnStartRace").addEventListener("click", startRace);
+$("btnSkip").addEventListener("click", skipRace);
+$("btnNextRace").addEventListener("click", newRace);
+$("btnLobby").addEventListener("click", ()=>{ updateLobbyStats(); show("s-lobby"); });
+
+
+/* =========================================================
+   FÖNSTERDRESSING
+   ========================================================= */
+function toast(html){
+  const t = document.createElement("div");
+  t.className = "toast";
+  t.innerHTML = html;
+  $("toasts").appendChild(t);
+  setTimeout(()=>t.remove(), 5200);
+  while($("toasts").children.length > 3) $("toasts").firstChild.remove();
+}
+setInterval(()=>{
+  if(Math.random() < 0.55){
+    toast(`<b>${pick(TOAST_NAMN)}</b> från ${pick(ORTER)} vann just ${fmt(rnd(400,48000))} kr`);
+  }
+}, 11000);
+
+let viewers = 4312;
+setInterval(()=>{
+  viewers += Math.round(rnd(-90, 120));
+  if(viewers < 900) viewers = 900 + Math.round(rnd(0,400));
+  $("viewers").textContent = fmt(viewers);
+}, 3000);
+
+/* uppstart */
+const CONNECT_LINES = [
+  "Upprättar säker anslutning till Willemstad...",
+  "Kontrollerar din geografiska position...",
+  "Hittade dig. Det är okej.",
+  "Laddar odds från tredjepartsleverantör...",
+  "Accepterar villkoren åt dig..."
+];
+let ci = 0;
+const connectTimer = setInterval(()=>{
+  ci++;
+  if(ci < CONNECT_LINES.length){ $("connectText").textContent = CONNECT_LINES[ci]; }
+  else { clearInterval(connectTimer); $("ovConnect").classList.remove("on"); }
+}, 750);
+$("ovConnect").classList.add("on");
+
+updateLobbyStats();
+</script>
+</body>
+</html>

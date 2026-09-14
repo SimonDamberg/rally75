@@ -1,0 +1,77 @@
+# Rally75
+
+V75/V85 parody betting site (with casino sleaze) for Simon's online-casino-themed party.
+Guests bet on their phones (`/`), Simon runs races as game master on an iPad (`/gm`),
+Supabase is the shared backend.
+
+- `docs/META_PLAN.md`: the contract between stages. Its Decisions table is fixed.
+- `docs/STATUS.md`: handoff log. Read it first, append your stage's section when done.
+- `docs/prototype/`: the original single-file prototype + its context doc. Reference only,
+  never import from it or edit it.
+
+## Hard rules
+
+- **Swedish** in all user-facing text, including errors, empty states and loading states.
+- **No em dash** (U+2014) anywhere under `src/`, in any language. A test enforces this. Use a
+  comma, a period or parentheses instead. In source code write `'\u2014'` if you must refer to it.
+- **No audio.** No sounds, no speech synthesis. Drama is carried visually.
+- Never use ATG's real name or logo. The brand is Rally75.
+- Balance is authoritative in the DB and changes **only** through server-side RPCs.
+- Network is required; show clear "Ingen anslutning" states with auto-retry, no offline mode.
+
+## Stack and commands
+
+Vite 8 + React 19 + TypeScript + Tailwind v4 (`@tailwindcss/vite`, `@import "tailwindcss"` in
+`src/index.css`) + React Router 7 (`react-router` package) + Vitest 4 + ESLint 10 (flat config).
+Supabase via `@supabase/supabase-js` (from Stage 2). Deployed on Vercel (`vercel.json` SPA rewrite).
+
+```
+npm run dev      # dev server
+npm test         # vitest run (all src/**/*.test.ts)
+npm run lint
+npm run build    # tsc -b && vite build
+```
+
+Env: copy `.env.example` to `.env.local`. Only `VITE_`-prefixed vars reach the browser.
+
+## Folder rules
+
+```
+src/shared/content/  Swedish word pools and copy. Data plus string templates only.
+src/shared/game/     Pure game logic: rng, field, odds, sim, format, types.
+src/lib/             Supabase client, typed RPC wrappers, realtime hooks. (Stage 2)
+src/ui/              Design-system components shared by both apps. (Stage 3)
+src/client/          Guest app, route "/".
+src/gm/              Game master app, route "/gm/*".
+supabase/migrations/ SQL migrations. (Stage 2)
+```
+
+- `src/shared/` never imports React, the DOM, or Supabase. It must run in Node (tests).
+- `src/shared/game` is **pure and deterministic**: all randomness goes through an `Rng` from
+  `createRng(seed)`. Never call `Math.random` there. `randomSeed()` is the one impure helper.
+- Every change in `src/shared/game` comes with tests. Key invariants that must stay green:
+  money on a horse always shortens it; same seed gives the same field and race timeline;
+  no duplicate horse names or final words in a field; 2 to 4 named kuskar per field.
+- Game copy lives in `src/shared/content`, not inline in components. New horse-name jokes go
+  in `EFTERLED` first. `SUBST` nouns must be in definite form.
+- `computeOdds` / `roundOdds` / `payoutFor` are mirrored in SQL (`place_bet`, settlement).
+  Change both sides together.
+- `src/client` and `src/gm` never import each other; share through `src/ui`, `src/lib`, `src/shared`.
+- Only `src/lib` imports Supabase.
+- Tests are colocated as `*.test.ts`. They are type-checked via `tsconfig.node.json` (Node
+  types available), while `tsconfig.app.json` covers app code with DOM types only.
+
+## Conventions
+
+- Code, identifiers and code comments in English; content pools keep their Swedish names
+  (`ORTER`, `EFTERLED`, ...) to match the prototype.
+- Formatting: `fmtKr`, `fmtOdds`, `fmtInt`, `playerLabel` in `src/shared/game/format.ts`
+  (no-break space thousands separator, decimal comma).
+- Devices: client is phone portrait (usable on desktop); GM is iPad landscape, readable at 2 m.
+
+## End of every stage
+
+1. `npm run build`, `npm test` and `npm run lint` pass.
+2. Append a section to `docs/STATUS.md`: done, deviations from META_PLAN, open issues,
+   manual steps for Simon.
+3. Commit. Then stop; the next stage starts in a fresh session.
