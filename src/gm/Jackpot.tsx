@@ -1,19 +1,19 @@
 // Fake, ever-growing jackpot on a tote board. Derived from the local clock (resets at noon) so a
 // reload never resets it mid-party.
-import { useEffect, useState } from 'react'
-import { ATTRACT } from '../shared/content/ui'
-import { fmtInt } from '../shared/game/format'
+import { useEffect, useState } from "react";
+import { ATTRACT } from "../shared/content/ui";
+import { fmtInt } from "../shared/game/format";
 
-const BASE = 4_750_000
-const PER_SECOND = 17
-const TICK_MS = 1100
-const DIGITS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+const BASE = 4_750_000;
+const PER_SECOND = 17;
+const TICK_MS = 1100;
+const DIGITS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 
 function jackpotAt(ms: number): number {
-  const noon = new Date(ms)
-  noon.setHours(12, 0, 0, 0)
-  if (noon.getTime() > ms) noon.setDate(noon.getDate() - 1)
-  return BASE + Math.floor(((ms - noon.getTime()) / 1000) * PER_SECOND)
+  const noon = new Date(ms);
+  noon.setHours(12, 0, 0, 0);
+  if (noon.getTime() > ms) noon.setDate(noon.getDate() - 1);
+  return BASE + Math.floor(((ms - noon.getTime()) / 1000) * PER_SECOND);
 }
 
 function Digit({ value }: { value: number }) {
@@ -30,21 +30,23 @@ function Digit({ value }: { value: number }) {
         ))}
       </span>
     </span>
-  )
+  );
 }
 
 export function Jackpot() {
-  const [amount, setAmount] = useState(() => jackpotAt(Date.now()))
+  const [amount, setAmount] = useState(() => jackpotAt(Date.now()));
   useEffect(() => {
-    const id = setInterval(() => setAmount(jackpotAt(Date.now())), TICK_MS)
-    return () => clearInterval(id)
-  }, [])
+    const id = setInterval(() => setAmount(jackpotAt(Date.now())), TICK_MS);
+    return () => clearInterval(id);
+  }, []);
 
   // Keyed from the right so each digit keeps its roll when the number gains a digit.
-  const chars = [...fmtInt(amount)].reverse()
+  const chars = [...fmtInt(amount)].reverse();
   return (
     <div className="bulbs self-start rounded-2xl bg-night-deep px-8 pt-5 pb-4 ring-2 ring-plate/60">
-      <p className="font-display text-tv-sm font-black tracking-[0.2em] text-sleaze uppercase">{ATTRACT.jackpotLabel}</p>
+      <p className="font-display text-tv-sm font-black tracking-[0.2em] text-sleaze uppercase">
+        {ATTRACT.jackpotLabel}
+      </p>
       <p
         role="img"
         aria-label={`${fmtInt(amount)} RM`}
@@ -52,12 +54,16 @@ export function Jackpot() {
       >
         {chars
           .map((c, i) =>
-            /\d/.test(c) ? <Digit key={i} value={Number(c)} /> : <span key={i} className="w-[0.22em]" />,
+            /\d/.test(c) ? (
+              <Digit key={i} value={Number(c)} />
+            ) : (
+              <span key={i} className="w-[0.22em]" />
+            ),
           )
           .reverse()}
-        <span className="ml-4 text-tv-lg text-ink">RM</span>
+        <span className="ml-4 text-tv-lg text-ink">RallyMynt</span>
       </p>
       <p className="mt-2 text-lg text-ink-dim">{ATTRACT.jackpotSmallPrint}</p>
     </div>
-  )
+  );
 }
