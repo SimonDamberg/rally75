@@ -1,8 +1,8 @@
 // Parimutuel totalisator with virtual seed money, ported from the prototype.
 // Invariant (tested): money on a horse always shortens that horse.
-// Stage 2 mirrors computeOdds + roundOdds in SQL inside place_bet; keep them in sync.
+// Mirrored in SQL (private.compute_odds, place_bet, gm_publish_result); keep them in sync.
 
-/** kr the house has notionally staked along the morning line. Raise to damp movement. */
+/** RM the house has notionally staked along the morning line. Raise to damp movement. */
 export const VIRTUAL_POOL = 700
 /** House margin. */
 export const TAKEOUT = 0.87
@@ -28,9 +28,13 @@ export function roundOdds(odds: number): number {
   return Math.round((odds + Number.EPSILON) * 100) / 100
 }
 
-/** Whole kronor paid on a winning bet (stake included). */
+/**
+ * Whole RallyMynt (RM) paid on a winning bet (stake included), rounded half up. Integer math on
+ * odds in hundredths so it matches SQL `round(stake * odds::numeric)` exactly; a float
+ * `Math.round(stake * odds)` gives 61 instead of 62 for 15 RM at 4.10.
+ */
 export function payoutFor(stake: number, odds: number): number {
-  return Math.round(stake * odds)
+  return Math.floor((stake * Math.round(odds * 100) + 50) / 100)
 }
 
 export type OddsDrift = 'up' | 'down' | 'none'

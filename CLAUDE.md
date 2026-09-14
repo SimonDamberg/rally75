@@ -30,9 +30,15 @@ npm run dev      # dev server
 npm test         # vitest run (all src/**/*.test.ts)
 npm run lint
 npm run build    # tsc -b && vite build
+npm run smoke -- --reset   # end-to-end backend check; WIPES players, bets, races
+npx supabase start         # local stack (Docker); `npx supabase db reset` reapplies migrations
+npx supabase db push       # apply new migrations to the linked hosted project
 ```
 
 Env: copy `.env.example` to `.env.local`. Only `VITE_`-prefixed vars reach the browser.
+Smoke against the local stack: set `SMOKE_SUPABASE_URL=http://127.0.0.1:54321`,
+`SMOKE_SUPABASE_KEY=<local publishable key from supabase start>`, `SMOKE_GM_PASSWORD` (set the
+local password with `supabase/snippets/set_gm_password.sql` via psql on port 54322).
 
 ## Folder rules
 
@@ -57,7 +63,11 @@ supabase/migrations/ SQL migrations. (Stage 2)
 - `computeOdds` / `roundOdds` / `payoutFor` are mirrored in SQL (`place_bet`, settlement).
   Change both sides together.
 - `src/client` and `src/gm` never import each other; share through `src/ui`, `src/lib`, `src/shared`.
-- Only `src/lib` imports Supabase.
+- Only `src/lib` imports Supabase. Components use the hooks in `src/lib/hooks.ts` and the
+  wrappers from `getApi()`; RPC errors arrive as `RallyError` with Swedish copy from
+  `src/shared/content/errors.ts` (add a code there when adding a `raise exception`).
+- Migrations are append-only once pushed: never edit an applied file, add a new one.
+- Economy constants (`src/shared/game/economy.ts`) are mirrored in SQL; a test checks both.
 - Tests are colocated as `*.test.ts`. They are type-checked via `tsconfig.node.json` (Node
   types available), while `tsconfig.app.json` covers app code with DOM types only.
 
@@ -65,7 +75,8 @@ supabase/migrations/ SQL migrations. (Stage 2)
 
 - Code, identifiers and code comments in English; content pools keep their Swedish names
   (`ORTER`, `EFTERLED`, ...) to match the prototype.
-- Formatting: `fmtKr`, `fmtOdds`, `fmtInt`, `playerLabel` in `src/shared/game/format.ts`
+- Currency is **RallyMynt (RM)**, never kronor/kr, in all user-facing text.
+- Formatting: `fmtRm`, `fmtOdds`, `fmtInt`, `playerLabel` in `src/shared/game/format.ts`
   (no-break space thousands separator, decimal comma).
 - Devices: client is phone portrait (usable on desktop); GM is iPad landscape, readable at 2 m.
 

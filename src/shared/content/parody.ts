@@ -24,5 +24,5 @@ export const EMPTY_BETS = "Inga spel lagda än. Ingen tror på något."
 export const EMPTY_PAYOUTS = "Ingen spelade på det här loppet. Huset vinner ändå."
 export const BETTING_SUBTITLE = "Odds rör sig med pengarna. Sista chansen."
 
-/** "Bosse från Östhammar vann just 31 573 kr" */
-export const fakeWinToast = (name: string, ort: string, kr: string) => `${name} från ${ort} vann just ${kr}`
+/** "Bosse från Östhammar vann just 31 573 RM" */
+export const fakeWinToast = (name: string, ort: string, amount: string) => `${name} från ${ort} vann just ${amount}`

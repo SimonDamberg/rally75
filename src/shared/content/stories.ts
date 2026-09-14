@@ -26,13 +26,13 @@ function pris(r: Rng): string {
 export type StoryTemplate = (h: string, k: string, r: Rng) => string
 
 export const STORY_MALLAR: readonly StoryTemplate[] = [
-  (h,_k,r)=>`${h} köptes för ${pris(r)} kronor av en ${r.pick(YRKEN)} från ${r.pick(ORTER)} som ${r.pick(HANDELSER)}. Har sedan dess ${r.pick(BEDRIFTER)}.`,
+  (h,_k,r)=>`${h} köptes för ${pris(r)} RallyMynt av en ${r.pick(YRKEN)} från ${r.pick(ORTER)} som ${r.pick(HANDELSER)}. Har sedan dess ${r.pick(BEDRIFTER)}.`,
   (_h,_k,r)=>`Föddes i ${r.pick(ORTER)} under ${r.pick(OMSTANDIGHETER)}. Vägrar springa om ${r.pick(KRAV)}.`,
   (_h,k,r)=>`Var ${r.pick(TIDIGARE)} innan olyckan i ${r.pick(ORTER)}. ${k} beskriver hästen som "${r.pick(CITAT)}".`,
   (_h,_k,r)=>`Såldes tre gånger på ett halvår. Nuvarande ägare, en ${r.pick(YRKEN)}, ${r.pick(HANDELSER)} och ångrar sig fortfarande.`,
   (h,_k,r)=>`Tränas numera i en hage utanför ${r.pick(ORTER)} eftersom ${h} ${r.pick(BEDRIFTER)}. Springer bara om ${r.pick(KRAV)}.`,
   (_h,_k,r)=>`Har ett förflutet som ${r.pick(TIDIGARE)}. Kom till travet efter ${r.pick(OMSTANDIGHETER)} och har aldrig riktigt förklarat sig.`,
-  (_h,k,r)=>`${k} tog över efter att förra kusken ${r.pick(HANDELSER)}. Hästen kostade ${pris(r)} kronor och har ${r.pick(BEDRIFTER)}.`,
+  (_h,k,r)=>`${k} tog över efter att förra kusken ${r.pick(HANDELSER)}. Hästen kostade ${pris(r)} RallyMynt och har ${r.pick(BEDRIFTER)}.`,
   (_h,_k,r)=>`Beskrivs i stallet som "${r.pick(CITAT)}". Föddes i ${r.pick(ORTER)}, uppfostrades av en ${r.pick(YRKEN)}, litar på ingen.`,
   (_h,_k,r)=>`Kom sist i sitt första lopp och har byggt hela sin karriär på det. Vägrar springa om ${r.pick(KRAV)}.`,
   (h,k,r)=>`Lämnade ${r.pick(ORTER)} efter ${r.pick(OMSTANDIGHETER)}. ${k} hävdar att ${h} är "${r.pick(CITAT)}" och vägrar utveckla.`,

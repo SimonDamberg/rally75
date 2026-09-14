@@ -1,4 +1,5 @@
-// Swedish display formatting. Thousands are grouped with a no-break space so "1 000 kr" never wraps.
+// Swedish display formatting. Thousands are grouped with a no-break space so "1 000 RM" never wraps.
+// The currency is RallyMynt (RM), never kronor.
 
 const NBSP = '\u00a0'
 
@@ -8,8 +9,8 @@ export function fmtInt(n: number): string {
   return sign + Math.abs(r).toString().replace(/\B(?=(\d{3})+(?!\d))/g, NBSP)
 }
 
-export function fmtKr(n: number): string {
-  return `${fmtInt(n)}${NBSP}kr`
+export function fmtRm(n: number): string {
+  return `${fmtInt(n)}${NBSP}RM`
 }
 
 /** 2.59 -> "2,59" */

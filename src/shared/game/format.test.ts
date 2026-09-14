@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { distMeters, fmtInt, fmtKr, fmtOdds, playerLabel } from './format'
+import { distMeters, fmtInt, fmtRm, fmtOdds, playerLabel } from './format'
 
 const NBSP = '\u00a0'
 
@@ -12,8 +12,8 @@ describe('format', () => {
     expect(fmtInt(-1234567)).toBe(`-1${NBSP}234${NBSP}567`)
   })
 
-  it('formats kronor', () => {
-    expect(fmtKr(1000)).toBe(`1${NBSP}000${NBSP}kr`)
+  it('formats RallyMynt', () => {
+    expect(fmtRm(1000)).toBe(`1${NBSP}000${NBSP}RM`)
   })
 
   it('formats odds with a decimal comma', () => {

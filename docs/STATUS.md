@@ -72,3 +72,89 @@ Every stage agent appends a section here when it finishes: what was done, deviat
 **Next:** Stage 2 (Supabase backend). Start a fresh session with:
 
 > Read CLAUDE.md, docs/META_PLAN.md and docs/STATUS.md, then plan and execute Stage 2.
+
+## Stage 2: Supabase backend (done, 2026-09-14)
+
+**Done**
+
+- Hosted project **Rally75** (ref `ftmnvwuczanrwdhfdabg`, eu-west-1) linked; migrations pushed with
+  `npx supabase db push`. `supabase/config.toml` committed for the local stack.
+- `supabase/migrations/`: `_schema` (tables per META_PLAN, RLS on all, `revoke all` + explicit
+  `grant select` on public tables, secret tables with no grants/policies, realtime publication
+  `game_state, races, bets, players`), `_rpc_client`, `_rpc_gm`, `_kusk_seed` (8 kuskar from
+  `NAMED_KUSKAR`). Helpers live in a `private` schema that PostgREST does not expose. Every
+  function is `set search_path = ''` and `EXECUTE` is granted only on the listed RPCs.
+- RPCs: `create_player`, `place_bet`, `take_loan`, `compute_odds`, `gm_login`, `gm_create_race`,
+  `gm_reroll_race`, `gm_set_status`, `gm_get_secrets`, `gm_publish_result`, `gm_adjust_balance`,
+  `gm_rename_player`, `gm_delete_player`, `gm_upsert_kusk`, `gm_delete_kusk`, `gm_reset_night`.
+  Errors are raised as stable codes (`race_not_betting`, ...), mapped to Swedish in
+  `src/shared/content/errors.ts`.
+- `src/lib/`: `client.ts` (factory), `supabase.ts` (browser singletons `getSupabase`/`getApi`),
+  `api.ts` (typed wrappers + reads), `types.ts` (hand-written row types using shared game types),
+  `errors.ts` (`RallyError`), `identity.ts` (localStorage store), `connection.ts`, `realtime.ts`
+  (pure reducers), `hooks.ts`: `useConnection`, `useActiveRace`, `useRaceBets`, `usePlayerBets`,
+  `usePlayer`, `useLeaderboard` (`top` + `losers`), `useKusks`.
+- `scripts/smoke.ts` (`npm run smoke -- --reset`): gm auth, RLS (anon cannot write any table or read
+  secrets/private), SQL/TS odds parity over 402 markets, full lifecycle with captured odds checked
+  against `computeOdds`, every error path, all four rulings, cancel-void refund, paddock
+  replacement, Snabblån, GM player/kusk management, Realtime delivery of bet INSERTs, night reset.
+  **Passes against the local stack and against the hosted project.**
+- New tests: exact payout math, economy constants mirrored in SQL, kusk seed in sync, error
+  mapping, realtime reducers and leaderboard sorting (47 tests total).
+- Currency renamed to **RallyMynt (RM)** at Simon's request: `fmtKr` is now `fmtRm` ("1 000 RM"),
+  copy, horse stories and docs updated. CLAUDE.md has the rule.
+
+**Semantics later stages rely on**
+
+- Race flow: `paddock>betting`, `betting>closed`, `closed>betting` (undo), `closed>running`;
+  `finished` only via `gm_publish_result` (race must be `running`); `gm_set_status(void)` from any
+  unsettled status cancels the race and **refunds** open bets (`status void, payout = stake`).
+- `gm_create_race` works when there is no active race or it is `paddock` (the paddock race is
+  deleted and replaced, same `race_no`), `finished` or `void`; otherwise `race_in_progress`.
+- `gm_publish_result(order)` takes the **simulated** finish order; the server applies the ruling.
+  `result = {order (official), original_order, ruling, inquiry_text}`. `pay_new_winner` demotes the
+  winner (as `demoteWinner`). Ruling `void` sets race `void` and bets `void` with `payout 0` (house
+  keeps stakes). Lost bets have `payout 0`, open bets `payout null`.
+- Bets are only accepted on the active race while `betting`. Odds are captured before the bet
+  joins the pool (pools = open bets).
+- Economy (`src/shared/game/economy.ts`, mirrored in SQL): bonus 1000, min stake 10, Snabblån
+  +500 balance / +1337 debt, only when balance < 10. Tags are random 10..99.
+- Realtime: `postgres_changes` only start flowing at the `system` "Subscribed to PostgreSQL" event,
+  which comes after `SUBSCRIBED`; hooks refetch at both. Filtered DELETE events are not delivered,
+  so bet hooks subscribe unfiltered and filter client-side. `kusks` is not in the publication:
+  call `useKusks().reload()` after GM edits.
+- If a guest RPC returns `player_not_found`, call `usePlayer().forget()` (the GM deleted them).
+
+**Deviations from META_PLAN**
+
+- `payoutFor` now uses integer math (the float version differed from SQL `round(stake * odds)` in
+  7 470 stake/odds pairs, for example 15 at 4.10 gave 61 instead of 62).
+- `gm_reset_night` pulled forward from Stage 7 (used by the smoke script).
+- Extra: public `compute_odds` RPC (parity check), `usePlayerBets`, `useKusks`, `result.original_order`.
+- Currency is RallyMynt (RM) instead of kronor (Simon's change; Decisions table updated).
+- Env var name kept as `VITE_SUPABASE_ANON_KEY`, but it holds the new publishable key
+  (`sb_publishable_...`).
+- Dev deps: `supabase` (CLI), `tsx`, `ws` (Node 20 has no global WebSocket for the smoke Realtime check).
+
+**Open issues**
+
+- Supabase advisors list every RPC as "SECURITY DEFINER executable by anon". That is by design (they
+  are the only write path and check the token/password inside); the secret tables "RLS without
+  policy" notices are also intentional (deny all).
+- The Vercel CLI token on this Mac is invalid, so the Vercel env vars were not added by the agent.
+- GM brute force is only slowed by bcrypt; use a long password (the generated one is).
+
+**Manual steps for Simon**
+
+1. **GM password**: generated and set on the hosted project; it is in `.env.local` as
+   `GM_PASSWORD` (gitignored). To change it, run `supabase/snippets/set_gm_password.sql` with
+   the new password in the Supabase SQL editor, and update `.env.local`.
+2. **Vercel env vars**: Vercel > rally75 > Settings > Environment Variables, add
+   `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` (values from `.env.local`) for Production and
+   Preview, then redeploy. Do **not** add `GM_PASSWORD` to Vercel.
+3. The free Supabase project pauses after 7 days idle; open the dashboard before the party.
+4. Local stack (optional): Docker Desktop + `npx supabase start`; `npx supabase stop` when done.
+
+**Next:** Stage 3 (Rally75 design system). Start a fresh session with:
+
+> Read CLAUDE.md, docs/META_PLAN.md and docs/STATUS.md, then plan and execute Stage 3.

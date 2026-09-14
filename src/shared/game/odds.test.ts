@@ -34,7 +34,7 @@ describe('computeOdds', () => {
     }
   })
 
-  it('prototype regression: 100 kr on a 3.77 horse must not lengthen it', () => {
+  it('prototype regression: 100 RM on a 3.77 horse must not lengthen it', () => {
     const horses = [3.77, 2.1, 5.5, 9.0, 14.0, 22.0].map((baseOdds) => ({ baseOdds }))
     const empty = computeOdds(horses, [0, 0, 0, 0, 0, 0])
     const backed = computeOdds(horses, [100, 0, 0, 0, 0, 0])
@@ -79,10 +79,22 @@ describe('odds helpers', () => {
     expect(roundOdds(80)).toBe(80)
   })
 
-  it('payoutFor returns whole kronor including stake', () => {
+  it('payoutFor returns whole RM including stake', () => {
     expect(payoutFor(100, 2.59)).toBe(259)
     expect(payoutFor(25, 3.33)).toBe(83)
     expect(payoutFor(10, 1.15)).toBe(12)
+  })
+
+  it('payoutFor is exact decimal math (matches SQL numeric round)', () => {
+    expect(payoutFor(15, 4.1)).toBe(62)
+    expect(payoutFor(50, 3.77)).toBe(189)
+    for (let stake = 1; stake <= 400; stake += 3) {
+      for (let cents = 115; cents <= 8000; cents += 7) {
+        // Exact: stake * cents / 100, half up, via BigInt.
+        const exact = Number((BigInt(stake) * BigInt(cents) + 50n) / 100n)
+        expect(payoutFor(stake, cents / 100)).toBe(exact)
+      }
+    }
   })
 
   it('oddsDrift uses a 0.01 threshold', () => {

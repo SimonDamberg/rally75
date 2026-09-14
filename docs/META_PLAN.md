@@ -7,7 +7,7 @@ Simon's party has an online-casino theme, and his outfit is horse racing. The ex
 toy with no persistence. We are rebuilding it as **Rally75**, a V75/V85 parody (ATG-style
 Swedish betting site with casino sleaze on top):
 
-- **Client** (`/`): guests on their own phones sign up with just a name, get a 1000 kr welcome
+- **Client** (`/`): guests on their own phones sign up with just a name, get a 1000 RM (RallyMynt) welcome
   bonus, and bet on the active race. Parody casino UX: pop-ups, empty promises, fake social proof.
 - **Game master** (`/gm`): Simon on an iPad (landscape, readable at 2 m), password-protected.
   Generates fields, controls the race lifecycle, runs the race animation, rules on inquiries,
@@ -27,7 +27,7 @@ contract between those sessions.
 | Race lifecycle | GM controls every step: `paddock` (field visible to guests, GM can reroll) -> `betting` -> `closed` -> `running` -> `finished`/`void`. No auto countdown. |
 | Horses | Fresh 6-horse field per race, rerollable. Content pools ported verbatim from prototype. |
 | Bet type | **Vinnare only.** Fixed odds captured at placement (prototype model). |
-| Economy | 1000 kr welcome bonus. When broke: predatory "Snabblån" pop-up (absurd interest, debt tracked, shown on leaderboard). |
+| Economy | Currency is **RallyMynt (RM)**, not kronor (changed by Simon in Stage 2). 1000 RM welcome bonus. When broke: predatory "Snabblån" pop-up (absurd interest, debt tracked, shown on leaderboard). |
 | Identity | Name only, duplicates allowed (displayed with random tag, e.g. "Simon #42"). `{playerId, token}` in localStorage. Lost storage = new account + new bonus (accepted). |
 | Balance | Authoritative in DB. All balance changes via server-side RPCs. |
 | Inquiry | ~10% of races. GM picks ruling on the iPad: pay the new winner / void, house keeps stakes / dismiss (original result stands). |
@@ -117,7 +117,7 @@ Each stage: one fresh agent session. Start prompt: *"Read CLAUDE.md, docs/META_P
 - Reload-safe: resuming mid-race replays from the stored seed.
 
 ### Stage 5: Client app core (`/`)
-- Onboarding: fake connect sequence, name entry + absurd KYC, cookie banner (every option accepts), 1000 kr bonus reveal.
+- Onboarding: fake connect sequence, name entry + absurd KYC, cookie banner (every option accepts), 1000 RM bonus reveal.
 - Home by race status: paddock (race card), betting (horse list with live odds ticker, chips 10/25/50/100/250 + "ALL IN", confirm with locked odds), closed/running ("Loppet pågår"), finished (result reveal pop-up: win/loss, inquiry ruling).
 - Balance header, Snabblån flow, My bets + history, Leaderboard (top balance + största förlorare).
 - Placing a bet from cold start must stay under 2 minutes.
