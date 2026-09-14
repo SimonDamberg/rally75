@@ -47,6 +47,7 @@ src/shared/content/  Swedish word pools and copy. Data plus string templates onl
 src/shared/game/     Pure game logic: rng, field, odds, sim, format, types.
 src/lib/             Supabase client, typed RPC wrappers, realtime hooks. (Stage 2)
 src/ui/              Design-system components shared by both apps. (Stage 3)
+src/ui/styleguide/   Dev-only gallery at /styleguide (phone + iPad frames). Not in prod builds.
 src/client/          Guest app, route "/".
 src/gm/              Game master app, route "/gm/*".
 supabase/migrations/ SQL migrations. (Stage 2)
@@ -70,6 +71,18 @@ supabase/migrations/ SQL migrations. (Stage 2)
 - Economy constants (`src/shared/game/economy.ts`) are mirrored in SQL; a test checks both.
 - Tests are colocated as `*.test.ts`. They are type-checked via `tsconfig.node.json` (Node
   types available), while `tsconfig.app.json` covers app code with DOM types only.
+
+## Design system (Stage 3)
+
+- Tokens live in `@theme` in `src/index.css`: colours `night`, `tote`, `tote-hi`, `plate` (yellow),
+  `sleaze` (pink), `cash` (green, wins, odds shortening), `drift` (red, errors, odds lengthening),
+  `void`, `ink`, `ink-dim`; fonts `font-display` (Big Shoulders Display) and `font-body` (Archivo,
+  use `[font-stretch:82%]` for condensed names); GM sizes `text-tv-sm/md/lg/xl`. Use tokens, not
+  raw Tailwind colours. Dark only.
+- Build screens from `src/ui` (import from `'../ui'`): `Logo`, `Button`, `Modal` (native
+  `<dialog>`, stacks), `toast()` + `<Toaster />`, `SilkBadge`, `OddsValue`, `HorseRow`,
+  `StatusBanner`, `BonusBar`, `ConnectionBadge`. Most take `size` with a `tv` variant for the iPad.
+- Component copy lives in `src/shared/content/ui.ts`. Check new components in `/styleguide`.
 
 ## Conventions
 

@@ -160,3 +160,65 @@ Every stage agent appends a section here when it finishes: what was done, deviat
 **Next:** Stage 3 (Rally75 design system). Start a fresh session with:
 
 > Read CLAUDE.md, docs/META_PLAN.md and docs/STATUS.md, then plan and execute Stage 3.
+
+## Stage 3: Rally75 design system (done, 2026-09-14)
+
+**Done**
+
+- Direction: V75 tote programme run by an offshore casino. Deep tote blue ground, yellow
+  start-number plates, pink sleaze, green/red odds drift. Dark only.
+- Signature: the logo is RALLY + a yellow **75 plate** slanted forward with a pink offset shadow;
+  `SilkBadge` uses the same plate for every start number.
+- Fonts self-hosted from npm (no Google Fonts request): Big Shoulders Display (display, odds,
+  buttons) and Archivo with its width axis (body, condensed horse names). Only the latin subsets
+  download.
+- `src/index.css`: `@theme` tokens (colours, fonts, `text-tv-*` sizes for 2 m, animations),
+  `plate`/`unplate`/`bulbs` utilities, base styles, focus ring, dialog backdrop, scroll lock while
+  a dialog is open, reduced-motion override.
+- `src/ui/`: `Logo`, `Button` (primary/sleaze/ghost/danger, md/lg/tv, loading), `Modal` (native
+  `<dialog>` + `showModal()`: stacks in open order, Esc closes the top one, backdrop tap closes
+  when `dismissible`), `toast()` store + `Toaster`, `SilkBadge` (lead glow, galopp wobble),
+  `OddsValue` (flash + persistent drift colour and arrow), `HorseRow` (`card` / `pick`, selectable,
+  tv size), `StatusBanner` (per race status), `BonusBar` (marquee + chasing bulbs),
+  `ConnectionBadge` (pill, or banner shown only while offline). Barrel `src/ui/index.ts`.
+- Copy in `src/shared/content/ui.ts` (status titles/subtitles, connection labels, small labels).
+- Dev-only `/styleguide` (phone 390x844 and scaled iPad 1180x820 iframes) and
+  `/styleguide/frame?device=phone|ipad` with every component, a fixed-seed field, fake bets that
+  move odds, status/connection cyclers, toasts and two stacked modals. Lazy routes behind
+  `import.meta.env.DEV`; verified absent from `dist`.
+- Placeholders `/` and `/gm` now use `Logo`, `BonusBar`, `Button`, `HorseRow`.
+- Tests: `src/ui/drift.test.ts`, `src/ui/toast.test.ts` (55 tests total).
+- Verified: build, test, lint pass. Headless Chromium (Playwright's cached headless shell driven by
+  a throwaway `playwright-core` script) at 390x844 and 1180x820: no horizontal scroll, both fonts
+  loaded, no console errors, odds drift after fake bets, 2 stacked dialogs, Esc ignored by the
+  non-dismissible top one and closing the dismissible one below.
+
+**Deviations from META_PLAN**
+
+- Palette is a dark tote blue rather than a light ATG-style page (dim party room, one theme).
+- Extra: `Logo`, `Toaster`, `drift.ts`, `cx.ts`, `src/fonts.d.ts` (the Big Shoulders package has no
+  CSS type declaration).
+- No jackpot banner component; Stage 6 can compose one from `BonusBar`/`StatusBanner` styles.
+
+**Notes for Stages 4 and 5**
+
+- Wire `ConnectionBadge status={useConnection()}` in both apps (pill in the header plus the banner).
+- Mount `<Toaster />` once per app. Toasts sit below open dialogs (browser top layer).
+- `OddsValue` keeps its drift colour until the next change; it derives drift from the `value`
+  prop, so keep the component mounted (stable `key`) for the ticker to work.
+- `HorseRow variant="pick" size="tv"` in a 2-column grid truncates kusk names on the iPad; use one
+  column or `size="md"` for dense GM panels.
+- `Modal` with `dismissible={false}` (bet confirm, KYC) shows no close button and ignores Esc and
+  backdrop taps.
+
+**Open issues**
+
+- None blocking. iOS Safari `<dialog>` behaviour should get a real-device check in Stage 7.
+
+**Manual steps for Simon**
+
+- None. Optional: `npm run dev` and open http://localhost:5173/styleguide to see the design system.
+
+**Next:** Stage 4 (Game master app). Start a fresh session with:
+
+> Read CLAUDE.md, docs/META_PLAN.md and docs/STATUS.md, then plan and execute Stage 4.

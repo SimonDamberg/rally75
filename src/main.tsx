@@ -1,9 +1,15 @@
-import { StrictMode } from 'react'
+import { lazy, StrictMode, Suspense } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router'
+import '@fontsource-variable/archivo/wdth.css'
+import '@fontsource-variable/big-shoulders-display'
 import './index.css'
 import ClientApp from './client/ClientApp'
 import GmApp from './gm/GmApp'
+
+// Dev-only component gallery; import.meta.env.DEV is false in production builds, so it is dropped.
+const Styleguide = import.meta.env.DEV ? lazy(() => import('./ui/styleguide/Styleguide')) : null
+const Gallery = import.meta.env.DEV ? lazy(() => import('./ui/styleguide/Gallery')) : null
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -11,6 +17,12 @@ createRoot(document.getElementById('root')!).render(
       <Routes>
         <Route path="/" element={<ClientApp />} />
         <Route path="/gm/*" element={<GmApp />} />
+        {Styleguide && Gallery && (
+          <>
+            <Route path="/styleguide" element={<Suspense><Styleguide /></Suspense>} />
+            <Route path="/styleguide/frame" element={<Suspense><Gallery /></Suspense>} />
+          </>
+        )}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
