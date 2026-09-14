@@ -238,3 +238,30 @@ Requested by Simon before Stage 4:
   `distMeters(race.dist)` still feeds the sim clock.
 - META_PLAN Decisions table updated (Horses row). Stages 4 to 6: do not display `title`, `dist`
   or `cond`, even where the prototype did.
+
+## GM attract screen (done, 2026-09-14)
+
+Requested by Simon: idle animations on the iPad to pull guests in.
+
+- `src/gm/Attract.tsx`: full-screen idle view. Now shown by the `/gm` placeholder (a dim
+  "Testfält" button bottom right opens the old test field). Contents:
+  - Join QR code (`QrCode` in `src/ui`, SVG via the new dependency `uqr`) for
+    `window.location.origin`, host name printed under it, 1 000 RM bonus pill.
+  - `Jackpot.tsx`: fake "Kvällens jackpott" on a bulb-lit tote board, odometer digits rolling
+    every 1.1 s. Derived from the local clock (resets at noon), so reloads never reset it.
+  - Rotating sleaze lines and a live "N spelare vid bordet / Senast in" count (`useLeaderboard`).
+  - `JoinFanfare.tsx`: a pink banner sweeps across for every new sign-up ("Simon #42 är med,
+    +1 000 RM på kontot"). Players present at load are not announced; more than 3 queued fold
+    into one "och N till" banner.
+  - `TrotParade.tsx`: the 4 start-number plates trot across a scrolling rail with speed streaks,
+    trading the lead (leader glows), with a random galopp every 5 to 11 s. rAF, DOM transforms
+    only; static when reduced motion is on.
+  - `useWakeLock.ts`: keeps the iPad screen on while the attract screen is mounted.
+- Copy in `ATTRACT` (`src/shared/content/ui.ts`); new animation tokens `trot`, `rail`,
+  `fanfare`, `count-pop` in `src/index.css`.
+- Verified in headless Chromium at 1180x820 and 1024x768 (no overflow, no console errors); the
+  fanfare was tested with mocked `players` responses (single join and a folded rush of 4).
+
+**Notes for Stage 4:** show `<Attract />` when there is no active race and between races
+(finished/void), and switch to the race panel when the GM starts one. Wake lock needs a secure
+context (the Vercel https URL, not a LAN IP). The QR points at the origin the iPad opened.

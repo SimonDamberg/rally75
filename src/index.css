@@ -36,6 +36,10 @@
   --animate-toast-in: toast-in 0.3s ease-out;
   --animate-pop-in: pop-in 0.22s ease-out;
   --animate-wobble: wobble 0.3s ease-in-out infinite;
+  --animate-trot: trot 0.34s ease-in-out infinite alternate;
+  --animate-rail: rail 0.7s linear infinite;
+  --animate-fanfare: fanfare 3.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  --animate-count-pop: count-pop 0.6s cubic-bezier(0.3, 1.6, 0.5, 1);
 
   @keyframes pulse-live {
     0%, 100% { opacity: 1; transform: scale(1); }
@@ -53,6 +57,22 @@
   }
   @keyframes pop-in {
     from { opacity: 0; transform: translateY(1rem) scale(0.96); }
+  }
+  @keyframes trot {
+    to { transform: translateY(-0.4rem); }
+  }
+  /* Rail posts and lane dashes share a 120px period so the track scrolls as one piece. */
+  @keyframes rail {
+    to { background-position-x: -120px; }
+  }
+  /* Sweeps in, holds, sweeps out. */
+  @keyframes fanfare {
+    0% { transform: translateX(-110%) skewY(-4deg); }
+    14%, 84% { transform: translateX(0) skewY(-4deg); }
+    100% { transform: translateX(110%) skewY(-4deg); }
+  }
+  @keyframes count-pop {
+    from { transform: scale(1.7); color: var(--color-plate); }
   }
   /* Keeps the plate skew while the badge wobbles (galopp). */
   @keyframes wobble {

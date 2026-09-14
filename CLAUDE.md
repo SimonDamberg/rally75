@@ -81,7 +81,7 @@ supabase/migrations/ SQL migrations. (Stage 2)
   raw Tailwind colours. Dark only.
 - Build screens from `src/ui` (import from `'../ui'`): `Logo`, `Button`, `Modal` (native
   `<dialog>`, stacks), `toast()` + `<Toaster />`, `SilkBadge`, `OddsValue`, `HorseRow`,
-  `StatusBanner`, `BonusBar`, `ConnectionBadge`. Most take `size` with a `tv` variant for the iPad.
+  `StatusBanner`, `BonusBar`, `ConnectionBadge`, `QrCode`. Most take `size` with a `tv` variant for the iPad.
 - Component copy lives in `src/shared/content/ui.ts`. Check new components in `/styleguide`.
 
 ## Conventions

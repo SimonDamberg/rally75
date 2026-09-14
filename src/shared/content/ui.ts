@@ -32,3 +32,28 @@ export const UI_LABELS = {
   loading: 'Laddar',
   startNumber: (n: number) => `Startnummer ${n}`,
 } as const
+
+/** GM attract screen: shown on the iPad between races to pull guests in. */
+export const ATTRACT = {
+  jackpotLabel: 'Kvällens jackpott',
+  jackpotSmallPrint: '* Betalas ut i mån av tid.',
+  scan: 'Skanna och spela',
+  bonus: (amount: string) => `${amount} i välkomstbonus`,
+  qrLabel: (url: string) => `QR-kod till ${url}`,
+  players: (n: number) => `${n} spelare vid bordet`,
+  noPlayers: 'Bordet är tomt. Bli först.',
+  lastIn: (label: string) => `Senast in: ${label}`,
+  joined: (label: string) => `${label} är med`,
+  joinedMany: (label: string, more: number) => `${label} och ${more} till är med`,
+  joinedBonus: (amount: string) => `+${amount} på kontot`,
+  lines: [
+    'Inget konto. Bara ett namn.',
+    'Bonusen väntar. Inte länge till.',
+    'Oddsen rör sig. Du borde också.',
+    'Huset har aldrig varit så generöst.',
+    'Alla vinner. Statistiskt sett nästan.',
+    'Första spelet är alltid gratis. Typ.',
+  ],
+  testField: 'Testfält',
+  back: 'Tillbaka',
+} as const
