@@ -5,7 +5,7 @@ import { useConnection, useLeaderboard } from "../lib/hooks";
 import type { PlayerRow } from "../lib/types";
 import { ATTRACT } from "../shared/content/ui";
 import { WELCOME_BONUS } from "../shared/game/economy";
-import { fmtRm, fmtRmLong, playerLabel } from "../shared/game/format";
+import { fmtRmLong, playerLabel } from "../shared/game/format";
 import { BonusBar, ConnectionBadge, Logo, QrCode } from "../ui";
 import { Jackpot } from "./Jackpot";
 import { JoinFanfare } from "./JoinFanfare";
