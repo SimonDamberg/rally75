@@ -63,9 +63,10 @@ Every stage agent appends a section here when it finishes: what was done, deviat
 
 **Manual steps for Simon**
 
-1. Create the GitHub repo and push (from the project folder):
-   `gh repo create rally75 --private --source . --push`
-2. Vercel: Add New Project, import `rally75`, framework preset Vite, defaults. Deploy.
+1. ~~Create the GitHub repo and push.~~ Done: https://github.com/SimonDamberg/rally75 (private).
+   The remote uses HTTPS with `gh` as the repo-local credential helper (no SSH key on this Mac),
+   so `git push` works as is.
+2. Vercel (if not done yet): Add New Project, import `rally75`, framework preset Vite, defaults. Deploy.
    `/` and `/gm` should both load (placeholders).
 
 **Next:** Stage 2 (Supabase backend). Start a fresh session with:
