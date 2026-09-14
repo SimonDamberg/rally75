@@ -19,7 +19,7 @@ export function fmtRm(n: number): string {
 }
 
 export function fmtRmLong(n: number): string {
-  return `${fmtInt(n)}${NBSP} RallyMynt`;
+  return `${fmtInt(n)}${NBSP}RallyMynt`;
 }
 
 /** 2.59 -> "2,59" */

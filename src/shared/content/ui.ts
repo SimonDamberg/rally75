@@ -50,7 +50,7 @@ export const ATTRACT = {
   bonus: (amount: string) => `${amount} i välkomstbonus`,
   qrLabel: (url: string) => `QR-kod till ${url}`,
   players: (n: number) => `${n} spelare vid bordet`,
-  noPlayers: "Bli först att kamma hem drömvinsten.",
+  noPlayers: "Bli först att kamma hem drömvinsten",
   lastIn: (label: string) => `Senast in: ${label}`,
   joined: (label: string) => `${label} är med`,
   joinedMany: (label: string, more: number) =>
@@ -58,8 +58,10 @@ export const ATTRACT = {
   joinedBonus: (amount: string) => `+${amount} på kontot`,
   lines: [
     "Inget konto behövs!",
-    "Huset har aldrig varit så generöst.",
-    "Statistiskt sett vinner alla (nästan)",
+    "Huset har aldrig varit så generöst",
+    "Statistiskt sett vinner (nästan) alla",
+    "Krossa facebookmorsorna på hemmaplan",
+    "Här trivs du som spindeln i nätet",
   ],
   testField: "Testfält",
   back: "Tillbaka",
