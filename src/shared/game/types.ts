@@ -14,7 +14,7 @@ export interface HorsePublic {
   n: number
   name: string
   jockey: string
-  /** Kusk epithet, shown in parentheses after the kusk name. */
+  /** Kusk epithet. Kept in the data, never shown in the UI. */
   title: string
   story: string
   jnote: string
@@ -50,6 +50,7 @@ export interface Field {
 }
 
 export interface RaceCard extends Field {
+  /** Stored (and `dist` drives the sim clock) but never shown: no race stats on screen. */
   dist: string
   cond: string
 }

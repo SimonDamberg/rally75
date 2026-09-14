@@ -25,7 +25,7 @@ contract between those sessions.
 | Language | Swedish everywhere, including errors. No em dashes in any user-facing text. No audio. |
 | Race view | Race animation runs **only on the GM iPad**. Phones show state ("Loppet pågår") and then a result reveal. |
 | Race lifecycle | GM controls every step: `paddock` (field visible to guests, GM can reroll) -> `betting` -> `closed` -> `running` -> `finished`/`void`. No auto countdown. |
-| Horses | Fresh 6-horse field per race, rerollable. Content pools ported verbatim from prototype. |
+| Horses | Fresh **4-horse** field per race, rerollable (changed from 6 by Simon after Stage 3, to fit the iPad). Content pools ported verbatim from prototype. The UI shows **no kusk title** in parentheses after the kusk name and **no race stats** (distance, track conditions); the data still carries `title`, `dist`, `cond`. |
 | Bet type | **Vinnare only.** Fixed odds captured at placement (prototype model). |
 | Economy | Currency is **RallyMynt (RM)**, not kronor (changed by Simon in Stage 2). 1000 RM welcome bonus. When broke: predatory "Snabblån" pop-up (absurd interest, debt tracked, shown on leaderboard). |
 | Identity | Name only, duplicates allowed (displayed with random tag, e.g. "Simon #42"). `{playerId, token}` in localStorage. Lost storage = new account + new bonus (accepted). |

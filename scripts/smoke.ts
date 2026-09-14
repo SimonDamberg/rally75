@@ -13,7 +13,7 @@ import { createApi } from '../src/lib/api'
 import { RallyError } from '../src/lib/errors'
 import type { BetRow, Identity, RaceCardInput } from '../src/lib/types'
 import type { ErrorCode } from '../src/shared/content/errors'
-import { buildField, buildRaceCard } from '../src/shared/game/field'
+import { buildField, buildRaceCard, FIELD_SIZE } from '../src/shared/game/field'
 import { computeOdds, payoutFor, poolsFromBets, roundOdds } from '../src/shared/game/odds'
 import { createRng } from '../src/shared/game/rng'
 import { LOAN_AMOUNT, LOAN_DEBT, MIN_STAKE, WELCOME_BONUS } from '../src/shared/game/economy'
@@ -176,7 +176,7 @@ await step('SQL/TS odds parity (400 markets)', async () => {
   const markets: { base: number[]; pools: number[] }[] = []
   for (let i = 0; i < 400; i++) {
     const r = createRng(i + 1)
-    const { horses } = buildField(6, kusks, r)
+    const { horses } = buildField(FIELD_SIZE, kusks, r)
     const scale = [0, 50, 500, 5000, 100000][i % 5]
     const pools = horses.map(() => (r.int(3) === 0 ? 0 : r.int(scale + 1)))
     markets.push({ base: horses.map((h) => h.baseOdds), pools })

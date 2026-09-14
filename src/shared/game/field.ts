@@ -5,7 +5,7 @@ import { ADJ, EFTERLED, EFTERNAMN, EPITET, FORLED, FORNAMN, KUSKTITEL, ORTER, SU
 import { KUSK_NOTER, STORY_MALLAR } from '../content/stories'
 import { BANOR, DISTANSER, KOMMENTARER, SILKS, TIPS } from '../content/race'
 
-export const FIELD_SIZE = 6
+export const FIELD_SIZE = 4
 export const MIN_NAMED_KUSKAR = 2
 export const MAX_NAMED_KUSKAR = 4
 

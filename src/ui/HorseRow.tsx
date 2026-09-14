@@ -61,7 +61,7 @@ export function HorseRow({
           {horse.name}
         </span>
         <span className={cx('text-plate', pick && 'truncate', tv ? 'text-2xl' : 'text-sm')}>
-          {UI_LABELS.kusk}: {horse.jockey} ({horse.title})
+          {UI_LABELS.kusk}: {horse.jockey}
         </span>
       </span>
       <span className="flex shrink-0 flex-col items-end gap-1">

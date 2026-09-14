@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import { createRng } from './rng'
-import { buildField } from './field'
+import { buildField, FIELD_SIZE } from './field'
 import { commentAt, demoteWinner, INQUIRY_RATE, PHOTO_MARGIN, simulateRace, TICKS } from './sim'
 import { NAMED_KUSKAR } from '../content/kuskar'
 
 function race(seed: number) {
-  const { horses, stats } = buildField(6, NAMED_KUSKAR, createRng(seed))
+  const { horses, stats } = buildField(FIELD_SIZE, NAMED_KUSKAR, createRng(seed))
   return { horses, stats, timeline: simulateRace({ horses, stats, seed, raceNo: 3, meters: 2140 }) }
 }
 

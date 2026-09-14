@@ -222,3 +222,19 @@ Every stage agent appends a section here when it finishes: what was done, deviat
 **Next:** Stage 4 (Game master app). Start a fresh session with:
 
 > Read CLAUDE.md, docs/META_PLAN.md and docs/STATUS.md, then plan and execute Stage 4.
+
+## Adjustments after Stage 3 (done, 2026-09-14)
+
+Requested by Simon before Stage 4:
+
+- **4 horses per race** (`FIELD_SIZE = 4` in `src/shared/game/field.ts`, was 6) so a whole field
+  fits on the iPad. Tests and the smoke odds-parity check use `FIELD_SIZE`. SQL needs no change
+  (`gm_create_race` accepts 2 or more horses). Named kuskar are still 2 to 4 per field, so a race
+  can now be all friends.
+- **No kusk title in parentheses** after the kusk name (`HorseRow`). `title` stays in the data,
+  the `kusks` table and `gm_upsert_kusk`; Stage 4's Kuskar tab can skip the field.
+- **No race stats** (distance, track conditions) on screen. Removed from the GM placeholder and
+  the styleguide. `dist`/`cond` are still generated and stored (DB columns are `not null`), and
+  `distMeters(race.dist)` still feeds the sim clock.
+- META_PLAN Decisions table updated (Horses row). Stages 4 to 6: do not display `title`, `dist`
+  or `cond`, even where the prototype did.

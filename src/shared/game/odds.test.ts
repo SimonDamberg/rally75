@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { createRng } from './rng'
-import { buildField } from './field'
+import { buildField, FIELD_SIZE } from './field'
 import { NAMED_KUSKAR } from '../content/kuskar'
 import {
   computeOdds,
@@ -20,7 +20,7 @@ describe('computeOdds', () => {
   it('INVARIANT: money on a horse always shortens it and never shortens the others', () => {
     const r = createRng(2024)
     for (let trial = 0; trial < 2000; trial++) {
-      const { horses } = buildField(6, NAMED_KUSKAR, createRng(trial + 1))
+      const { horses } = buildField(FIELD_SIZE, NAMED_KUSKAR, createRng(trial + 1))
       const pools = horses.map(() => (r.next() < 0.4 ? 0 : r.pick(STAKES) * (1 + r.int(4))))
       const before = computeOdds(horses, pools)
       const i = r.int(horses.length)
@@ -44,10 +44,10 @@ describe('computeOdds', () => {
 
   it('with no bets, keeps the morning line ordering and a book of 1/TAKEOUT', () => {
     for (let seed = 1; seed < 300; seed++) {
-      const { horses } = buildField(6, NAMED_KUSKAR, createRng(seed))
+      const { horses } = buildField(FIELD_SIZE, NAMED_KUSKAR, createRng(seed))
       const odds = computeOdds(horses, horses.map(() => 0))
-      for (let a = 0; a < 6; a++) {
-        for (let b = 0; b < 6; b++) {
+      for (let a = 0; a < horses.length; a++) {
+        for (let b = 0; b < horses.length; b++) {
           if (horses[a].baseOdds < horses[b].baseOdds) expect(odds[a]).toBeLessThanOrEqual(odds[b] + EPS)
         }
       }

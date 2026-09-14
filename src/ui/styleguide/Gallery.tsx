@@ -142,7 +142,7 @@ export default function Gallery() {
           </div>
           <div className="grid gap-2 md:grid-cols-2">
             {STATUSES.map((s, i) => (
-              <StatusBanner key={s} status={s} raceNo={i + 1} detail={i === 0 ? card.dist : undefined} />
+              <StatusBanner key={s} status={s} raceNo={i + 1} />
             ))}
           </div>
         </Section>
@@ -181,7 +181,7 @@ export default function Gallery() {
           </div>
         </Section>
 
-        <Section title={`Loppkort (card), ${card.dist}, ${card.cond}`}>
+        <Section title="Loppkort (card)">
           <div className={tv ? 'grid grid-cols-2 gap-4' : 'flex flex-col gap-3'}>
             {card.horses.map((h, i) => (
               <HorseRow key={h.n} horse={h} odds={odds[i]} pool={pools[i]} size={size} />

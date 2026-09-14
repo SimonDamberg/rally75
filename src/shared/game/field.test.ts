@@ -12,15 +12,15 @@ describe('buildField', () => {
   it('respects all per-field constraints', () => {
     for (const seed of SEEDS) {
       const { horses, stats } = buildField(FIELD_SIZE, NAMED_KUSKAR, createRng(seed))
-      expect(horses.map((h) => h.n)).toEqual([1, 2, 3, 4, 5, 6])
-      expect(stats.map((s) => s.n)).toEqual([1, 2, 3, 4, 5, 6])
+      expect(horses.map((h) => h.n)).toEqual([1, 2, 3, 4])
+      expect(stats.map((s) => s.n)).toEqual([1, 2, 3, 4])
 
       const names = horses.map((h) => h.name)
-      expect(new Set(names).size, `dubbla namn, seed ${seed}`).toBe(6)
-      expect(new Set(names.map(finalWord)).size, `dubbla slutord, seed ${seed}: ${names}`).toBe(6)
-      expect(new Set(horses.map((h) => h.jockey)).size).toBe(6)
-      expect(new Set(horses.map((h) => h.note)).size).toBe(6)
-      expect(new Set(horses.map((h) => h.tip)).size).toBe(6)
+      expect(new Set(names).size, `dubbla namn, seed ${seed}`).toBe(FIELD_SIZE)
+      expect(new Set(names.map(finalWord)).size, `dubbla slutord, seed ${seed}: ${names}`).toBe(FIELD_SIZE)
+      expect(new Set(horses.map((h) => h.jockey)).size).toBe(FIELD_SIZE)
+      expect(new Set(horses.map((h) => h.note)).size).toBe(FIELD_SIZE)
+      expect(new Set(horses.map((h) => h.tip)).size).toBe(FIELD_SIZE)
 
       const named = horses.filter((h) => namedNames.has(h.jockey)).length
       expect(named).toBeGreaterThanOrEqual(2)
@@ -48,7 +48,7 @@ describe('buildField', () => {
 
   it('named kuskar use their own title and notes', () => {
     for (const seed of SEEDS.slice(0, 200)) {
-      for (const h of buildField(6, NAMED_KUSKAR, createRng(seed)).horses) {
+      for (const h of buildField(FIELD_SIZE, NAMED_KUSKAR, createRng(seed)).horses) {
         const k = NAMED_KUSKAR.find((x) => x.name === h.jockey)
         if (!k) continue
         expect(h.title).toBe(k.title)
@@ -59,15 +59,15 @@ describe('buildField', () => {
 
   it('caps named kuskar by how many exist', () => {
     for (const seed of SEEDS.slice(0, 100)) {
-      expect(buildField(6, [], createRng(seed)).horses.some((h) => namedNames.has(h.jockey))).toBe(false)
-      const one = buildField(6, NAMED_KUSKAR.slice(0, 1), createRng(seed)).horses
+      expect(buildField(FIELD_SIZE, [], createRng(seed)).horses.some((h) => namedNames.has(h.jockey))).toBe(false)
+      const one = buildField(FIELD_SIZE, NAMED_KUSKAR.slice(0, 1), createRng(seed)).horses
       expect(one.filter((h) => h.jockey === NAMED_KUSKAR[0].name)).toHaveLength(1)
     }
   })
 
   it('falls back to a generic note when a named kusk has no notes', () => {
     const kusk = { name: 'Testkusk', title: 'ny', notes: [] }
-    const { horses } = buildField(6, [kusk, { ...kusk, name: 'Testkusk2' }], createRng(3))
+    const { horses } = buildField(FIELD_SIZE, [kusk, { ...kusk, name: 'Testkusk2' }], createRng(3))
     for (const h of horses.filter((x) => x.jockey.startsWith('Testkusk'))) {
       expect(h.jnote).toContain(h.jockey)
     }

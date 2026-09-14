@@ -23,16 +23,11 @@ export default function GmApp() {
         </Button>
       </div>
       {card && (
-        <>
-          <p className="mb-4 text-2xl text-ink-dim">
-            {card.dist} • {card.cond}
-          </p>
-          <div className="grid grid-cols-2 gap-4">
-            {card.horses.map((h, i) => (
-              <HorseRow key={h.n} horse={h} odds={odds[i]} size="tv" />
-            ))}
-          </div>
-        </>
+        <div className="grid grid-cols-2 gap-4">
+          {card.horses.map((h, i) => (
+            <HorseRow key={h.n} horse={h} odds={odds[i]} size="tv" />
+          ))}
+        </div>
       )}
     </main>
   )
