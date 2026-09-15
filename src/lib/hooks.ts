@@ -6,7 +6,7 @@ import { RallyError, toRallyError } from './errors'
 import { identityStore } from './identity'
 import { applyChange, byBalance, byLosses, type RowChange } from './realtime'
 import { getApi, getSupabase } from './supabase'
-import { toBet, toPlayer, type BetRow, type Identity, type KuskRow, type PlayerRow, type RaceRow } from './types'
+import { toBet, toPlayer, toRace, type BetRow, type Identity, type KuskRow, type PlayerRow, type RaceRow } from './types'
 
 export interface LiveResult<T> {
   /** undefined until the first successful fetch. */
@@ -145,6 +145,19 @@ export function useActiveRace(): LiveResult<RaceRow | null> {
     key: 'active-race',
     load: () => getApi().getActiveRace(),
     tables: ['game_state', 'races'],
+  })
+}
+
+/** Every race of the night, by race number. Used for the guest bet history. */
+export function useRaces(): LiveResult<RaceRow[]> {
+  return useLive({
+    key: 'races',
+    load: () => getApi().getRaces(),
+    tables: ['races'],
+    apply: (prev, change) => {
+      const next = applyChange(prev, change, toRace)
+      return next === prev ? prev : next.slice().sort((a, b) => a.race_no - b.race_no)
+    },
   })
 }
 

@@ -1,14 +1,47 @@
-// Placeholder for the guest app (Stage 5).
-import { BonusBar, Logo } from '../ui'
+// Guest app (/): onboarding for a new device, then the shell. The cookie banner floats over both.
+import { useEffect, useState } from 'react'
+import { usePlayer } from '../lib/hooks'
+import { Toaster } from '../ui'
+import { ClientShell } from './ClientShell'
+import { CookieBanner } from './CookieBanner'
+import { Onboarding } from './Onboarding'
 
 export default function ClientApp() {
+  const player = usePlayer()
+  const { identity, data, forget, createPlayer } = player
+  // Set before the account exists so the shell opens with the bonus reveal on top.
+  const [justJoined, setJustJoined] = useState(false)
+
+  // A Realtime DELETE (the GM removed this player) leaves the identity behind; drop it.
+  useEffect(() => {
+    if (identity && data === null) forget()
+  }, [identity, data, forget])
+
   return (
-    <div className="flex min-h-dvh flex-col">
-      <BonusBar />
-      <main className="flex flex-1 flex-col items-center justify-center gap-4 p-6 text-center">
-        <Logo size="lg" />
-        <p className="text-lg text-ink-dim">Spelet öppnar snart.</p>
-      </main>
-    </div>
+    <>
+      {identity ? (
+        <ClientShell
+          identity={identity}
+          player={data ?? undefined}
+          forget={forget}
+          justJoined={justJoined}
+          onBonusSeen={() => setJustJoined(false)}
+        />
+      ) : (
+        <Onboarding
+          onCreate={async (name) => {
+            setJustJoined(true)
+            try {
+              await createPlayer(name)
+            } catch (err) {
+              setJustJoined(false)
+              throw err
+            }
+          }}
+        />
+      )}
+      <CookieBanner />
+      <Toaster className="top-[calc(env(safe-area-inset-top)+0.75rem)]! bottom-auto! md:top-5!" />
+    </>
   )
 }

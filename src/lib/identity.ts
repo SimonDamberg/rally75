@@ -1,10 +1,13 @@
-// Guest identity ({playerId, token}), the remembered GM password and the GM race start, in localStorage.
+// Guest identity ({playerId, token}), guest flags, the remembered GM password and the GM race start,
+// in localStorage.
 // Exposed as an external store so hooks re-render when it changes (also across tabs).
 import type { Identity } from './types'
 
 const IDENTITY_KEY = 'rally75.identity'
 const GM_PASSWORD_KEY = 'rally75.gmPassword'
 const RACE_START_KEY = 'rally75.gmRaceStart'
+const SEEN_RESULT_KEY = 'rally75.seenResult'
+const COOKIES_KEY = 'rally75.cookiesAccepted'
 
 function readStorage(key: string): string | null {
   try {
@@ -97,4 +100,22 @@ export function loadRaceStart(raceId: string): number | null {
 
 export function saveRaceStart(start: RaceStart): void {
   writeStorage(RACE_START_KEY, JSON.stringify(start))
+}
+
+/** The last race whose result reveal this device has shown. */
+export function loadSeenResult(): string | null {
+  return readStorage(SEEN_RESULT_KEY)
+}
+
+export function saveSeenResult(raceId: string): void {
+  writeStorage(SEEN_RESULT_KEY, raceId)
+}
+
+/** The guest clicked any cookie banner button (they all accept). */
+export function loadCookiesAccepted(): boolean {
+  return readStorage(COOKIES_KEY) === '1'
+}
+
+export function saveCookiesAccepted(): void {
+  writeStorage(COOKIES_KEY, '1')
 }

@@ -97,6 +97,20 @@ supabase/migrations/ SQL migrations. (Stage 2)
 - No inquiry: the result is published automatically after the finish pause. Inquiry: the GM rules.
 - GM copy lives in `src/shared/content/gm.ts`.
 
+## Client app (Stage 5)
+
+- `src/client/ClientApp.tsx`: no identity shows `Onboarding` (fake connect, KYC), otherwise
+  `ClientShell` (header, tabs Spela / Mina spel / Topplista). `CookieBanner` floats over both.
+- `ClientShell` fetches the player, the player's bets and the active race once and shares them via
+  `useGuest()` (`src/client/guest.ts`). Guest RPCs go through `useGuestAction().run((api, identity) => ...)`:
+  errors become toasts, `player_not_found`/`invalid_token` sign out.
+- Pop-ups owned by the shell: bonus reveal after sign-up, result reveal (once per race, seen id in
+  localStorage, waits until the player's bets are settled), Snabblån (broke with no open bets,
+  never over a reveal or the bet confirm). Stage 6 pop-ups must respect the same `blocked` rule.
+- Pure logic with tests: `slip.ts` (chips, stake checks, `marketOdds` from open bets) and
+  `outcome.ts` (bet outcome, reveal kind, totals, history grouping).
+- Guest copy lives in `src/shared/content/client.ts`.
+
 ## Conventions
 
 - Code, identifiers and code comments in English; content pools keep their Swedish names

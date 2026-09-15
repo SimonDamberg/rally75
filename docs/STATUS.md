@@ -329,3 +329,71 @@ context (the Vercel https URL, not a LAN IP). The QR points at the origin the iP
 **Next:** Stage 5 (Client app core). Start a fresh session with:
 
 > Read CLAUDE.md, docs/META_PLAN.md and docs/STATUS.md, then plan and execute Stage 5.
+
+## Stage 5: Client app core (done, 2026-09-15)
+
+**Done**
+
+- `/` is the real guest app, phone portrait first.
+- **Onboarding**: fake secure-connection sequence (`CONNECT_LINES`, about 3.4 s, tap to skip), then
+  a full-screen KYC form: name (the only real field), a pre-ticked "minst 13 år" box that cannot be
+  unticked, "Hur mycket tänker du förlora ikväll?" chips and a money-origin field that goes nowhere.
+  Then the **bonus reveal** pop-up (1 000 RM count-up). The **cookie banner** shows once per device;
+  all three buttons accept (the settings pop-up has every category locked on).
+- **Shell**: bonus bar, header (player label, balance that flashes green/red on change, debt,
+  pulsing Snabblån button when broke, connection pill), offline banner, bottom tabs.
+- **Spela** by race status: no race / loading / offline states; paddock shows full race cards with
+  morning-line odds; betting shows selectable rows with live odds and pools. Tapping a horse opens
+  the sticky **bet slip**: chips 10/25/50/100/250 stack (capped at the balance), ALL IN, Rensa,
+  potential payout, then a non-dismissible **confirm** with live odds. The toast after placing
+  shows the odds the server captured. If the GM closes betting while the confirm is open, it closes
+  with a toast. Closed and running show a status panel, the final odds and "Dina spel på loppet";
+  finished/void show the top 3 and ruling text.
+- **Result reveal** (from any tab): once per race per device (seen race id in localStorage), only
+  after all of the player's bets on the race are settled. Win (payout count-up), loss (stake),
+  refund (GM cancel), house kept stakes (inquiry void), or "watch" for players without bets. Not
+  shown for races settled before the player signed up, or for cancelled races they had no bets on.
+- **Snabblån**: opens automatically when balance < 10 RM and no bets are still open, never over a
+  reveal or the bet confirm; "Inte nu" snoozes it for 90 s; the header button reopens it.
+- **Mina spel**: staked / paid / net for the night, bets grouped per race with outcome chips.
+- **Topplista**: Toppen (balance) and Kvällens största förlorare (balance minus debt, debt and loan
+  count shown); own row highlighted, and pinned below the list when outside the top 20.
+- `src/lib`: `useRaces()` hook; `loadSeenResult`/`saveSeenResult` and cookie flag helpers in
+  `identity.ts`.
+- Pure modules with tests: `src/client/slip.ts`, `src/client/outcome.ts` (86 tests total).
+- Verified: build, test, lint; `npm run smoke -- --reset` against the local stack. Headless Chromium
+  (throwaway `playwright-core` script) against the local stack with the GM at 1180x820 and three
+  phones at 390x844: cold start to first placed bet in about 10 s of script time (connect sequence
+  included), odds moving on the other phone, all-in, betting closed under an open confirm, running
+  view, Snabbspola + auto-publish, loss and win reveals with correct payouts, no reveal again after a
+  reload, Snabblån with debt in the header and the losers list, Mina spel, both leaderboards, GM
+  cancel with refund reveal, offline banner and recovery. No horizontal overflow and no console
+  errors. Hosted data was not touched.
+
+**Deviations from META_PLAN**
+
+- Tabs are local state, not routes (the client stays on `/`).
+- A guest can place several bets per race, on any horses (the RPC always allowed it).
+- Toasts sit at the top on the phone (the bet slip and tabs own the bottom).
+
+**Open issues**
+
+- The cookie banner covers the KYC submit button until it is tapped (one tap, any button).
+- The header balance keeps its green/red colour until the next change (same as `OddsValue`).
+- Bundle is 587 kB now; Stage 7 lazy-loading `/gm` still applies.
+
+**Notes for Stage 6**
+
+- Pop-up offers must stay out of the way of the shell's `blocked` state (bonus reveal, result reveal,
+  bet confirm); add the offer engine in `ClientShell` next to `LoanOffer`.
+- Fake win toasts can reuse `toast({ tone: 'win' })`; the client `Toaster` is top-anchored.
+- `TOAST_NAMN` and `fakeWinToast` in `parody.ts` are still unused; `LEGAL_TEXT` only appears on the
+  KYC screen.
+
+**Manual steps for Simon**
+
+- None. Optional: `npm run dev` and open http://localhost:5173 on a phone-sized window.
+
+**Next:** Stage 6 (Parody layer + polish). Start a fresh session with:
+
+> Read CLAUDE.md, docs/META_PLAN.md and docs/STATUS.md, then plan and execute Stage 6.
