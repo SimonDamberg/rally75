@@ -9,15 +9,15 @@ export const STATUS_LABELS: Record<
 > = {
   paddock: {
     title: "Paddock",
-    subtitle: "Kolla in fältet. Spelet öppnar snart.",
+    subtitle: "Kolla in fältet. Plånboken kan du ta fram redan nu.",
   },
   betting: { title: "Spelet öppet", subtitle: BETTING_SUBTITLE },
   closed: {
     title: "Spelstopp",
     subtitle: "Inga fler spel. Hästarna går till start.",
   },
-  running: { title: "Loppet pågår", subtitle: "Håll i hatten." },
-  finished: { title: "Resultat klart", subtitle: "Domarna har talat." },
+  running: { title: "Loppet pågår", subtitle: "Håll i hatten och i kvittot." },
+  finished: { title: "Resultat klart", subtitle: "Domarna har talat. Huset har räknat." },
   void: { title: "Struket", subtitle: "Loppet räknas inte." },
 };
 
@@ -45,6 +45,7 @@ export const UI_LABELS = {
 /** GM attract screen: shown on the iPad between races to pull guests in. */
 export const ATTRACT = {
   jackpotLabel: "Dagens jackpott",
+  nightPaid: "Utbetalt i kväll",
   jackpotSmallPrint: "* Betalas enbart ut till Rallykå i utbyte mot tidsavdrag",
   scan: "Skanna och spela",
   bonus: (amount: string) => `${amount} i välkomstbonus`,

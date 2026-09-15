@@ -40,6 +40,7 @@
   --animate-rail: rail 0.7s linear infinite;
   --animate-fanfare: fanfare 3.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
   --animate-count-pop: count-pop 0.6s cubic-bezier(0.3, 1.6, 0.5, 1);
+  --animate-coin-fall: coin-fall 2.4s cubic-bezier(0.35, 0, 0.8, 1) both;
 
   @keyframes pulse-live {
     0%, 100% { opacity: 1; transform: scale(1); }
@@ -73,6 +74,12 @@
   }
   @keyframes count-pop {
     from { transform: scale(1.7); color: var(--color-plate); }
+  }
+  /* Big-win rain: set --coin-spin per coin. */
+  @keyframes coin-fall {
+    0% { opacity: 0; transform: translateY(0) skewX(-10deg) rotate(0deg); }
+    4% { opacity: 1; }
+    100% { opacity: 1; transform: translateY(calc(100dvh + 8rem)) skewX(-10deg) rotate(var(--coin-spin, 540deg)); }
   }
   /* Keeps the plate skew while the badge wobbles (galopp). */
   @keyframes wobble {

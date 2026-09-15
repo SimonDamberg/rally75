@@ -16,8 +16,11 @@ import {
   HorseRow,
   Logo,
   Modal,
+  NightPaidNumber,
   OddsValue,
+  RollingNumber,
   SilkBadge,
+  SmallPrint,
   StatusBanner,
   toast,
   Toaster,
@@ -219,6 +222,16 @@ export default function Gallery() {
               Öppna pop-up
             </Button>
           </div>
+        </Section>
+
+        <Section title="Räkneverk och finstilt">
+          <p className={tv ? 'font-display text-tv-md font-black text-plate' : 'font-display text-4xl font-black text-plate'}>
+            <RollingNumber value={pools.reduce((a, b) => a + b, 0) * 137 + 4_750_000} />
+          </p>
+          <p className="font-display text-2xl font-black text-cash">
+            <NightPaidNumber realPaid={0} /> RM
+          </p>
+          <SmallPrint />
         </Section>
 
         <Section title="Anslutning">

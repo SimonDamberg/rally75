@@ -1,16 +1,21 @@
 // "Spela": the active race, shown by status. Betting opens the slip and the confirm pop-up.
-import { useState } from 'react'
-import { useRaceBets } from '../lib/hooks'
+import { useEffect, useState } from 'react'
 import type { BetRow, RaceRow } from '../lib/types'
 import { HOME } from '../shared/content/client'
 import { UI_LABELS } from '../shared/content/ui'
-import { cx, HorseRow, SilkBadge, StatusBanner } from '../ui'
+import { cx, HorseRow, SilkBadge, SmallPrint, StatusBanner } from '../ui'
 import { BetLine } from './BetLine'
 import { BetSlip } from './BetSlip'
 import { useGuest } from './guest'
 import { marketOdds } from './slip'
 
-export function Home({ onConfirmChange }: { onConfirmChange: (open: boolean) => void }) {
+export interface HomeProps {
+  onConfirmChange: (open: boolean) => void
+  /** The bet slip is open (the guest is mid-bet; no offers on top). */
+  onSlipChange: (open: boolean) => void
+}
+
+export function Home({ onConfirmChange, onSlipChange }: HomeProps) {
   const { race, raceError } = useGuest()
 
   if (race === undefined) {
@@ -23,7 +28,7 @@ export function Home({ onConfirmChange }: { onConfirmChange: (open: boolean) => 
     )
   }
   if (race === null) return <Empty title={HOME.noRace} text={HOME.noRaceText} />
-  return <RaceView key={race.id} race={race} onConfirmChange={onConfirmChange} />
+  return <RaceView key={race.id} race={race} onConfirmChange={onConfirmChange} onSlipChange={onSlipChange} />
 }
 
 function Empty({ title, text, spinner, tone = 'plate' }: { title: string; text?: string; spinner?: boolean; tone?: 'plate' | 'dim' | 'error' }) {
@@ -47,18 +52,24 @@ function Empty({ title, text, spinner, tone = 'plate' }: { title: string; text?:
         {title}
       </p>
       {text && <p className="max-w-xs text-ink-dim">{text}</p>}
+      <SmallPrint className="mt-6" />
     </div>
   )
 }
 
-function RaceView({ race, onConfirmChange }: { race: RaceRow; onConfirmChange: (open: boolean) => void }) {
-  const { bets: playerBets, player } = useGuest()
-  const { data: raceBets } = useRaceBets(race.id)
+function RaceView({ race, onConfirmChange, onSlipChange }: { race: RaceRow } & HomeProps) {
+  const { bets: playerBets, player, raceBets } = useGuest()
   const { odds, pools } = marketOdds(race.field, raceBets ?? [])
   const mine = (playerBets ?? []).filter((b) => b.race_id === race.id)
   const [selected, setSelected] = useState<number | null>(null)
   const betting = race.status === 'betting'
   const pick = betting && selected !== null ? race.field.find((h) => h.n === selected) : undefined
+  const slipOpen = !!pick && !!player
+
+  useEffect(() => {
+    onSlipChange(slipOpen)
+  }, [slipOpen, onSlipChange])
+  useEffect(() => () => onSlipChange(false), [onSlipChange])
 
   return (
     <div className="flex flex-1 flex-col">
@@ -102,8 +113,9 @@ function RaceView({ race, onConfirmChange }: { race: RaceRow; onConfirmChange: (
 
         {race.status !== 'paddock' && <RaceBets race={race} bets={mine} loading={playerBets === undefined} />}
       </div>
+      <SmallPrint />
 
-      {pick && player && (
+      {slipOpen && pick && player && (
         <BetSlip
           race={race}
           horse={pick}

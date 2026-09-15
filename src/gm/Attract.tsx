@@ -1,12 +1,12 @@
 // Attract screen for the iPad between races: join QR, live player count, a jackpot that only
-// grows and a field that trots forever. Every new sign-up gets a fanfare.
+// grows, an inflated "Utbetalt i kväll" and a field that trots forever. Every new sign-up gets a fanfare.
 import { useEffect, useState, type ReactNode } from "react";
-import { useConnection, useLeaderboard } from "../lib/hooks";
+import { useConnection, useLeaderboard, useNightPaid } from "../lib/hooks";
 import type { PlayerRow } from "../lib/types";
 import { ATTRACT } from "../shared/content/ui";
 import { WELCOME_BONUS } from "../shared/game/economy";
 import { fmtRmLong, playerLabel } from "../shared/game/format";
-import { BonusBar, ConnectionBadge, Logo, QrCode } from "../ui";
+import { BonusBar, ConnectionBadge, Logo, NightPaidNumber, QrCode } from "../ui";
 import { Jackpot } from "./Jackpot";
 import { JoinFanfare } from "./JoinFanfare";
 import { TrotParade } from "./TrotParade";
@@ -63,6 +63,18 @@ function PlayerCount({
   );
 }
 
+function NightPaid() {
+  const { data } = useNightPaid();
+  return (
+    <p className="flex flex-col items-end font-display leading-none font-black uppercase">
+      <span className="text-2xl tracking-[0.12em] text-ink-dim">{ATTRACT.nightPaid}</span>
+      <span className="mt-1 text-[min(2.5rem,3.6vw)] whitespace-nowrap text-cash drop-shadow-[0_0_1rem_rgb(61_255_168/0.35)]">
+        <NightPaidNumber realPaid={data ?? 0} /> RM
+      </span>
+    </p>
+  );
+}
+
 export function Attract({ corner }: { corner?: ReactNode }) {
   const connection = useConnection();
   const { data } = useLeaderboard();
@@ -76,7 +88,10 @@ export function Attract({ corner }: { corner?: ReactNode }) {
 
       <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)_auto] items-center gap-10 px-12">
         <div className="flex min-w-0 flex-col gap-4">
-          <Logo size="lg" />
+          <div className="flex items-end justify-between gap-6">
+            <Logo size="lg" />
+            <NightPaid />
+          </div>
           <Jackpot />
           <RotatingLine />
           <PlayerCount players={data?.players} />

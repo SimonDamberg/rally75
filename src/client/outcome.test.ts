@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { BetRow, RaceRow } from '../lib/types'
-import { betOutcome, groupByRace, rankOf, revealFor, shouldReveal, totals } from './outcome'
+import { betOutcome, groupByRace, isBigWin, rankOf, revealFor, shouldReveal, totals } from './outcome'
 
 const race = (over: Partial<RaceRow> = {}): RaceRow => ({
   id: 'r1',
@@ -118,5 +118,14 @@ describe('rankOf', () => {
   it('is 1-based', () => {
     expect(rankOf([{ id: 'a' }, { id: 'b' }], 'b')).toBe(2)
     expect(rankOf([], 'b')).toBeNull()
+  })
+})
+
+describe('isBigWin', () => {
+  it('needs a win of 1 000 RM or five times the stake', () => {
+    expect(isBigWin({ kind: 'win', paid: 250, staked: 100 })).toBe(false)
+    expect(isBigWin({ kind: 'win', paid: 1000, staked: 800 })).toBe(true)
+    expect(isBigWin({ kind: 'win', paid: 500, staked: 100 })).toBe(true)
+    expect(isBigWin({ kind: 'refund', paid: 5000, staked: 5000 })).toBe(false)
   })
 })

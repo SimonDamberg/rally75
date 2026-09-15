@@ -185,6 +185,11 @@ export function usePlayerBets(playerId: string | null): LiveResult<BetRow[]> {
   })
 }
 
+/** Real payouts tonight. Refetched on race changes only: settlement always updates the race. */
+export function useNightPaid(): LiveResult<number> {
+  return useLive({ key: 'night-paid', load: () => getApi().getNightPaid(), tables: ['races'] })
+}
+
 export interface PlayerState extends LiveResult<PlayerRow | null> {
   identity: Identity | null
   /** Creates the account, stores {playerId, token} and returns the new identity. */

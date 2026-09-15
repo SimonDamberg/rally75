@@ -5,7 +5,7 @@ import type { PlayerRow } from '../lib/types'
 import { BOARD } from '../shared/content/client'
 import { UI_LABELS } from '../shared/content/ui'
 import { fmtRm, playerLabel } from '../shared/game/format'
-import { cx } from '../ui'
+import { cx, SmallPrint } from '../ui'
 import { useGuest } from './guest'
 import { rankOf } from './outcome'
 
@@ -22,7 +22,7 @@ export function Leaderboard() {
   const me = rank === null ? undefined : list[rank - 1]
 
   return (
-    <div className="flex flex-col gap-3 p-3">
+    <div className="flex flex-1 flex-col gap-3 p-3">
       <div className="grid grid-cols-2 gap-1 rounded-xl bg-night-deep p-1 ring-1 ring-white/10 ring-inset">
         {(['top', 'losers'] as const).map((v) => (
           <button
@@ -56,6 +56,7 @@ export function Leaderboard() {
           <Row player={me} rank={rank} view={view} mine />
         </ol>
       )}
+      <SmallPrint className="mt-auto" />
     </div>
   )
 }

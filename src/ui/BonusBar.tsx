@@ -1,7 +1,7 @@
 import { BONUS_BAR } from '../shared/content/parody'
 import { cx } from './cx'
 
-const REPEAT = 3
+const REPEAT = 2
 
 /** Scrolling sleaze strip with chasing marquee bulbs. */
 export function BonusBar({ text = BONUS_BAR, className }: { text?: string; className?: string }) {

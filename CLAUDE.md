@@ -111,6 +111,17 @@ supabase/migrations/ SQL migrations. (Stage 2)
   `outcome.ts` (bet outcome, reveal kind, totals, history grouping).
 - Guest copy lives in `src/shared/content/client.ts`.
 
+## Parody layer (Stage 6)
+
+- Pop-up offers: `useOffers(blocked)` + `OfferPopup` in `ClientShell`; timing and the restarting
+  countdown are pure in `src/client/offers.ts`. Offers are blocked by `blocked`, an open bet slip,
+  being broke and the cookie banner. Offer copy is `OFFERS` in `src/shared/content/parody.ts`.
+  Offers never change the balance.
+- Social proof: `useSocialProof` (fake win toasts, real bet toasts from `raceBets` in `useGuest()`),
+  `SocialStrip` (viewer count, "Utbetalt i kväll"). Pure helpers in `src/client/proof.ts` and
+  `src/shared/game/hype.ts`. "Utbetalt i kväll" is `nightPaidDisplay(now, useNightPaid())` on both apps.
+- New parody copy goes in `parody.ts` (`OFFERS`, `OFFER_UI`, `PROOF`, `SMALL_PRINT`).
+
 ## Conventions
 
 - Code, identifiers and code comments in English; content pools keep their Swedish names

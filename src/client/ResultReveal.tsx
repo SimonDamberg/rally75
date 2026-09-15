@@ -4,8 +4,9 @@ import { HOME, REVEAL } from '../shared/content/client'
 import { UI_LABELS } from '../shared/content/ui'
 import { fmtRm } from '../shared/game/format'
 import { Button, cx, Modal, SilkBadge, type ModalTone } from '../ui'
+import { CoinBurst } from './CoinBurst'
 import { CountUp } from './CountUp'
-import type { Reveal, RevealKind } from './outcome'
+import { isBigWin, type Reveal, type RevealKind } from './outcome'
 
 const COPY: Record<RevealKind, { title: string; text: string; tone: ModalTone }> = {
   win: { title: REVEAL.winTitle, text: REVEAL.winText, tone: 'sleaze' },
@@ -20,7 +21,8 @@ const plus = (n: number) => `+${fmtRm(n)}`
 const minus = (n: number) => `-${fmtRm(n)}`
 
 export function ResultReveal({ race, reveal, onClose }: { race: RaceRow; reveal: Reveal; onClose: () => void }) {
-  const copy = COPY[reveal.kind]
+  const big = isBigWin(reveal)
+  const copy = big ? { ...COPY.win, title: REVEAL.bigWinTitle } : COPY[reveal.kind]
   const winner = reveal.winner === null ? undefined : race.field.find((h) => h.n === reveal.winner)
   const ruling = race.result && race.result.ruling !== 'void' ? HOME.ruling[race.result.ruling] : ''
 
@@ -41,6 +43,7 @@ export function ResultReveal({ race, reveal, onClose }: { race: RaceRow; reveal:
         </Button>
       }
     >
+      {reveal.kind === 'win' && <CoinBurst big={big} />}
       <div className="flex flex-col gap-4">
         <p className="text-xs font-bold tracking-[0.16em] text-ink-dim uppercase">{REVEAL.raceNo(race.race_no)}</p>
         {amount && (

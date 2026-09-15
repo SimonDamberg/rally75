@@ -61,7 +61,7 @@ export const GM_RACE = {
 
 export const GM_BETS = {
   noRace: 'Inget aktivt lopp att visa spel för.',
-  empty: 'Inga spel ännu.',
+  empty: 'Inga spel ännu. Huset väntar tålmodigt.',
   pot: 'Total pott',
   count: (n: number) => (n === 1 ? '1 spel' : `${n} spel`),
   ifWins: 'Om hästen vinner, huset',
@@ -72,7 +72,7 @@ export const GM_BETS = {
 export const GM_PLAYERS = {
   title: 'Spelare',
   count: (n: number) => (n === 1 ? '1 spelare' : `${n} spelare`),
-  empty: 'Inga spelare än.',
+  empty: 'Inga spelare än. Visa QR-koden och le.',
   balance: 'Saldo',
   debt: 'Skuld',
   loans: 'Snabblån',

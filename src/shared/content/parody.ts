@@ -1,4 +1,4 @@
-// Sleazy betting-site dressing from the prototype, kept for the client parody layer (Stages 5-6).
+// Sleazy betting-site dressing from the prototype, used by the client parody layer.
 
 export const TOAST_NAMN = [
   "Kerstin",
@@ -23,7 +23,7 @@ export const CONNECT_LINES = [
 ] as const;
 
 export const BONUS_BAR =
-  "Välkomstbonus 500 % • Licensierad i Atlantis • 13+ • Spela lagom";
+  "Välkomstbonus 500 % • Licensierad i Atlantis • 13+ • Omsättningskrav 40x • Uttag inom 3 till 5 arbetsliv • Spela lagom";
 
 // Prototype said "Nat Casino Derby ... Nat Holdings Ltd"; rebranded for Rally75.
 export const LEGAL_TEXT =
@@ -43,3 +43,109 @@ export const BETTING_SUBTITLE = "Odds rör sig med pengarna. Sista chansen.";
 /** "Bosse från Östhammar vann just 31 573 RM" */
 export const fakeWinToast = (name: string, ort: string, amount: string) =>
   `${name} från ${ort} vann just ${amount}`;
+
+// Stage 6: pop-up offers, fake social proof and small print ------------------------------------
+
+export interface OfferCopy {
+  id: string;
+  kicker: string;
+  title: string;
+  text: string;
+  cta: string;
+  /** Toast after accepting. null sends the guest to Spela instead. */
+  accepted: string | null;
+  smallPrint: string;
+}
+
+export const OFFERS: readonly OfferCopy[] = [
+  {
+    id: "spins",
+    kicker: "Exklusivt för dig",
+    title: "50 free spins",
+    text: "På Faraos Förlorade Pension, vårt nya slotspel. Inga insättningskrav, inga vinster, ingen pension.",
+    cta: "Hämta mina spins",
+    accepted: "Dina 50 spins är aktiverade. Spelet lanseras 2031.",
+    smallPrint: "Spinnen gäller i 14 minuter och kan inte användas på något existerande spel.",
+  },
+  {
+    id: "vip",
+    kicker: "Endast idag",
+    title: "VIP Platinum Diamant",
+    text: "Du är handplockad bland alla som fick det här meddelandet. Som VIP får du samma odds, fast i guld.",
+    cta: "Bli VIP nu",
+    accepted: "Grattis, du är VIP. Förmånerna skickas med brevduva.",
+    smallPrint: "VIP-status upphör vid midnatt, vid förlust eller när vi känner för det.",
+  },
+  {
+    id: "deposit",
+    kicker: "Insättningsbonus",
+    title: "200 % på din insättning",
+    text: "Sätt in 0 RM och få 0 RM extra. Matematiskt helt ärligt.",
+    cta: "Sätt in nu",
+    accepted: "Insättningen gick inte igenom. Prova med mer pengar.",
+    smallPrint: "Omsättningskrav 40x på bonus, insättning, tröja och byxor.",
+  },
+  {
+    id: "cashback",
+    kicker: "Tröstpaket",
+    title: "100 % cashback",
+    text: "Förlorar du ikväll får du allt tillbaka*. Det lovar vi med handen på plånboken.",
+    cta: "Aktivera cashback",
+    accepted: "Cashback aktiverad. Utbetalas i form av tröst.",
+    smallPrint: "*Återbetalas som en klapp på axeln från närmaste vuxen.",
+  },
+  {
+    id: "boost",
+    kicker: "Superboost",
+    title: "Alla hästar vinner!",
+    text: "Bara under nästa lopp: alla hästar vinner. Utom de som förlorar.",
+    cta: "Spela nu",
+    accepted: null,
+    smallPrint: "Boosten gäller endast hästar som går i mål först.",
+  },
+  {
+    id: "friend",
+    kicker: "Värva en vän",
+    title: "Ta med en vän",
+    text: "Värva en vän och få en vän. Vännen får välkomstbonus, du får känslan av att ha gjort något.",
+    cta: "Värva nu",
+    accepted: "Peka din vän mot QR-koden på storbildsskärmen. Vi tar det därifrån.",
+    smallPrint: "Vänskapen omfattas inte av insättningsgarantin.",
+  },
+  {
+    id: "tip",
+    kicker: "Expertens spik",
+    title: "Dagens säkra spik",
+    text: "Vår expert Leffe har tittat djupt i hästarnas ögon. Han vet vem som vinner. Han säger det inte, men han vet.",
+    cta: "Spela på spiken",
+    accepted: null,
+    smallPrint: "Leffe har inte vunnit sedan 1994.",
+  },
+];
+
+export const OFFER_UI = {
+  expires: "Går ut om",
+  extended: "Förlängt! Bara för dig",
+  decline: "Nej tack, jag gillar att förlora",
+  terms: "Villkor gäller",
+} as const;
+
+export const PROOF = {
+  viewers: "tittar",
+  paid: "Utbetalt i kväll",
+  someone: "En hemlig VIP",
+  bet: (label: string, rm: string, horse: string) =>
+    `${label} satsade ${rm} på ${horse}`,
+  betsFolded: (n: number) => `${n} nya spel på loppet. Oddsen rör sig!`,
+} as const;
+
+/** Rotating small print under each guest screen, next to LEGAL_TEXT. */
+export const SMALL_PRINT = [
+  "Spel kan vara beroendeframkallande. Det är liksom hela affärsidén.",
+  "Rally75 saknar licens men har en väldigt fin logga.",
+  "Tidigare vinster är ingen garanti för framtida vinster. Tidigare förluster däremot.",
+  "Alla odds är slutgiltiga tills de ändras.",
+  "Uttag behandlas inom 3 till 5 arbetsliv.",
+  "Genom att läsa detta har du godkänt villkoren.",
+  "Huset vinner alltid. Huset är dessutom trevligt.",
+] as const;

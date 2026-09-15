@@ -1,6 +1,7 @@
 // Guest app (/): onboarding for a new device, then the shell. The cookie banner floats over both.
 import { useEffect, useState } from 'react'
 import { usePlayer } from '../lib/hooks'
+import { loadCookiesAccepted, saveCookiesAccepted } from '../lib/identity'
 import { Toaster } from '../ui'
 import { ClientShell } from './ClientShell'
 import { CookieBanner } from './CookieBanner'
@@ -11,6 +12,8 @@ export default function ClientApp() {
   const { identity, data, forget, createPlayer } = player
   // Set before the account exists so the shell opens with the bonus reveal on top.
   const [justJoined, setJustJoined] = useState(false)
+  // Pop-up offers and fake toasts wait until the cookie banner is out of the way.
+  const [cookiesAccepted, setCookiesAccepted] = useState(loadCookiesAccepted)
 
   // A Realtime DELETE (the GM removed this player) leaves the identity behind; drop it.
   useEffect(() => {
@@ -25,6 +28,7 @@ export default function ClientApp() {
           player={data ?? undefined}
           forget={forget}
           justJoined={justJoined}
+          cookiesAccepted={cookiesAccepted}
           onBonusSeen={() => setJustJoined(false)}
         />
       ) : (
@@ -40,7 +44,13 @@ export default function ClientApp() {
           }}
         />
       )}
-      <CookieBanner />
+      <CookieBanner
+        accepted={cookiesAccepted}
+        onAccept={() => {
+          saveCookiesAccepted()
+          setCookiesAccepted(true)
+        }}
+      />
       <Toaster className="top-[calc(env(safe-area-inset-top)+0.75rem)]! bottom-auto! md:top-5!" />
     </>
   )

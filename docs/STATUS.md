@@ -397,3 +397,74 @@ context (the Vercel https URL, not a LAN IP). The QR points at the origin the iP
 **Next:** Stage 6 (Parody layer + polish). Start a fresh session with:
 
 > Read CLAUDE.md, docs/META_PLAN.md and docs/STATUS.md, then plan and execute Stage 6.
+
+## Stage 6: Parody layer + polish (done, 2026-09-15)
+
+Simon's choices: **moderate** pop-up pacing; optional extras **big-win celebration** and
+**"Utbetalt i kväll" on the iPad**. The GM loser award screen was skipped.
+
+**Done**
+
+- **Pop-up offers** (`useOffers.ts`, `OfferPopup.tsx`, pure `offers.ts`): 7 offers in `OFFERS`
+  (`parody.ts`): free spins for a slot that does not exist, VIP Platinum Diamant, deposit 0 RM get
+  0 RM, cashback paid in comfort, "Alla hästar vinner" superboost, refer a friend, Leffe's sure tip.
+  First offer 45 s after the shell opens, then 2 to 3 min after each close, never the same offer
+  twice in a row. The countdown restarts with a new length (30 to 90 s) when it runs out and flashes
+  "Förlängt! Bara för dig". One tap closes it (X, backdrop or "Nej tack, jag gillar att förlora").
+  Accepting shows a joke toast or jumps to Spela. Nothing touches the DB.
+- Offers are blocked by the shell's `blocked` (bonus reveal, result reveal, bet confirm), an open
+  bet slip, being broke (Snabblån) and the cookie banner. If a reveal pops while an offer is open, the
+  offer closes. After any block clears, the next offer waits at least 15 s. Snabblån also waits
+  while an offer is open.
+- **Fake social proof** (`useSocialProof.ts`, pure `proof.ts`): fake win toasts ("Kerstin från
+  Tierp vann just 31 573 RM") every 18 to 35 s, and real toasts for other guests' bets on the active
+  race ("Anna #36 satsade 100 RM på ..."; more than 2 at once fold into one). Bets already on the race
+  at load are not announced. Quiet while `blocked`, offline, or the tab is hidden.
+- **Social strip** under the phone header: a viewer count doing a bounded random walk and
+  "Utbetalt i kväll" = a clock-grown fake base (from noon, like the jackpot) plus the real payouts.
+- **iPad attract screen**: "Utbetalt i kväll" next to the logo, same number as the phones.
+- **Small print** (`SmallPrint` in `src/ui`): a rotating `SMALL_PRINT` line plus `LEGAL_TEXT` at the
+  bottom of Spela, Mina spel and Topplista. Longer `BONUS_BAR`.
+- **Big-win celebration**: yellow RM plates rain over the win reveal (`CoinBurst.tsx`, `coin-fall`
+  keyframes); more of them and the title "Storvinst!" when the payout is 1 000 RM or more, or at
+  least 5x the stake (`isBigWin` in `outcome.ts`). Vibrates where the browser supports it (Android;
+  iOS Safari has no vibration API).
+- Sleazier copy in a handful of client, status and GM lines.
+- `src/lib`: `getNightPaid()` (sum of winning payouts) and `useNightPaid()`, refetched on `races`
+  changes only (settlement always updates the race, so bet inserts do not trigger refetches).
+- `src/ui`: `RollingNumber` (the jackpot odometer, moved out of `Jackpot.tsx`), `NightPaidNumber`,
+  `SmallPrint`; all three added to `/styleguide`.
+- `src/shared/game/hype.ts`: `secondsSinceNoon`, `nightPaidDisplay`, `stepViewers`.
+- `ClientShell` now owns `useRaceBets` for the active race and shares it as `raceBets` in `useGuest()`
+  (Home no longer opens its own channel). The cookie accepted flag lives in `ClientApp`.
+- Tests: `hype.test.ts`, `offers.test.ts`, `proof.test.ts`, `isBigWin` (109 tests total).
+- Verified: build, test, lint; `npm run smoke -- --reset` against the local stack. Headless Chromium
+  (throwaway `playwright-core` script, fake clock on one phone) against the local stack, GM at
+  1180x820 and 1024x768, two phones at 390x844: no offer while the slip was open, none 10 s after it
+  closed, one at 16 s; countdown restarted instead of reaching 0:00; one tap closed it; fake win toast
+  shown; the other phone got real bet toasts; viewer count moved; win reveal with falling plates;
+  "Utbetalt i kväll" rose after the race; small print on all tabs. No horizontal overflow, no console
+  errors. Hosted data was not touched.
+
+**Deviations from META_PLAN**
+
+- The bonus bar was already there (Stage 3); this stage only lengthened its text.
+- The jackpot number on the attract screen now also scales with the viewport width (`7vw`) so
+  "RallyMynt" no longer slides under the QR code at 1024x768.
+- No GM loser award screen (optional, not chosen).
+
+**Open issues**
+
+- Toasts on the phone are top-anchored and can briefly cover the header balance when several arrive
+  together (bet toasts last 3.5 s, wins 4 s).
+- `getNightPaid` reads at most 1 000 winning bets (PostgREST default row limit). Far above a party
+  night, but the real part of the number would stop growing past that.
+- Bundle is 598 kB; lazy-loading `/gm` in Stage 7 still applies.
+
+**Manual steps for Simon**
+
+- None. Optional: `npm run dev` and leave the guest app open for a minute to meet the first offer.
+
+**Next:** Stage 7 (Deploy + dress rehearsal). Start a fresh session with:
+
+> Read CLAUDE.md, docs/META_PLAN.md and docs/STATUS.md, then plan and execute Stage 7.

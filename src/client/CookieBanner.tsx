@@ -1,16 +1,13 @@
 // Cookie consent parody: every button accepts everything.
 import { useState } from 'react'
-import { loadCookiesAccepted, saveCookiesAccepted } from '../lib/identity'
 import { COOKIES } from '../shared/content/client'
 import { Button, Modal, toast } from '../ui'
 
-export function CookieBanner() {
-  const [accepted, setAccepted] = useState(loadCookiesAccepted)
+export function CookieBanner({ accepted, onAccept }: { accepted: boolean; onAccept: () => void }) {
   const [settings, setSettings] = useState(false)
 
   const accept = () => {
-    saveCookiesAccepted()
-    setAccepted(true)
+    onAccept()
     setSettings(false)
   }
 

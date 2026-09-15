@@ -109,3 +109,11 @@ export function rankOf(players: readonly Pick<PlayerRow, 'id'>[], playerId: stri
   const i = players.findIndex((p) => p.id === playerId)
   return i === -1 ? null : i + 1
 }
+
+export const BIG_WIN_RM = 1000
+export const BIG_WIN_MULTIPLE = 5
+
+/** A win worth the big celebration: 1 000 RM or more back, or at least five times the stake. */
+export function isBigWin(reveal: Pick<Reveal, 'kind' | 'paid' | 'staked'>): boolean {
+  return reveal.kind === 'win' && (reveal.paid >= BIG_WIN_RM || reveal.paid >= reveal.staked * BIG_WIN_MULTIPLE)
+}

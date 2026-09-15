@@ -4,7 +4,7 @@ import { MY_BETS } from '../shared/content/client'
 import { EMPTY_BETS } from '../shared/content/parody'
 import { STATUS_LABELS, UI_LABELS } from '../shared/content/ui'
 import { fmtRm } from '../shared/game/format'
-import { cx } from '../ui'
+import { cx, SmallPrint } from '../ui'
 import { BetLine } from './BetLine'
 import { useGuest } from './guest'
 import { groupByRace, totals } from './outcome'
@@ -19,7 +19,7 @@ export function MyBets() {
   const groups = groupByRace(bets, races ?? [])
 
   return (
-    <div className="flex flex-col gap-4 p-3">
+    <div className="flex flex-1 flex-col gap-4 p-3">
       <h1 className="px-1 font-display text-4xl leading-none font-black text-plate uppercase">{MY_BETS.title}</h1>
 
       <dl className="grid grid-cols-3 gap-2">
@@ -61,6 +61,7 @@ export function MyBets() {
           </section>
         )
       })}
+      <SmallPrint className="mt-auto" />
     </div>
   )
 }

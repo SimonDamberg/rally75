@@ -15,6 +15,8 @@ export interface Guest {
   /** This player's bets, newest first; undefined while loading. */
   bets: BetRow[] | undefined
   race: RaceRow | null | undefined
+  /** Every bet on the active race, oldest first; undefined while loading. */
+  raceBets: BetRow[] | undefined
   raceError: Error | null
   forget: () => void
 }

@@ -90,6 +90,12 @@ export function createApi(db: SupabaseClient) {
       return rows.map(toBet)
     },
 
+    /** Sum of every winning payout tonight ("Utbetalt i kväll"). */
+    async getNightPaid(): Promise<number> {
+      const rows = await query<{ payout: number | null }[]>(() => db.from('bets').select('payout').eq('status', 'won'))
+      return rows.reduce((sum, r) => sum + (r.payout ?? 0), 0)
+    },
+
     async getPlayer(playerId: string): Promise<PlayerRow | null> {
       const row = await query<Row | null>(() => db.from('players').select('*').eq('id', playerId).maybeSingle())
       return row ? toPlayer(row) : null
