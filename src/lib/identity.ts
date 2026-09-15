@@ -1,9 +1,10 @@
-// Guest identity ({playerId, token}) and the remembered GM password, in localStorage.
+// Guest identity ({playerId, token}), the remembered GM password and the GM race start, in localStorage.
 // Exposed as an external store so hooks re-render when it changes (also across tabs).
 import type { Identity } from './types'
 
 const IDENTITY_KEY = 'rally75.identity'
 const GM_PASSWORD_KEY = 'rally75.gmPassword'
+const RACE_START_KEY = 'rally75.gmRaceStart'
 
 function readStorage(key: string): string | null {
   try {
@@ -76,4 +77,24 @@ export function loadGmPassword(): string | null {
 
 export function saveGmPassword(password: string | null): void {
   writeStorage(GM_PASSWORD_KEY, password)
+}
+
+export interface RaceStart {
+  raceId: string
+  /** Local epoch ms the animation counts from. */
+  at: number
+}
+
+/** When the GM iPad started (or fast-forwarded) a race, so a reload resumes at the same tick. */
+export function loadRaceStart(raceId: string): number | null {
+  try {
+    const v = JSON.parse(readStorage(RACE_START_KEY) ?? 'null') as Partial<RaceStart> | null
+    return v?.raceId === raceId && typeof v.at === 'number' ? v.at : null
+  } catch {
+    return null
+  }
+}
+
+export function saveRaceStart(start: RaceStart): void {
+  writeStorage(RACE_START_KEY, JSON.stringify(start))
 }

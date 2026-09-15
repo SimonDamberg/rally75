@@ -63,6 +63,4 @@ export const ATTRACT = {
     "Krossa facebookmorsorna på hemmaplan",
     "Här trivs du som spindeln i nätet",
   ],
-  testField: "Testfält",
-  back: "Tillbaka",
 } as const;

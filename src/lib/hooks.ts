@@ -48,6 +48,9 @@ function useLive<T>({ key, load, tables, apply }: LiveOptions<T>): LiveResult<T>
     let attempt = 0
     let timer: ReturnType<typeof setTimeout> | undefined
     const channelId = `${key}:${Math.random().toString(36).slice(2)}`
+    // Latest data this subscription fetched or merged. Changes are merged here, outside the state
+    // updater: React may run updaters during render, where effect events must not be called.
+    let current: T | undefined
 
     const fetchNow = async () => {
       clearTimeout(timer)
@@ -56,6 +59,7 @@ function useLive<T>({ key, load, tables, apply }: LiveOptions<T>): LiveResult<T>
         if (cancelled) return
         attempt = 0
         connectionStore.reportFetch(true)
+        current = data
         setState({ key, data, error: null })
       } catch (err) {
         if (cancelled) return
@@ -84,8 +88,12 @@ function useLive<T>({ key, load, tables, apply }: LiveOptions<T>): LiveResult<T>
           channel = channel.on('postgres_changes', { event: '*', schema: 'public', table }, (payload) => {
             if (cancelled) return
             if (!hasApply) return scheduleFetch()
-            const change = payload as unknown as RowChange
-            setState((s) => (s.key === key && s.data !== undefined ? { ...s, data: doApply(s.data, change) } : s))
+            // Before the first fetch there is nothing to merge into; that fetch includes the change.
+            if (current === undefined) return
+            const next = doApply(current, payload as unknown as RowChange)
+            if (next === current) return
+            current = next
+            setState((s) => (s.key === key ? { ...s, data: next } : s))
           })
         }
         // Changes only flow once Postgres confirms (after SUBSCRIBED); refetch then to close the gap.

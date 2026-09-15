@@ -265,3 +265,67 @@ Requested by Simon: idle animations on the iPad to pull guests in.
 **Notes for Stage 4:** show `<Attract />` when there is no active race and between races
 (finished/void), and switch to the race panel when the GM starts one. Wake lock needs a secure
 context (the Vercel https URL, not a LAN IP). The QR points at the origin the iPad opened.
+
+## Stage 4: Game master app (done, 2026-09-15)
+
+**Done**
+
+- `/gm` is the real console. Password gate (`Login`, remembered in localStorage, trusted at start;
+  the first `gm_unauthorized` logs out). Wake lock for the whole GM app.
+- View picker (`GmShell`): the attract screen when there is no race or between races (corner button
+  "Spelledare"), the panel when a race is in paddock/betting/closed, the full-screen race
+  while running.
+- **Lopp** tab: compact tv rows with live odds; in the paddock, tapping a horse opens its full card
+  (for presenting it). Actions by status: Skapa lopp / Slumpa om / Öppna spel / Stäng spelet /
+  Öppna igen / Starta loppet / Stryk loppet (confirm, refunds) / Nästa lopp. Fields are generated
+  from the active DB kuskar.
+- **Race screen**: 4 lanes with checkered finish, lead glow, galopp wobble, meters clock, oversized
+  commentary strip, Snabbspola, Stryk. Replays `simulateRace` from `gm_get_secrets` against a
+  stored start time, so a reload mid-race resumes at the same tick (verified). "Starta loppet"
+  fetches the secrets first, so the animation starts at tick 0.
+- **Auto-publish** (Simon's choice): no inquiry means the result goes out after the finish pause
+  (1.9 s, or 2.6 s on a photo). Inquiry: the "Bandomarna utreder" overlay holds 3.2 s, then the
+  three rulings. If publishing fails, a "Publicera resultat" retry button appears.
+- Result panel: podium, ruling and inquiry text, winners with payouts, house net for the race.
+- **Spel** tab: total pot, per horse pool, bet count, current odds and "Om hästen vinner, huset
+  +/-X", plus a feed of the latest bets.
+- **Spelare** tab: balance/debt/Snabblån table, edit modal (quick deltas, free amount, rename,
+  delete) and "Nollställ kvällen" (`gm_reset_night`) behind a confirm.
+- **Kuskar** tab: list, create/edit (name, comments one per line, active switch), delete. The
+  epithet is not shown; edits keep the stored `title`.
+- Pure modules with tests: `raceClock.ts` (tick/phase/Snabbspola), `book.ts` (pools, odds,
+  liability, settlement), `parse.ts` (amount and notes input). 67 tests total.
+- Verified with build, test and lint, plus headless Chromium against the hosted project at 1180x820
+  and 1024x768. The run covered: wrong password, create, reroll, betting with REST-placed guest
+  bets (live odds, pools, feed, exposure), close, start, reload mid-race, Snabbspola, auto-publish
+  payouts, all three rulings on a forced inquiry seed (pay_new_winner paid the demoted order, void
+  kept stakes, dismiss kept the order), void refunds, adjust/rename/delete player, kusk
+  create/delete. No horizontal overflow; the only console error was the intended wrong-password 400.
+  Hosted data was reset afterwards (no players or races, the 8 kuskar untouched).
+
+**Deviations from META_PLAN**
+
+- Bug fix in `src/lib/hooks.ts` (Stage 2 code): Realtime merges called a `useEffectEvent` function
+  inside a `setState` updater, which React runs during render. The page crashed on the first bet or
+  player change. Changes are now merged in the subscription closure before `setState`.
+- Paddock shows compact rows plus one expanded card instead of four full cards (they did not fit
+  at 820 px).
+- `src/lib/identity.ts` also stores the GM race start (`loadRaceStart`/`saveRaceStart`).
+- Removed the placeholder "Testfält" button and its copy.
+
+**Open issues**
+
+- Race start time uses the iPad clock. A second GM device without the stored start falls back to
+  `races.started_at` (server clock), so clock skew shifts its replay slightly.
+- The JS bundle is 550 kB (the warning was already there at 512 kB). Stage 7 could lazy-load `/gm`
+  so guests do not download it.
+- Toasts sit bottom right and can briefly cover the bottom-right action button on the iPad.
+
+**Manual steps for Simon**
+
+- None. Open `/gm` on the iPad (the Vercel https URL, for the wake lock) and log in with the
+  password in `.env.local` (`GM_PASSWORD`).
+
+**Next:** Stage 5 (Client app core). Start a fresh session with:
+
+> Read CLAUDE.md, docs/META_PLAN.md and docs/STATUS.md, then plan and execute Stage 5.

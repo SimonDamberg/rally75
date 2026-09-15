@@ -84,6 +84,19 @@ supabase/migrations/ SQL migrations. (Stage 2)
   `StatusBanner`, `BonusBar`, `ConnectionBadge`, `QrCode`. Most take `size` with a `tv` variant for the iPad.
 - Component copy lives in `src/shared/content/ui.ts`. Check new components in `/styleguide`.
 
+## GM app (Stage 4)
+
+- `src/gm/GmShell.tsx` picks the view: `RaceScreen` while the active race runs (and its result
+  until dismissed), `Attract` between races, otherwise the tabbed panel (Lopp, Spel, Spelare, Kuskar).
+- GM RPCs go through `useGmAction().run((gm, pw) => ...)` (`src/gm/gmAuth.ts`): errors become
+  toasts, `gm_unauthorized` logs out. `run` resolves to `undefined` on failure, so a call that
+  returns nothing must return `true`.
+- The race screen replays `simulateRace` from `gm_get_secrets` against a start time kept in
+  localStorage (`saveRaceStart`), so reloads and Snabbspola are just a different start. Screen state
+  is a pure function of elapsed time (`src/gm/raceClock.ts`).
+- No inquiry: the result is published automatically after the finish pause. Inquiry: the GM rules.
+- GM copy lives in `src/shared/content/gm.ts`.
+
 ## Conventions
 
 - Code, identifiers and code comments in English; content pools keep their Swedish names

@@ -10,7 +10,6 @@ import { BonusBar, ConnectionBadge, Logo, QrCode } from "../ui";
 import { Jackpot } from "./Jackpot";
 import { JoinFanfare } from "./JoinFanfare";
 import { TrotParade } from "./TrotParade";
-import { useWakeLock } from "./useWakeLock";
 
 const LINE_MS = 4500;
 
@@ -65,7 +64,6 @@ function PlayerCount({
 }
 
 export function Attract({ corner }: { corner?: ReactNode }) {
-  useWakeLock();
   const connection = useConnection();
   const { data } = useLeaderboard();
   const joinUrl = `${window.location.origin}/`;
