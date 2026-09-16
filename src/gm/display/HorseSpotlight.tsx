@@ -84,7 +84,9 @@ export function Spotlight({
           {horse.jnote}
         </p>
         {/* <p className="line-clamp-1 text-[min(1.2rem,1.9vw)] leading-snug text-ink-dim/80 italic">{horse.jnote}</p> */}
-        <p className="text-[min(1.3rem,2vw)] text-ink-dim">{horse.note}</p>
+        <p className="text-[min(1.3rem,2vw)] text-ink-dim italic">
+          {horse.note}
+        </p>
       </div>
 
       <div className="flex shrink-0 items-center gap-3">
