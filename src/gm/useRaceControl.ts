@@ -1,7 +1,6 @@
 // Race lifecycle actions for the GM. Each action runs the RPC, then refetches the active race so
 // the panel updates without waiting for Realtime.
 import { useCallback } from 'react'
-import { saveRaceStart } from '../lib/identity'
 import type { KuskRow, RaceRow } from '../lib/types'
 import { buildRaceCard } from '../shared/game/field'
 import { createRng, randomSeed } from '../shared/game/rng'
@@ -17,6 +16,8 @@ export interface RaceControl {
   setStatus: (race: RaceRow, status: Extract<RaceStatus, 'betting' | 'closed' | 'void'>) => Promise<RaceRow | undefined>
   /** Loads the secrets first so the race screen can start at tick 0, then sets running. */
   start: (race: RaceRow) => Promise<RaceRow | undefined>
+  /** Snabbspola: moves started_at back by the timeline length, server-side so the display follows. */
+  skip: (race: RaceRow, runMs: number) => Promise<RaceRow | undefined>
   publish: (race: RaceRow, order: readonly number[], ruling: Ruling, inquiryText: string | null) => Promise<RaceRow | undefined>
 }
 
@@ -53,10 +54,13 @@ export function useRaceControl(kusks: readonly KuskRow[] | undefined, reload: ()
         const secrets = await run((gm, pw) => gm.getSecrets(pw, race.id))
         if (!secrets) return undefined
         primeSecrets(race.id, secrets)
-        // Saved before the status flips: Realtime may open the race screen before the RPC returns.
-        saveRaceStart({ raceId: race.id, at: Date.now() })
+        // The server stamps started_at; both devices replay against it.
         return after(await run((gm, pw) => gm.setStatus(pw, race.id, 'running')))
       },
+      [after, run],
+    ),
+    skip: useCallback(
+      async (race: RaceRow, runMs: number) => after(await run((gm, pw) => gm.skipRace(pw, race.id, runMs))),
       [after, run],
     ),
     publish: useCallback(

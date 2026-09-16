@@ -1,13 +1,14 @@
-// Player management: balances, debt, adjust, rename, delete, and the night reset.
+// Player management on the control phone: balances, debt, adjust, rename, delete, and the night
+// reset. A card per player, because a five-column table cannot be read at 390 px.
 import { useState } from 'react'
-import type { PlayerRow } from '../lib/types'
-import { GM_PLAYERS } from '../shared/content/gm'
-import { MAX_NAME_LENGTH } from '../shared/game/economy'
-import { fmtInt, fmtRm, playerLabel } from '../shared/game/format'
-import { Button, cx, Modal, toast } from '../ui'
+import type { PlayerRow } from '../../lib/types'
+import { GM_PLAYERS } from '../../shared/content/gm'
+import { MAX_NAME_LENGTH } from '../../shared/game/economy'
+import { fmtInt, fmtRm, playerLabel } from '../../shared/game/format'
+import { Button, Modal, toast } from '../../ui'
 import { Field, TextInput } from './form'
-import { useGmAction } from './gmAuth'
-import { parseDelta } from './parse'
+import { useGmAction } from '../gmAuth'
+import { parseDelta } from '../parse'
 
 const QUICK = [-500, -100, -50, 50, 100, 500]
 
@@ -26,44 +27,49 @@ export function PlayersTab({ players, onReset }: { players: readonly PlayerRow[]
   }
 
   return (
-    <div className="flex flex-col gap-4 p-6">
-      <div className="flex items-center gap-4">
-        <h2 className="font-display text-tv-md font-black text-plate uppercase">{GM_PLAYERS.title}</h2>
-        {players && <span className="text-2xl text-ink-dim">{GM_PLAYERS.count(players.length)}</span>}
+    <div className="flex flex-col gap-4 p-4">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+        <h2 className="font-display text-2xl font-black text-plate uppercase">{GM_PLAYERS.title}</h2>
+        {players && <span className="text-sm text-ink-dim">{GM_PLAYERS.count(players.length)}</span>}
         <span className="flex-1" />
         <Button variant="danger" onClick={() => setConfirmReset(true)}>
           {GM_PLAYERS.reset}
         </Button>
       </div>
 
-      {players && players.length === 0 && <p className="text-tv-sm text-ink-dim">{GM_PLAYERS.empty}</p>}
+      {players && players.length === 0 && <p className="text-ink-dim">{GM_PLAYERS.empty}</p>}
       {sorted.length > 0 && (
-        <table className="w-full text-left text-2xl">
-          <thead className="text-lg tracking-[0.12em] text-ink-dim uppercase">
-            <tr>
-              <th className="w-full py-2 pl-4 font-bold" />
-              <th className="py-2 pl-6 text-right font-bold whitespace-nowrap">{GM_PLAYERS.balance}</th>
-              <th className="py-2 pl-6 text-right font-bold whitespace-nowrap">{GM_PLAYERS.debt}</th>
-              <th className="py-2 pl-6 text-right font-bold whitespace-nowrap">{GM_PLAYERS.loans}</th>
-              <th />
-            </tr>
-          </thead>
-          <tbody>
-            {sorted.map((p) => (
-              <tr key={p.id} className="border-t border-white/10">
-                <td className="max-w-0 truncate py-2 pl-4 font-bold">{playerLabel(p.name, p.tag)}</td>
-                <td className="py-2 pl-6 text-right whitespace-nowrap font-display font-black text-plate tabular-nums">{fmtRm(p.balance)}</td>
-                <td className={cx('py-2 pl-6 text-right whitespace-nowrap tabular-nums', p.debt > 0 ? 'text-drift' : 'text-ink-dim')}>{fmtRm(p.debt)}</td>
-                <td className="py-2 pl-6 text-right whitespace-nowrap text-ink-dim tabular-nums">{fmtInt(p.loans_taken)}</td>
-                <td className="py-2 pr-2 pl-4 text-right">
-                  <Button variant="ghost" onClick={() => setEditId(p.id)}>
-                    {GM_PLAYERS.edit}
-                  </Button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <ul className="flex flex-col gap-2">
+          {sorted.map((p) => (
+            <li
+              key={p.id}
+              className="flex items-center gap-3 rounded-xl bg-tote/50 px-3 py-2 ring-1 ring-white/10 ring-inset"
+            >
+              <div className="flex min-w-0 flex-1 flex-col">
+                <span className="truncate font-bold">{playerLabel(p.name, p.tag)}</span>
+                <span className="flex flex-wrap gap-x-3 text-xs text-ink-dim">
+                  <span>
+                    {GM_PLAYERS.balance}{' '}
+                    <b className="font-display font-black text-plate tabular-nums">{fmtRm(p.balance)}</b>
+                  </span>
+                  {p.debt > 0 && (
+                    <span>
+                      {GM_PLAYERS.debt} <b className="text-drift tabular-nums">{fmtRm(p.debt)}</b>
+                    </span>
+                  )}
+                  {p.loans_taken > 0 && (
+                    <span>
+                      {GM_PLAYERS.loans} <b className="tabular-nums">{fmtInt(p.loans_taken)}</b>
+                    </span>
+                  )}
+                </span>
+              </div>
+              <Button variant="ghost" onClick={() => setEditId(p.id)}>
+                {GM_PLAYERS.edit}
+              </Button>
+            </li>
+          ))}
+        </ul>
       )}
 
       {editing && <EditPlayer key={editing.id} player={editing} onClose={() => setEditId(null)} />}
@@ -153,7 +159,7 @@ function EditPlayer({ player, onClose }: { player: PlayerRow; onClose: () => voi
 
           <div className="flex flex-col gap-3">
             <span className="text-lg font-bold tracking-[0.12em] text-ink-dim uppercase">{GM_PLAYERS.adjustLabel}</span>
-            <div className="grid grid-cols-6 gap-2">
+            <div className="grid grid-cols-3 gap-2">
               {QUICK.map((d) => (
                 <Button
                   key={d}

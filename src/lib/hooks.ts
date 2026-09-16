@@ -1,6 +1,7 @@
 // Realtime-backed React hooks. Pattern: fetch once, apply Realtime payloads, refetch on every
 // (re)subscribe and when the tab becomes visible again, retry failed fetches with backoff.
 import { useCallback, useEffect, useEffectEvent, useMemo, useState, useSyncExternalStore } from 'react'
+import { measureOffset, serverTime, usableOffset } from './clock'
 import { connectionStore, type ConnectionStatus } from './connection'
 import { RallyError, toRallyError } from './errors'
 import { identityStore } from './identity'
@@ -252,4 +253,37 @@ export function useLeaderboard(): LiveResult<Leaderboard> {
 /** Kuskar are not in the Realtime publication; call reload() after GM edits. */
 export function useKusks(): LiveResult<KuskRow[]> {
   return useLive({ key: 'kusks', load: () => getApi().getKusks(), tables: [] })
+}
+
+/**
+ * Offset from this device's clock to the database clock, measured once and re-measured when the
+ * connection comes back. The GM race replay runs off races.started_at (a server timestamp), so the
+ * display iPad and the control phone need to agree on "now" even if a device clock drifts.
+ * A failed measurement leaves the offset at 0, i.e. plain local time.
+ */
+export function useServerClock(): { now: () => number; offset: number } {
+  const [offset, setOffset] = useState(0)
+  const status = useConnection()
+  const online = status === 'online'
+
+  useEffect(() => {
+    if (!online) return
+    let cancelled = false
+    const measure = async () => {
+      const sentAt = Date.now()
+      try {
+        const serverMs = await getApi().serverNow()
+        if (!cancelled) setOffset(usableOffset(measureOffset(serverMs, sentAt, Date.now())))
+      } catch {
+        // Keep the current offset; the local clock is the fallback.
+      }
+    }
+    void measure()
+    return () => {
+      cancelled = true
+    }
+  }, [online])
+
+  const now = useCallback(() => serverTime(offset), [offset])
+  return { now, offset }
 }

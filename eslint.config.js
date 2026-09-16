@@ -20,6 +20,14 @@ export default defineConfig([
     },
   },
   {
+    // The entry module is not a Fast Refresh boundary: it mounts the root and declares the
+    // lazily loaded route chunks, so "a file with components must export them" does not apply.
+    files: ['src/main.tsx'],
+    rules: {
+      'react-refresh/only-export-components': 'off',
+    },
+  },
+  {
     files: ['scripts/**/*.ts'],
     languageOptions: {
       globals: globals.node,

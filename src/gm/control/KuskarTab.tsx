@@ -1,11 +1,11 @@
 // Named kuskar (Simon's friends): who gets drawn into new fields and what is said about them.
 import { useState } from 'react'
-import type { KuskRow } from '../lib/types'
-import { GM_KUSKAR } from '../shared/content/gm'
-import { Button, cx, Modal, toast } from '../ui'
+import type { KuskRow } from '../../lib/types'
+import { GM_KUSKAR } from '../../shared/content/gm'
+import { Button, cx, Modal, toast } from '../../ui'
 import { Field, TextArea, TextInput } from './form'
-import { useGmAction } from './gmAuth'
-import { parseNotes } from './parse'
+import { useGmAction } from '../gmAuth'
+import { parseNotes } from '../parse'
 
 type Editing = { kusk: KuskRow | null } | null
 
@@ -13,16 +13,16 @@ export function KuskarTab({ kusks, onChange }: { kusks: readonly KuskRow[] | und
   const [editing, setEditing] = useState<Editing>(null)
 
   return (
-    <div className="flex flex-col gap-4 p-6">
-      <div className="flex items-center gap-4">
-        <h2 className="font-display text-tv-md font-black text-plate uppercase">{GM_KUSKAR.title}</h2>
-        <span className="text-2xl text-ink-dim">{GM_KUSKAR.hint}</span>
+    <div className="flex flex-col gap-4 p-4">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+        <h2 className="font-display text-2xl font-black text-plate uppercase">{GM_KUSKAR.title}</h2>
+        <span className="text-sm text-ink-dim">{GM_KUSKAR.hint}</span>
         <span className="flex-1" />
         <Button onClick={() => setEditing({ kusk: null })}>{GM_KUSKAR.new}</Button>
       </div>
 
-      {kusks && kusks.length === 0 && <p className="text-tv-sm text-ink-dim">{GM_KUSKAR.empty}</p>}
-      <ul className="grid grid-cols-2 gap-3">
+      {kusks && kusks.length === 0 && <p className="text-ink-dim">{GM_KUSKAR.empty}</p>}
+      <ul className="flex flex-col gap-2">
         {kusks?.map((k) => (
           <li
             key={k.id}
@@ -30,7 +30,7 @@ export function KuskarTab({ kusks, onChange }: { kusks: readonly KuskRow[] | und
           >
             <div className="flex min-w-0 flex-1 flex-col gap-1">
               <span className="flex items-center gap-3">
-                <span className="truncate text-tv-sm font-extrabold">{k.name}</span>
+                <span className="truncate font-extrabold">{k.name}</span>
                 <span
                   className={cx(
                     'shrink-0 rounded-full px-3 py-0.5 text-base font-bold uppercase',

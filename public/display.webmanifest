@@ -1,0 +1,38 @@
+{
+  "name": "Rally75 Skärm",
+  "short_name": "Skärm",
+  "description": "Storbildsvyn för kvällens lopp.",
+  "lang": "sv",
+  "start_url": "/gm/display",
+  "scope": "/gm/display",
+  "display": "standalone",
+  "orientation": "landscape",
+  "theme_color": "#07123a",
+  "background_color": "#040b26",
+  "icons": [
+    {
+      "src": "/gm-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/gm-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/gm-icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/gm-icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

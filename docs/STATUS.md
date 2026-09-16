@@ -468,3 +468,72 @@ Simon's choices: **moderate** pop-up pacing; optional extras **big-win celebrati
 **Next:** Stage 7 (Deploy + dress rehearsal). Start a fresh session with:
 
 > Read CLAUDE.md, docs/META_PLAN.md and docs/STATUS.md, then plan and execute Stage 7.
+
+## Stage 7a: display/control split (done, 2026-09-16)
+
+Simon's change before the deploy stage: the iPad becomes a **pure display** and his **phone** becomes
+the admin device. The META_PLAN Decisions table (Devices, Race view, GM auth) was updated to match.
+
+**Done**
+
+- **Two GM roles behind one password gate**, one lazy chunk, routed in `src/gm/GmApp.tsx`:
+  `/gm` = control phone (`src/gm/control/`), `/gm/display` = iPad (`src/gm/display/`). Separate URLs
+  so each device's home-screen icon opens straight into its role. Shared logic stays at `src/gm/`.
+- **Server-authoritative race clock.** `races.started_at` is now the only start time. New migration
+  `20260916000006_race_clock.sql` adds `server_now()` (clock-offset measurement, security invoker)
+  and `gm_skip_race(password, race_id, run_ms)` (Snabbspola moves `started_at` back). `src/lib/clock.ts`
+  + `useServerClock()` correct for device clock drift. `loadRaceStart`/`saveRaceStart` and the
+  `rally75.gmRaceStart` key are gone. This also retires the Stage 4 open issue about a second GM
+  device replaying with clock skew.
+- **Display** (`DisplayShell`): view is a pure function of race status. `Attract` idle,
+  `FieldBoard` in paddock/closed, rotating `Spotlight` while betting, `RaceScreen` running,
+  `ResultDisplay` for 45 s after settlement, then back to attract. `Attract` is now the standing
+  chrome (join QR + trot parade) with a swappable left panel as `children`.
+- **Horse spotlight** while betting: one horse at a time beside the QR, with story, kusk, form, note,
+  tip, live odds and pool, plus a progress bar. `spotlight.ts` is pure and tested, keyed off
+  `betting_at`, so a reload lands on the horse the room was already looking at. It does **not** reuse
+  `HorseRow size="tv"`: those sizes overflow a 1024x768 iPad once the trot parade takes its share,
+  so the card scales with the viewport instead.
+- **Control phone** (`ControlShell`): bottom tab bar copied from `ClientShell`, all four tabs made
+  phone-first. `BetsTab`'s 24rem sidebar stacked, `PlayersTab`'s 5-column table became cards,
+  `KuskarTab` single column, `Login` no longer renders one unbreakable 64px word, `ResultPanel` took
+  a `size: 'tv' | 'md'` prop. No `tv` sizes remain under `src/gm/control/`.
+- **Publishing moved to the phone.** Auto-publish left `RaceScreen` for `control/RunningRace.tsx`;
+  the display never publishes in the normal path. `InquiryOverlay` split into `display/InquiryDrama`
+  (accusation + "domarna tittar", no buttons) and `control/InquiryRulings` (the three rulings).
+  `display/useFallbackPublish.ts` publishes `'none'` ~12 s late **only** if the phone never did
+  (flat battery); a late second publish is rejected by the server since it requires status `running`.
+- Third manifest `public/display.webmanifest` (`start_url: /gm/display`, landscape);
+  `gm.webmanifest` is now portrait. Both GM roles reuse the pink icon set (they live on different
+  devices, so there is no confusion).
+
+**Verified**
+
+- `npm run build`, `npm test` (123), `npm run lint` pass.
+- `npm run smoke -- --reset` passes against the **local** stack, including three new steps:
+  `server_now` offset sanity, `gm_skip_race` (moves `started_at` back by the run length, wrong status
+  and bad `run_ms` rejected, race still settles), and `night_paid` matching the winning payouts.
+- Three-window headless run (control 390x844 + display 1180x820 and 1024x768) through a full race:
+  attract, paddock on both, spotlight rotating, betting, closed, race starting on the display
+  **426 ms** after the tap, Snabbspola on the phone reaching the display, result on both.
+  **Publish calls: control 1, display 0.** No console errors, no horizontal overflow on any tab.
+- Both migrations pushed to the hosted project; `night_paid()`, `server_now()` and `gm_skip_race`
+  confirmed present there.
+
+**Open issues**
+
+- **The `GM_PASSWORD` in `.env.local` does not match the hosted project.** `npm run smoke` against
+  hosted fails at `gm auth` with `gm_unauthorized`. The hosted `gm_auth` row is a valid bcrypt hash,
+  so the password simply drifted (nothing in this stage touched it; only the local stack's password
+  was set). Fix by running `supabase/snippets/set_gm_password.sql` in the Supabase SQL editor and
+  updating `.env.local`. Until then, hosted smoke and `gm_reset_night` cannot run.
+- Hosted still holds old rehearsal data (`night_paid()` = 548). Clear it with "Nollställ kvällen"
+  once the password is sorted.
+- Stage 7 proper is still open: load script, `docs/REHEARSAL.md`, `docs/PARTY_DAY.md`, and the
+  deploy itself. Nothing is pushed to `main` yet.
+
+**Manual steps for Simon**
+
+1. Reset the GM password (see the open issue above) so hosted smoke and the night reset work.
+2. On the iPad open `https://rally75.vercel.app/gm/display` in Safari and "Lägg till på hemskärmen";
+   on your phone do the same with `https://rally75.vercel.app/gm`. Both ask for the password once.

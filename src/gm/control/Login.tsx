@@ -1,9 +1,9 @@
 import { useState, type FormEvent } from 'react'
-import { toRallyError } from '../lib/errors'
-import { GM_LOGIN } from '../shared/content/gm'
-import { Button, Logo } from '../ui'
+import { toRallyError } from '../../lib/errors'
+import { GM_LOGIN } from '../../shared/content/gm'
+import { Button, Logo } from '../../ui'
 import { Field, TextInput } from './form'
-import { useGmAuth } from './gmAuth'
+import { useGmAuth } from '../gmAuth'
 
 export function Login() {
   const { login } = useGmAuth()
@@ -27,9 +27,9 @@ export function Login() {
   return (
     <main className="grid min-h-dvh place-items-center p-8">
       <form onSubmit={submit} className="flex w-[min(34rem,100%)] flex-col gap-6">
-        <Logo size="lg" />
+        <Logo size="md" />
         <div>
-          <h1 className="font-display text-tv-lg font-black text-plate uppercase">{GM_LOGIN.title}</h1>
+          <h1 className="font-display text-5xl font-black text-plate uppercase">{GM_LOGIN.title}</h1>
           <p className="text-2xl text-ink-dim">{GM_LOGIN.subtitle}</p>
         </div>
         <Field label={GM_LOGIN.passwordLabel} hint={GM_LOGIN.remembered}>
@@ -46,7 +46,7 @@ export function Login() {
             {error}
           </p>
         )}
-        <Button type="submit" size="tv" block loading={busy}>
+        <Button type="submit" size="lg" block loading={busy}>
           {GM_LOGIN.submit}
         </Button>
       </form>

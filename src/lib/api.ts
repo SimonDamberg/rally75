@@ -90,10 +90,13 @@ export function createApi(db: SupabaseClient) {
       return rows.map(toBet)
     },
 
-    /** Sum of every winning payout tonight ("Utbetalt i kväll"). */
+    /**
+     * Sum of every winning payout tonight ("Utbetalt i kväll"). Aggregated server-side: summing
+     * the rows here would cap out at PostgREST's 1000-row default and ship the whole winners
+     * list to every phone after each race.
+     */
     async getNightPaid(): Promise<number> {
-      const rows = await query<{ payout: number | null }[]>(() => db.from('bets').select('payout').eq('status', 'won'))
-      return rows.reduce((sum, r) => sum + (r.payout ?? 0), 0)
+      return Number(await rpc<number | string>('night_paid', {}))
     },
 
     async getPlayer(playerId: string): Promise<PlayerRow | null> {
@@ -131,6 +134,14 @@ export function createApi(db: SupabaseClient) {
       return rpc('take_loan', { p_player_id: identity.playerId, p_token: identity.token })
     },
 
+    /**
+     * Database clock, for measuring this device's offset. The race replay runs off
+     * races.started_at, so the display and the control device must agree on "now".
+     */
+    async serverNow(): Promise<number> {
+      return Date.parse(await rpc<string>('server_now', {}))
+    },
+
     /** Server-side odds (rounded), for the SQL/TS parity check. */
     async computeOdds(baseOdds: readonly number[], pools: readonly number[]): Promise<number[]> {
       const res = await rpc<unknown[]>('compute_odds', { p_base_odds: baseOdds, p_pools: pools })
@@ -162,6 +173,16 @@ export function createApi(db: SupabaseClient) {
 
       getSecrets(password: string, raceId: string): Promise<RaceSecrets> {
         return rpc('gm_get_secrets', { p_password: password, p_race_id: raceId })
+      },
+
+      /**
+       * Snabbspola: drags started_at back by the timeline length so the race is at its last frame.
+       * Goes through the server so the display device follows over Realtime.
+       */
+      async skipRace(password: string, raceId: string, runMs: number): Promise<RaceRow> {
+        return toRace(
+          await rpc<Row>('gm_skip_race', { p_password: password, p_race_id: raceId, p_run_ms: Math.round(runMs) }),
+        )
       },
 
       /** `order` is the simulated finish order; the server applies the ruling. */

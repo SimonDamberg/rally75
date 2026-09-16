@@ -30,6 +30,12 @@ export const CONNECTION_LABELS = {
 
 export const OFFLINE_BANNER = "Ingen anslutning. Försöker igen...";
 
+/**
+ * Shown while the game master bundle downloads. It lives here rather than in content/gm.ts so the
+ * router does not pull the whole GM copy module into the chunk every guest downloads.
+ */
+export const GM_LOADING = "Laddar spelledaren";
+
 export const UI_LABELS = {
   race: "Lopp",
   live: "Live",
@@ -57,6 +63,13 @@ export const ATTRACT = {
   joinedMany: (label: string, more: number) =>
     `${label} och ${more} till är med`,
   joinedBonus: (amount: string) => `+${amount} på kontot`,
+  /** Display iPad, while a race is in the paddock, betting or closed. */
+  fieldTitle: "Kvällens startfält",
+  spotlightTitle: "Spelet är öppet",
+  spotlightOf: (i: number, n: number) => `Häst ${i} av ${n}`,
+  closedTitle: "Spelet är stängt",
+  closedSub: "Loppet startar strax",
+  paddockSub: "Studera fältet, spelet öppnar snart",
   lines: [
     "Inget konto behövs!",
     "Huset har aldrig varit så generöst",

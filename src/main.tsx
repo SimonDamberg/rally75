@@ -5,7 +5,12 @@ import '@fontsource-variable/archivo/wdth.css'
 import '@fontsource-variable/big-shoulders-display'
 import './index.css'
 import ClientApp from './client/ClientApp'
-import GmApp from './gm/GmApp'
+import { GM_LOADING } from './shared/content/ui'
+import { LoadingScreen } from './ui'
+
+// The GM console is only ever opened on Simon's iPad, so guests should not download it.
+// ClientApp stays eager: the guest path is the one that must be fast from a cold QR scan.
+const GmApp = lazy(() => import('./gm/GmApp'))
 
 // Dev-only component gallery; import.meta.env.DEV is false in production builds, so it is dropped.
 const Styleguide = import.meta.env.DEV ? lazy(() => import('./ui/styleguide/Styleguide')) : null
@@ -16,7 +21,14 @@ createRoot(document.getElementById('root')!).render(
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<ClientApp />} />
-        <Route path="/gm/*" element={<GmApp />} />
+        <Route
+          path="/gm/*"
+          element={
+            <Suspense fallback={<LoadingScreen label={GM_LOADING} />}>
+              <GmApp />
+            </Suspense>
+          }
+        />
         {Styleguide && Gallery && (
           <>
             <Route path="/styleguide" element={<Suspense><Styleguide /></Suspense>} />

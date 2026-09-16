@@ -25,21 +25,22 @@ const replay = (race: RaceRow, secrets: RaceSecrets): RaceTimeline =>
     meters: distMeters(race.dist),
   })
 
-export function useRaceTimeline(race: RaceRow): { timeline: RaceTimeline | null; error: RallyError | null } {
+/** Pass null to load nothing (e.g. while no race is running). */
+export function useRaceTimeline(race: RaceRow | null): { timeline: RaceTimeline | null; error: RallyError | null } {
   const { password, logout } = useGmAuth()
-  const raceId = race.id
-  const [state, setState] = useState<{ raceId: string; timeline: RaceTimeline | null; error: RallyError | null }>(
+  const raceId = race?.id ?? null
+  const [state, setState] = useState<{ raceId: string | null; timeline: RaceTimeline | null; error: RallyError | null }>(
     () => {
-      const cached = cache.get(raceId)
-      return { raceId, timeline: cached ? replay(race, cached) : null, error: null }
+      const cached = raceId ? cache.get(raceId) : undefined
+      return { raceId, timeline: race && cached ? replay(race, cached) : null, error: null }
     },
   )
-  const build = useEffectEvent((secrets: RaceSecrets) => replay(race, secrets))
+  const build = useEffectEvent((secrets: RaceSecrets) => (race ? replay(race, secrets) : null))
   const current = state.raceId === raceId
   const loaded = current && state.timeline !== null
 
   useEffect(() => {
-    if (loaded || !password) return
+    if (loaded || !password || !raceId) return
     let cancelled = false
     let attempt = 0
     let timer: ReturnType<typeof setTimeout> | undefined

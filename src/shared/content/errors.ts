@@ -24,6 +24,7 @@ export const ERROR_MESSAGES = {
   invalid_order: 'Resultatordningen är ogiltig.',
   invalid_ruling: 'Okänt domslut.',
   balance_negative: 'Saldot kan inte bli negativt.',
+  bad_run_ms: 'Ogiltig looptid.',
   kusk_not_found: 'Kusken finns inte.',
   // Client side
   network: 'Ingen anslutning. Försöker igen...',

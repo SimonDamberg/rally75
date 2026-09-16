@@ -1,6 +1,6 @@
 // Form controls for the GM panel: big enough to hit on an iPad held in one hand.
 import type { InputHTMLAttributes, ReactNode, TextareaHTMLAttributes } from 'react'
-import { cx } from '../ui'
+import { cx } from '../../ui'
 
 const CONTROL =
   'w-full rounded-xl bg-night-deep/80 px-4 py-3 text-2xl text-ink ring-2 ring-tote-hi/60 ring-inset placeholder:text-ink-dim/60 focus:ring-plate focus:outline-none'

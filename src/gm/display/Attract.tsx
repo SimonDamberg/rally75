@@ -1,12 +1,14 @@
-// Attract screen for the iPad between races: join QR, live player count, a jackpot that only
-// grows, an inflated "Utbetalt i kväll" and a field that trots forever. Every new sign-up gets a fanfare.
+// The display iPad's standing layout: a swappable left panel beside the join QR, with the trotting
+// field along the bottom and a fanfare for every new sign-up. DisplayShell decides what goes on the
+// left (idle attract, the field, or the horse spotlight); the QR never leaves, so a guest who walks
+// in halfway through the night can always scan.
 import { useEffect, useState, type ReactNode } from "react";
-import { useConnection, useLeaderboard, useNightPaid } from "../lib/hooks";
-import type { PlayerRow } from "../lib/types";
-import { ATTRACT } from "../shared/content/ui";
-import { WELCOME_BONUS } from "../shared/game/economy";
-import { fmtRmLong, playerLabel } from "../shared/game/format";
-import { BonusBar, ConnectionBadge, Logo, NightPaidNumber, QrCode } from "../ui";
+import { useConnection, useLeaderboard, useNightPaid } from "../../lib/hooks";
+import type { PlayerRow } from "../../lib/types";
+import { ATTRACT } from "../../shared/content/ui";
+import { WELCOME_BONUS } from "../../shared/game/economy";
+import { fmtRmLong, playerLabel } from "../../shared/game/format";
+import { BonusBar, ConnectionBadge, Logo, NightPaidNumber, QrCode } from "../../ui";
 import { Jackpot } from "./Jackpot";
 import { JoinFanfare } from "./JoinFanfare";
 import { TrotParade } from "./TrotParade";
@@ -75,7 +77,24 @@ function NightPaid() {
   );
 }
 
-export function Attract({ corner }: { corner?: ReactNode }) {
+/** Between races: the jackpot, the sleaze lines and who has joined. */
+export function AttractMain() {
+  const { data } = useLeaderboard();
+  return (
+    <div className="flex min-w-0 flex-col gap-4">
+      <div className="flex items-end justify-between gap-6">
+        <Logo size="lg" />
+        <NightPaid />
+      </div>
+      <Jackpot />
+      <RotatingLine />
+      <PlayerCount players={data?.players} />
+    </div>
+  );
+}
+
+/** The standing chrome. `children` fills the left column. */
+export function Attract({ children }: { children?: ReactNode }) {
   const connection = useConnection();
   const { data } = useLeaderboard();
   const joinUrl = `${window.location.origin}/`;
@@ -86,16 +105,8 @@ export function Attract({ corner }: { corner?: ReactNode }) {
       <BonusBar />
       <ConnectionBadge status={connection} variant="banner" size="tv" />
 
-      <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)_auto] items-center gap-10 px-12">
-        <div className="flex min-w-0 flex-col gap-4">
-          <div className="flex items-end justify-between gap-6">
-            <Logo size="lg" />
-            <NightPaid />
-          </div>
-          <Jackpot />
-          <RotatingLine />
-          <PlayerCount players={data?.players} />
-        </div>
+      <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)_auto] items-center gap-10 overflow-hidden px-12 py-[1vh]">
+        {children ?? <AttractMain />}
 
         <div className="flex flex-col items-center gap-4">
           <div className="plate rounded-3xl bg-plate p-4 shadow-[0.6rem_0.6rem_0_var(--color-sleaze)]">
@@ -119,7 +130,6 @@ export function Attract({ corner }: { corner?: ReactNode }) {
 
       <TrotParade />
       <JoinFanfare players={data?.players} />
-      {corner && <div className="absolute right-4 bottom-4 z-20">{corner}</div>}
     </div>
   );
 }

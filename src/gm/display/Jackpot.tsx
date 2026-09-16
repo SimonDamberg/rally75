@@ -1,10 +1,10 @@
 // Fake, ever-growing jackpot on a tote board. Derived from the local clock (resets at noon) so a
 // reload never resets it mid-party.
 import { useEffect, useState } from "react";
-import { ATTRACT } from "../shared/content/ui";
-import { fmtInt } from "../shared/game/format";
-import { secondsSinceNoon } from "../shared/game/hype";
-import { RollingNumber } from "../ui";
+import { ATTRACT } from "../../shared/content/ui";
+import { fmtInt } from "../../shared/game/format";
+import { secondsSinceNoon } from "../../shared/game/hype";
+import { RollingNumber } from "../../ui";
 
 const BASE = 4_750_000;
 const PER_SECOND = 17;

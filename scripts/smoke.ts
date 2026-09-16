@@ -359,6 +359,47 @@ await step('gm_set_status void: stakes refunded', async () => {
   await expectCode(gm.setStatus(pw, race.id, 'void'), 'invalid_transition')
 })
 
+await step('server_now tracks the database clock', async () => {
+  const sent = Date.now()
+  const server = await api.serverNow()
+  const received = Date.now()
+  assert.ok(Number.isFinite(server), 'server_now parses as a timestamp')
+  // The laptop and the database are both NTP-synced; allow a wide band so this never flakes.
+  const offset = server - (sent + received) / 2
+  assert.ok(Math.abs(offset) < 60_000, `clock offset ${offset} ms is implausible`)
+})
+
+await step('gm_skip_race moves started_at back', async () => {
+  const { card, race } = await openRace()
+  await expectCode(gm.skipRace(pw, race.id, 20_000), 'race_not_running')
+
+  await gm.setStatus(pw, race.id, 'closed')
+  const running = await gm.setStatus(pw, race.id, 'running')
+  assert.ok(running.started_at, 'running stamps started_at')
+
+  await expectCode(gm.skipRace(pw, race.id, -1), 'bad_run_ms')
+  await expectCode(gm.skipRace('fel', race.id, 20_000), 'gm_unauthorized')
+
+  const RUN_MS = 20_000
+  const skipped = await gm.skipRace(pw, race.id, RUN_MS)
+  const moved = Date.parse(running.started_at!) - Date.parse(skipped.started_at!)
+  // The skip drags the start back by the run length, plus whatever time the calls took.
+  assert.ok(moved >= RUN_MS - 1000, `started_at moved back ${moved} ms, expected about ${RUN_MS}`)
+  assert.ok(moved < RUN_MS + 10_000, `started_at moved back ${moved} ms, far more than expected`)
+  assert.equal(skipped.status, 'running')
+
+  // A skipped race still settles normally.
+  const order = card.horses.map((h) => h.n)
+  const done = await gm.publishResult(pw, race.id, order, 'none', null)
+  assert.equal(done.status, 'finished')
+})
+
+await step('night_paid matches the winning payouts', async () => {
+  const bets = await Promise.all((await api.getRaces()).map((r) => api.getRaceBets(r.id)))
+  const expected = bets.flat().reduce((sum, b) => (b.status === 'won' ? sum + (b.payout ?? 0) : sum), 0)
+  assert.equal(await api.getNightPaid(), expected)
+})
+
 await step('paddock race is replaced by gm_create_race', async () => {
   const first = await gm.createRace(pw, newCard())
   const second = await gm.createRace(pw, newCard())

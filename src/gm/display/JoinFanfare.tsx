@@ -1,10 +1,10 @@
 // Big sweeping banner whenever a new guest signs up. Players already there on first load are
 // not announced. A rush of sign-ups is folded into one "och N till" banner.
 import { useEffect, useState } from 'react'
-import type { PlayerRow } from '../lib/types'
-import { WELCOME_BONUS } from '../shared/game/economy'
-import { fmtRm, playerLabel } from '../shared/game/format'
-import { ATTRACT } from '../shared/content/ui'
+import type { PlayerRow } from '../../lib/types'
+import { WELCOME_BONUS } from '../../shared/game/economy'
+import { fmtRm, playerLabel } from '../../shared/game/format'
+import { ATTRACT } from '../../shared/content/ui'
 
 const SHOW_MS = 3600
 const FOLD_AT = 3

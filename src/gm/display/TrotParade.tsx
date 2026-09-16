@@ -1,9 +1,9 @@
 // Idle track at the bottom of the attract screen: the camera follows the field, so the rail
 // scrolls while the plates swap places. Positions are written straight to the DOM each frame.
 import { useEffect, useRef, useState } from 'react'
-import { SILKS } from '../shared/content/race'
-import { FIELD_SIZE } from '../shared/game/field'
-import { SilkBadge } from '../ui'
+import { SILKS } from '../../shared/content/race'
+import { FIELD_SIZE } from '../../shared/game/field'
+import { SilkBadge } from '../../ui'
 
 const HORSES = Array.from({ length: FIELD_SIZE }, (_, i) => ({
   n: i + 1,

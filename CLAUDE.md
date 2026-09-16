@@ -49,7 +49,7 @@ src/lib/             Supabase client, typed RPC wrappers, realtime hooks. (Stage
 src/ui/              Design-system components shared by both apps. (Stage 3)
 src/ui/styleguide/   Dev-only gallery at /styleguide (phone + iPad frames). Not in prod builds.
 src/client/          Guest app, route "/".
-src/gm/              Game master app, route "/gm/*".
+src/gm/              Game master app. control/ = phone (/gm), display/ = iPad (/gm/display).
 supabase/migrations/ SQL migrations. (Stage 2)
 ```
 
@@ -84,18 +84,31 @@ supabase/migrations/ SQL migrations. (Stage 2)
   `StatusBanner`, `BonusBar`, `ConnectionBadge`, `QrCode`. Most take `size` with a `tv` variant for the iPad.
 - Component copy lives in `src/shared/content/ui.ts`. Check new components in `/styleguide`.
 
-## GM app (Stage 4)
+## GM app (Stages 4 and 7)
 
-- `src/gm/GmShell.tsx` picks the view: `RaceScreen` while the active race runs (and its result
-  until dismissed), `Attract` between races, otherwise the tabbed panel (Lopp, Spel, Spelare, Kuskar).
+Two devices, one password gate, one lazy-loaded chunk (`src/gm/GmApp.tsx` routes between them):
+
+- **`/gm/display`**, the iPad on its stand: `src/gm/display/`. Pure output, nothing to tap, and it
+  **never publishes a result**. `DisplayShell` picks the view from the race status alone: `Attract`
+  when idle, `FieldBoard` in paddock and closed, the rotating `Spotlight` while betting, `RaceScreen`
+  while running, `ResultDisplay` for 45 s after settlement. `Attract` is the standing chrome (join QR
+  plus trot parade); its `children` are the swappable left panel.
+- **`/gm`**, Simon's phone: `src/gm/control/`. Phone-first (bottom tab bar like `ClientShell`, `md`
+  sizes, never `tv`). Every control lives here, including Snabbspola, the inquiry rulings and
+  **auto-publish** (`RunningRace.tsx`).
+- Shared between them stays at `src/gm/`: `gmAuth`, `useRaceControl`, `useRaceTimeline`, `raceClock`,
+  `book`, `parse`, `ResultPanel` (takes `size: 'tv' | 'md'`).
 - GM RPCs go through `useGmAction().run((gm, pw) => ...)` (`src/gm/gmAuth.ts`): errors become
   toasts, `gm_unauthorized` logs out. `run` resolves to `undefined` on failure, so a call that
   returns nothing must return `true`.
-- The race screen replays `simulateRace` from `gm_get_secrets` against a start time kept in
-  localStorage (`saveRaceStart`), so reloads and Snabbspola are just a different start. Screen state
-  is a pure function of elapsed time (`src/gm/raceClock.ts`).
-- No inquiry: the result is published automatically after the finish pause. Inquiry: the GM rules.
-- GM copy lives in `src/shared/content/gm.ts`.
+- **The race clock is server-authoritative.** `races.started_at` is the only start time; both devices
+  replay `simulateRace` against it and correct for their own clock drift with `useServerClock()`
+  (`src/lib/clock.ts` + the `server_now()` RPC). Snabbspola is the `gm_skip_race` RPC, which moves
+  `started_at` back so the skip reaches the iPad over Realtime. Never store a race start locally.
+- No inquiry: the control phone publishes automatically after the finish pause, and the display
+  publishes as a fallback ~12 s later only if the phone never did (`useFallbackPublish.ts`).
+  Inquiry: only the phone rules; the iPad just shows the drama.
+- GM copy lives in `src/shared/content/gm.ts`; display copy in `ATTRACT` (`src/shared/content/ui.ts`).
 
 ## Client app (Stage 5)
 

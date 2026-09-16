@@ -23,7 +23,7 @@ contract between those sessions.
 |---|---|
 | Brand | **Rally75**, inspired by V75/V85. Full ATG/V75 parody look (bright blues/yellows, jackpot banners) plus casino sleaze. Own logo, never ATG's real name/logo. |
 | Language | Swedish everywhere, including errors. No em dashes in any user-facing text. No audio. |
-| Race view | Race animation runs **only on the GM iPad**. Phones show state ("Loppet pågår") and then a result reveal. |
+| Race view | Race animation runs **only on the display iPad**. Guest phones show state ("Loppet pågår") and then a result reveal. |
 | Race lifecycle | GM controls every step: `paddock` (field visible to guests, GM can reroll) -> `betting` -> `closed` -> `running` -> `finished`/`void`. No auto countdown. |
 | Horses | Fresh **4-horse** field per race, rerollable (changed from 6 by Simon after Stage 3, to fit the iPad). Content pools ported verbatim from prototype. The UI shows **no kusk title** in parentheses after the kusk name and **no race stats** (distance, track conditions); the data still carries `title`, `dist`, `cond`. |
 | Bet type | **Vinnare only.** Fixed odds captured at placement (prototype model). |
@@ -34,9 +34,9 @@ contract between those sessions.
 | Client extras | Leaderboard (incl. "Kvällens största förlorare"), my bets + history, result reveal pop-up, live odds ticker with drift colours. |
 | Client parody | Pop-up offers with restarting countdowns, fake social proof (win toasts, viewer count), absurd KYC + cookie banner where every option accepts. |
 | GM extras | Manage players (list, adjust balance, rename, delete). Edit named kuskar in DB. (No race rigging, no broadcast.) |
-| GM auth | Server-checked password: bcrypt hash in a private DB table, every `gm_*` RPC takes the password. Remembered on the iPad. |
+| GM auth | Server-checked password: bcrypt hash in a private DB table, every `gm_*` RPC takes the password. Remembered per device (both GM devices log in once). |
 | Network | Required. No offline fallback; clear "Ingen anslutning" states + auto-retry. |
-| Devices | Client: phone portrait (usable on desktop). GM: iPad landscape. |
+| Devices | Client: phone portrait (usable on desktop). GM is **two devices** (changed by Simon in Stage 7): a display iPad at `/gm/display`, landscape, pure output with nothing to tap, and Simon's phone at `/gm`, portrait, holding every control. |
 | Stack | Vite + React + TypeScript + Tailwind (v4, `@tailwindcss/vite`) + React Router + Vitest. `@supabase/supabase-js`. Deployed on Vercel (SPA rewrite). |
 | Timeline | Party is soon: lean stages, optional items clearly marked. |
 | Accounts | Simon has GitHub + Vercel. **No Supabase account yet** (created in Stage 2). |
