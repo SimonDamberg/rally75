@@ -2,7 +2,7 @@
 // app, because this is now a device Simon holds rather than an iPad on a stand. It never takes over
 // the screen for a race; the room watches /gm/display for that.
 import { useMemo, useState } from 'react'
-import { useActiveRace, useConnection, useKusks, useLeaderboard } from '../../lib/hooks'
+import { useActiveRace, useConnection, useKusks, useLeaderboard, usePurchases, useShopItems } from '../../lib/hooks'
 import type { PlayerRow } from '../../lib/types'
 import { GM_TABS } from '../../shared/content/gm'
 import { Button, ConnectionBadge, cx, Logo } from '../../ui'
@@ -12,10 +12,11 @@ import { BetsTab } from './BetsTab'
 import { KuskarTab } from './KuskarTab'
 import { PlayersTab } from './PlayersTab'
 import { RaceTab } from './RaceTab'
+import { ShopTab } from './ShopTab'
 
-type Tab = 'race' | 'bets' | 'players' | 'kuskar'
-const TABS: readonly Tab[] = ['race', 'bets', 'players', 'kuskar']
-const TAB_ICON: Record<Tab, string> = { race: '🏇', bets: '▤', players: '☻', kuskar: '✎' }
+type Tab = 'race' | 'bets' | 'players' | 'shop' | 'kuskar'
+const TABS: readonly Tab[] = ['race', 'bets', 'players', 'shop', 'kuskar']
+const TAB_ICON: Record<Tab, string> = { race: '🏇', bets: '▤', players: '☻', shop: '◆', kuskar: '✎' }
 
 export function ControlShell() {
   const { logout } = useGmAuth()
@@ -23,6 +24,8 @@ export function ControlShell() {
   const { data: race, reload: reloadRace } = useActiveRace()
   const { data: kusks, reload: reloadKusks } = useKusks()
   const { data: board, reload: reloadPlayers } = useLeaderboard()
+  const { data: shopItems } = useShopItems()
+  const { data: purchases } = usePurchases()
   const control = useRaceControl(kusks, reloadRace)
   const [tab, setTab] = useState<Tab>('race')
 
@@ -62,10 +65,11 @@ export function ControlShell() {
             }}
           />
         )}
+        {tab === 'shop' && <ShopTab items={shopItems} purchases={purchases} players={board?.players} />}
         {tab === 'kuskar' && <KuskarTab kusks={kusks} onChange={reloadKusks} />}
       </main>
 
-      <nav className="grid shrink-0 grid-cols-4 border-t border-white/10 bg-night-deep pb-[env(safe-area-inset-bottom)]">
+      <nav className="grid shrink-0 grid-cols-5 border-t border-white/10 bg-night-deep pb-[env(safe-area-inset-bottom)]">
         {TABS.map((t) => (
           <button
             key={t}
@@ -73,7 +77,7 @@ export function ControlShell() {
             aria-pressed={tab === t}
             onClick={() => setTab(t)}
             className={cx(
-              'flex min-h-15 flex-col items-center justify-center gap-0.5 font-display text-sm font-extrabold tracking-wide uppercase',
+              'flex min-h-15 flex-col items-center justify-center gap-0.5 px-0.5 text-center font-display text-xs leading-tight font-extrabold tracking-wide uppercase',
               tab === t ? 'text-plate' : 'text-ink-dim active:text-ink',
             )}
           >

@@ -58,7 +58,8 @@ supabase/migrations/ SQL migrations. (Stage 2)
   `createRng(seed)`. Never call `Math.random` there. `randomSeed()` is the one impure helper.
 - Every change in `src/shared/game` comes with tests. Key invariants that must stay green:
   money on a horse always shortens it; same seed gives the same field and race timeline;
-  no duplicate horse names or final words in a field; 2 to 4 named kuskar per field.
+  no duplicate horse names or final words in a field; every slot in a field is a named kusk
+  (`NAMED_KUSKAR_PER_FIELD`), capped by how many active kuskar exist.
 - Game copy lives in `src/shared/content`, not inline in components. New horse-name jokes go
   in `EFTERLED` first. `SUBST` nouns must be in definite form.
 - `computeOdds` / `roundOdds` / `payoutFor` are mirrored in SQL (`place_bet`, settlement).
@@ -69,6 +70,7 @@ supabase/migrations/ SQL migrations. (Stage 2)
   `src/shared/content/errors.ts` (add a code there when adding a `raise exception`).
 - Migrations are append-only once pushed: never edit an applied file, add a new one.
 - Economy constants (`src/shared/game/economy.ts`) are mirrored in SQL; a test checks both.
+  `netWorth` takes `{balance, debt, spent}`: debt counts against you, Butik spending does not.
 - Tests are colocated as `*.test.ts`. They are type-checked via `tsconfig.node.json` (Node
   types available), while `tsconfig.app.json` covers app code with DOM types only.
 
@@ -113,7 +115,7 @@ Two devices, one password gate, one lazy-loaded chunk (`src/gm/GmApp.tsx` routes
 ## Client app (Stage 5)
 
 - `src/client/ClientApp.tsx`: no identity shows `Onboarding` (fake connect, KYC), otherwise
-  `ClientShell` (header, tabs Spela / Mina spel / Topplista). `CookieBanner` floats over both.
+  `ClientShell` (header, tabs Spela / Mina spel / Bank / Butik / Topplista). `CookieBanner` floats over both.
 - `ClientShell` fetches the player, the player's bets and the active race once and shares them via
   `useGuest()` (`src/client/guest.ts`). Guest RPCs go through `useGuestAction().run((api, identity) => ...)`:
   errors become toasts, `player_not_found`/`invalid_token` sign out.
@@ -134,6 +136,25 @@ Two devices, one password gate, one lazy-loaded chunk (`src/gm/GmApp.tsx` routes
   `SocialStrip` (viewer count, "Utbetalt i kväll"). Pure helpers in `src/client/proof.ts` and
   `src/shared/game/hype.ts`. "Utbetalt i kväll" is `nightPaidDisplay(now, useNightPaid())` on both apps.
 - New parody copy goes in `parody.ts` (`OFFERS`, `OFFER_UI`, `PROOF`, `SMALL_PRINT`).
+
+## Butik (black market)
+
+- `shop_items` (namn, blurb, pris, `stock` null = obegränsat, `kind` physical/digital, `effect`
+  none/title/badge) and `purchases` (a receipt, with the item name snapshotted). Both are public
+  read, written only by `buy_item` / `gm_upsert_shop_item` / `gm_delete_shop_item` /
+  `gm_refund_purchase`, and both are in the Realtime publication so stock drops on every phone.
+- **Buying is rank neutral.** `buy_item` moves the price from `players.balance` to `players.spent`,
+  and `netWorth` adds `spent` back, so nothing bought can move you on Toppen or the förlorarlista.
+  Spending has its own list, "Kvällens största slösare" (`bySpending`). Asserted in `buy.test.ts`,
+  `economy.test.ts` and smoke.
+- **Digital items are jokes or cosmetics only.** An item may set `players.title` or `players.badge`
+  (shown by `badgedLabel` and on the Topplista) and nothing else. Never odds, bets or free RM.
+- No fulfilment status: a purchase is a receipt the guest shows in the bar. The control phone's
+  Butik tab has the live "Sålt i kväll" feed and Ångra (`gm_refund_purchase`); the display iPad
+  toasts each purchase (`usePurchaseToasts`). `gm_reset_night` keeps the catalogue (like kuskar) and
+  drops the receipts with the players.
+- Guest copy is `BUTIK` in `client.ts`, GM copy `GM_SHOP` in `gm.ts`, display copy `ATTRACT`.
+  Pure logic: `src/client/buy.ts`, `parsePrice`/`parseStock` in `src/gm/parse.ts`.
 
 ## Conventions
 

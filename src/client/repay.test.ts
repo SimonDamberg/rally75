@@ -63,8 +63,8 @@ describe('afterRepay', () => {
 
   it('leaves both leaderboards where they were', () => {
     // Repaying moves balance and debt by the same amount, so it is not a way up the Topplista.
-    const before = { balance: LOAN_AMOUNT + 1000, debt: LOAN_DEBT }
-    const after = afterRepay(before, 400)
+    const before = { balance: LOAN_AMOUNT + 1000, debt: LOAN_DEBT, spent: 0 }
+    const after = { ...before, ...afterRepay(before, 400) }
     expect(netWorth(after)).toBe(netWorth(before))
     expect(nightNet(after)).toBe(nightNet(before))
   })

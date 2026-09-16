@@ -32,6 +32,19 @@ export function playerLabel(name: string, tag: number): string {
   return `${name} #${tag}`;
 }
 
+/**
+ * The label with the badge emoji bought in the Butik in front of it: "👑 Simon #42". Falls back to
+ * the plain label for everyone who has not bought one.
+ */
+export function badgedLabel(player: {
+  name: string;
+  tag: number;
+  badge: string;
+}): string {
+  const label = playerLabel(player.name, player.tag);
+  return player.badge ? `${player.badge} ${label}` : label;
+}
+
 const DEFAULT_METERS = 2140;
 
 /** "2 140 m voltstart" -> 2140. Falls back to 2140 if the text has no distance. (\s covers no-break spaces.) */

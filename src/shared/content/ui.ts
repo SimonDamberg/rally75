@@ -75,7 +75,11 @@ export const ATTRACT = {
   bet: (label: string, amount: string, horse: string) =>
     `${label} satsade ${amount} på ${horse}`,
   betsMany: (n: number) => `${n} nya spel. Oddsen rör sig!`,
-  /** A bet whose player row has not landed on this device yet. */
+  /** Toasts on the display iPad when someone spends winnings at the black market. */
+  bought: (label: string, item: string, amount: string) =>
+    `${label} köpte ${item} för ${amount}`,
+  boughtMany: (n: number) => `${n} köp i butiken. Baren går varm!`,
+  /** A bet or a purchase whose player row has not landed on this device yet. */
   someone: "En anonym spelare",
   /** Who is on the spotlighted horse. */
   onHorse: "Pengar på hästen",

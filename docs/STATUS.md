@@ -597,3 +597,92 @@ Three notes from Simon's playtest, plus a broken migration found on the way.
 1. `npx supabase db push` to apply the kusk seed fix and `repay_debt` to the hosted project. The
    seed migration has never applied there, so this is also the first time the current kuskar land.
 2. Decide on Emma's missing notes (see above).
+
+## Butik: the black market (done, 2026-09-16)
+
+Simon's addition after the playtest: RM should buy something real at the party. A fifth guest tab
+where guests spend winnings on beer, shots and the right to pick the next song, plus a rack of
+digital nonsense, with the whole catalogue editable from the control phone.
+
+Simon's choices: **no fulfilment tracking** (a purchase is a receipt, not an order with a status),
+**optional stock per item**, digital items are **jokes and cosmetics only**, and purchases are
+**excluded from both existing leaderboards**, with a new "Kvällens största slösare" list instead.
+
+**Done**
+
+- Migration `20260916000010_shop.sql`: `shop_items` (namn, blurb, pris, `stock` null = obegränsat,
+  `kind` physical/digital, `effect` none/title/badge, `sort`, `active`) and `purchases` (a receipt
+  with `item_name`/`kind`/`price` snapshotted, so it survives the GM editing or deleting the item).
+  Both public read, RLS as `kusks`, both added to the Realtime publication. New columns on
+  `players`: `spent`, `title`, `badge`. Seeded with 10 physical and 9 digital items to edit.
+- RPCs: `buy_item` (locks the item then the player, checks active/stock/balance, decrements stock,
+  moves the price from `balance` to `spent`, applies a cosmetic, writes the receipt),
+  `gm_upsert_shop_item`, `gm_delete_shop_item`, `gm_refund_purchase` (Ångra: RM back, shelf back,
+  receipt gone, any granted title or badge kept). New codes in `errors.ts`: `item_not_found`,
+  `item_inactive`, `out_of_stock`, `bad_price`, `bad_stock`, `bad_kind`, `bad_effect`,
+  `purchase_not_found`.
+- **Rank neutrality.** `netWorth` is now `balance - debt + spent`, so buying moves neither Toppen
+  nor the förlorarlista, exactly as `repay_debt` moves neither. New `bySpending` sorter and a third
+  `spenders` list on `useLeaderboard`. Asserted in `buy.test.ts`, `economy.test.ts`,
+  `realtime.test.ts` and the smoke script.
+- Guest: `src/client/Butik.tsx` (two shelves, stock pills, confirm modal, receipt modal, "Mina
+  köp" with a night total) and pure `src/client/buy.ts` + tests (`checkBuy`, `stockLeft`,
+  `shelves`, `afterBuy`, `purchaseTotal`). Fifth tab in `ClientShell` (`grid-cols-5`, labels
+  dropped to `text-xs`); an open purchase confirm blocks pop-up offers the way the bet slip does.
+- Cosmetics on show: `badgedLabel` in `format.ts` puts the bought emoji in front of the name on the
+  Topplista, in the header and in the bet toasts on both apps; `players.title` shows as a pink line
+  under the name on the Topplista. A third segment "Slösare" ranks on `spent`.
+- GM control phone: `src/gm/control/ShopTab.tsx`, fifth tab. **Varor** is CRUD in the `KuskarTab`
+  shape (stacked rows, since a name plus three buttons does not fit across 390 px) with mid-party
+  shortcuts **+1** and **Slut**; **Sålt i kväll** is the live feed with **Ångra** per row, which is
+  how Simon knows there is a beer to pour. `parsePrice`/`parseStock` added to `src/gm/parse.ts`
+  with tests (an empty lager field is `undefined` = obegränsat, not an error).
+- Display iPad: `usePurchaseToasts` announces every purchase to the room
+  ("Kopare #89 köpte En kall öl för 500 RM"), folding a rush into one line, in the existing
+  `<Toaster size="tv" />`.
+- `gm_reset_night` needed no change: the catalogue survives (like kuskar) and receipts cascade off
+  the deleted players. Asserted in smoke.
+
+**Verified**
+
+- `npm run build`, `npm test` (170), `npm run lint` pass.
+- `npx supabase db reset` applies the new migration from scratch, then `npm run smoke -- --reset`
+  passes all 20 steps against the local stack, including two new ones: **butiken** (`item_not_found`,
+  `item_inactive`, `invalid_token`, `out_of_stock`, `insufficient_balance`, the happy purchase with
+  `netWorth` unchanged, a cosmetic setting `badge`, the receipt in both feeds, and a refund putting
+  the RM, the shelf and the receipt back) and **gm butik management** (upsert, update, every
+  validation code, delete, `item_not_found`). The RLS step now also proves anon cannot write
+  `shop_items` or `purchases`.
+- Headless Chromium against the local stack, three windows (guest 390x844, control 390x844,
+  display 1180x820): five tabs on both shells with no horizontal overflow, both shelves, an
+  unaffordable item not buyable, buy to receipt to "Mina köp", the purchase toast on the iPad, the
+  row in the GM feed, **+1 lager** reaching every device, Ångra removing the receipt and restoring
+  both the balance and the shelf, and the buyer still ranked at 1 000 RM on Toppen after spending.
+  No console errors on any of the three.
+
+**Deviations from META_PLAN**
+
+- The Butik is a new mechanic; the Decisions table has no shop row. It is deliberately not a way up
+  or down either existing leaderboard (see the rank-neutrality note above), and no item can touch
+  odds, bets or the balance beyond its own price.
+- `netWorth` changed shape (`{balance, debt, spent}`). Every caller was updated; there is no SQL
+  mirror of it, only of the constants.
+- The guest tab bar is now five columns with `text-xs` labels. Checked at 390 px on both shells.
+
+**Open issues**
+
+- A purchase cannot be undone by the guest, only by the GM. That is deliberate (the beer is gone),
+  but it does mean a mis-tap needs Simon.
+- `getPurchases` reads the latest 200 receipts. Far above a party night, but the GM feed and the
+  iPad toasts would miss anything older.
+- The hosted `GM_PASSWORD` drift from Stage 7a is still open, so all verification here was against
+  the local stack. `20260916000008`, `20260916000009` and `20260916000010` are **not pushed** to
+  hosted yet.
+
+**Manual steps for Simon**
+
+1. Reset the GM password (`supabase/snippets/set_gm_password.sql` in the Supabase SQL editor, then
+   update `.env.local`), then `npx supabase db push` to apply the kusk seed fix, `repay_debt` and
+   this shop migration to the hosted project in one go.
+2. Open the **Butik** tab on the control phone and set real prices and stock against what is
+   actually in the fridge. The seeded catalogue is a starting point, not a decision.

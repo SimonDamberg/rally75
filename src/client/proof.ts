@@ -2,7 +2,7 @@
 import type { BetRow, PlayerRow } from '../lib/types'
 import { ORTER } from '../shared/content/names'
 import { fakeWinToast, PROOF, TOAST_NAMN } from '../shared/content/parody'
-import { fmtRm, playerLabel } from '../shared/game/format'
+import { badgedLabel, fmtRm } from '../shared/game/format'
 import type { Rng } from '../shared/game/rng'
 import type { HorsePublic } from '../shared/game/types'
 
@@ -26,7 +26,7 @@ export function fakeWinText(rng: Rng): string {
 /** Toast texts for fresh bets; a rush folds into one. */
 export function betToastTexts(
   fresh: readonly BetRow[],
-  players: ReadonlyMap<string, Pick<PlayerRow, 'name' | 'tag'>>,
+  players: ReadonlyMap<string, Pick<PlayerRow, 'name' | 'tag' | 'badge'>>,
   field: readonly Pick<HorsePublic, 'n' | 'name'>[],
 ): string[] {
   if (fresh.length > BET_FOLD_AT) return [PROOF.betsFolded(fresh.length)]
@@ -34,6 +34,6 @@ export function betToastTexts(
     const horse = field.find((h) => h.n === b.horse_n)
     if (!horse) return []
     const p = players.get(b.player_id)
-    return [PROOF.bet(p ? playerLabel(p.name, p.tag) : PROOF.someone, fmtRm(b.stake), horse.name)]
+    return [PROOF.bet(p ? badgedLabel(p) : PROOF.someone, fmtRm(b.stake), horse.name)]
   })
 }

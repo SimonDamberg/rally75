@@ -16,6 +16,12 @@ export interface PlayerRow {
   balance: number;
   debt: number;
   loans_taken: number;
+  /** RM left in the Butik. Added back by netWorth, so buying never costs you a place. */
+  spent: number;
+  /** Bought in the Butik: a title under the name on the Topplista. '' when nothing is bought. */
+  title: string;
+  /** Bought in the Butik: an emoji in front of the name. '' when nothing is bought. */
+  badge: string;
   created_at: string;
 }
 
@@ -64,6 +70,53 @@ export interface KuskRow {
   notes: string[];
   active: boolean;
   created_at: string;
+}
+
+/** What an item grants beyond the receipt. Never anything that touches the game. */
+export type ShopEffect = "none" | "title" | "badge";
+
+export type ShopKind = "physical" | "digital";
+
+export interface ShopItemRow {
+  id: string;
+  name: string;
+  blurb: string;
+  price: number;
+  /** null = obegränsat; 0 = slutsålt. */
+  stock: number | null;
+  kind: ShopKind;
+  effect: ShopEffect;
+  /** The title text or the badge emoji; '' when effect is 'none'. */
+  effect_value: string;
+  sort: number;
+  active: boolean;
+  created_at: string;
+}
+
+export interface PurchaseRow {
+  id: string;
+  player_id: string;
+  /** null once the GM deletes the item; item_name is the snapshot that survives. */
+  item_id: string | null;
+  item_name: string;
+  kind: ShopKind;
+  price: number;
+  created_at: string;
+}
+
+export interface ShopItemInputRow {
+  /** null creates a new item. */
+  id: string | null;
+  name: string;
+  blurb: string;
+  price: number;
+  /** null = obegränsat. */
+  stock: number | null;
+  kind: ShopKind;
+  effect: ShopEffect;
+  effect_value: string;
+  sort: number;
+  active: boolean;
 }
 
 export interface GameStateRow {

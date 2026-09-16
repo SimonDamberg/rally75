@@ -12,11 +12,13 @@ export const LOAN_DEBT = 1337
 export const MAX_NAME_LENGTH = 24
 
 /**
- * What a player actually owns: the balance with the debt taken off. This is what the Topplista
- * ranks on, so a stack of Snabblån cannot buy a place at the top.
+ * What a player actually owns: the balance with the debt taken off and the Butik spending added
+ * back. This is what the Topplista ranks on, so a stack of Snabblån cannot buy a place at the top,
+ * and a round of beers from the svarta marknaden cannot cost you one. Spending has its own list
+ * ("Kvällens största slösare"), which ranks on `spent`.
  */
-export function netWorth(player: { balance: number; debt: number }): number {
-  return player.balance - player.debt
+export function netWorth(player: { balance: number; debt: number; spent: number }): number {
+  return player.balance - player.debt + player.spent
 }
 
 /**
@@ -26,6 +28,6 @@ export function netWorth(player: { balance: number; debt: number }): number {
  * sits on WELCOME_BONUS and is break even, not 1000 RM up. Debt counts against you in full (you
  * received LOAN_AMOUNT but owe LOAN_DEBT), which is the joke.
  */
-export function nightNet(player: { balance: number; debt: number }): number {
+export function nightNet(player: { balance: number; debt: number; spent: number }): number {
   return netWorth(player) - WELCOME_BONUS
 }

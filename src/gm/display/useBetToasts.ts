@@ -7,7 +7,7 @@ import { useEffect, useEffectEvent, useRef } from 'react'
 import { freshBets } from '../../lib/realtime'
 import type { BetRow, PlayerRow, RaceRow } from '../../lib/types'
 import { ATTRACT } from '../../shared/content/ui'
-import { fmtRm, playerLabel } from '../../shared/game/format'
+import { badgedLabel, fmtRm } from '../../shared/game/format'
 import { toast } from '../../ui'
 
 const BET_TOAST_MS = 6000
@@ -26,7 +26,7 @@ export function useBetToasts(race: RaceRow | null | undefined, bets: readonly Be
       const horse = horses.find((h) => h.n === b.horse_n)
       if (!horse) continue
       const p = players.get(b.player_id)
-      const label = p ? playerLabel(p.name, p.tag) : ATTRACT.someone
+      const label = p ? badgedLabel(p) : ATTRACT.someone
       toast({ text: ATTRACT.bet(label, fmtRm(b.stake), horse.name), ms: BET_TOAST_MS })
     }
   })

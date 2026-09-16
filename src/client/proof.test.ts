@@ -36,11 +36,18 @@ describe('fake wins', () => {
 })
 
 describe('betToastTexts', () => {
-  const players = new Map([['p2', { name: 'Simon', tag: 42 }]])
+  const players = new Map([
+    ['p2', { name: 'Simon', tag: 42, badge: '' }],
+    ['p3', { name: 'Kronan', tag: 7, badge: '👑' }],
+  ])
   const field = [{ n: 1, name: 'Bålsta Blixten' }]
 
   it('names the player, stake and horse', () => {
     expect(betToastTexts([bet('a', 'p2', 1, 250)], players, field)).toEqual(['Simon #42 satsade 250\u00a0RM på Bålsta Blixten'])
+  })
+
+  it('puts a Butik badge in front of the name', () => {
+    expect(betToastTexts([bet('a', 'p3', 1, 250)], players, field)[0]).toMatch(/^👑 Kronan #7 satsade/)
   })
 
   it('hides unknown players and skips unknown horses', () => {

@@ -220,6 +220,23 @@ await step("RLS: anon cannot write tables or read secrets", async () => {
   });
   assert.ok(bet.error, "insert bets must fail");
   await db.from("game_state").update({ active_race_id: null }).eq("id", true);
+  const item = await db
+    .from("shop_items")
+    .insert({ name: "Gratis öl", price: 0 });
+  assert.ok(item.error, "insert shop_items must fail");
+  const buy = await db
+    .from("purchases")
+    .insert({ player_id: anna.playerId, item_name: "Öl", kind: "physical", price: 0 });
+  assert.ok(buy.error, "insert purchases must fail");
+  const shelfBefore = (await api.getShopItems()).length;
+  await db.from("shop_items").update({ price: 1 }).neq("name", "");
+  await db.from("shop_items").delete().neq("name", "");
+  const shelfAfter = await api.getShopItems();
+  assert.equal(shelfAfter.length, shelfBefore, "shop_items unchanged");
+  assert.ok(
+    shelfAfter.every((i) => i.price !== 1),
+    "shop_items prices unchanged",
+  );
   await db.from("kusks").delete().neq("name", "");
   assert.equal(
     (await api.getKusks()).length,
@@ -663,12 +680,165 @@ await step("gm kusk management", async () => {
   assert.equal((await api.getKusks()).length, initialKuskCount.n);
 });
 
+await step("butiken", async () => {
+  // Own players: the gm player management step above deletes the ones from the top of the run.
+  const rik = await newPlayer("Smoke Rik");
+  const fattig = await newPlayer("Smoke Fattig");
+  const shelf = await api.getShopItems();
+  assert.ok(shelf.length > 0, "the seed catalogue must be on the shelves");
+
+  // A private shelf for this run, so the seeded catalogue is left as Simon will find it.
+  const beer = await gm.upsertShopItem(pw, {
+    id: null,
+    name: "Smoke Öl",
+    blurb: "Kall.",
+    price: 300,
+    stock: 1,
+    kind: "physical",
+    effect: "none",
+    effect_value: "",
+    sort: 900,
+    active: true,
+  });
+  const crown = await gm.upsertShopItem(pw, {
+    id: null,
+    name: "Smoke Krona",
+    blurb: "",
+    price: 100,
+    stock: null,
+    kind: "digital",
+    effect: "badge",
+    effect_value: "👑",
+    sort: 901,
+    active: true,
+  });
+  const shelved = await gm.upsertShopItem(pw, {
+    id: null,
+    name: "Smoke Ur sortimentet",
+    blurb: "",
+    price: 10,
+    stock: null,
+    kind: "physical",
+    effect: "none",
+    effect_value: "",
+    sort: 902,
+    active: false,
+  });
+
+  await expectCode(api.buyItem(rik, crypto.randomUUID()), "item_not_found");
+  await expectCode(api.buyItem(rik, shelved.id), "item_inactive");
+  await expectCode(
+    api.buyItem({ ...rik, token: fattig.token }, beer.id),
+    "invalid_token",
+  );
+
+  const before = (await api.getPlayer(rik.playerId))!;
+  const purchase = await api.buyItem(rik, beer.id);
+  assert.equal(purchase.price, 300);
+  assert.equal(purchase.item_name, "Smoke Öl");
+  const after = (await api.getPlayer(rik.playerId))!;
+  assert.equal(after.balance, before.balance - 300);
+  assert.equal(after.spent, before.spent + 300);
+  // The whole point of the Butik: drinking cannot cost you a place on the Topplista.
+  assert.equal(netWorth(after), netWorth(before));
+
+  const soldOut = (await api.getShopItems()).find((i) => i.id === beer.id)!;
+  assert.equal(soldOut.stock, 0);
+  await expectCode(api.buyItem(fattig, beer.id), "out_of_stock");
+
+  // Cosmetics are the only thing a digital item may do.
+  const crowned = await api.buyItem(rik, crown.id);
+  assert.equal(crowned.kind, "digital");
+  assert.equal((await api.getPlayer(rik.playerId))!.badge, "👑");
+
+  const mine = await api.getPlayerPurchases(rik.playerId);
+  assert.equal(mine.length, 2, "both receipts are the buyer's");
+  assert.ok(
+    (await api.getPurchases()).some((p) => p.id === purchase.id),
+    "the purchase shows up in the GM feed",
+  );
+
+  // Too poor: a fresh player cannot reach a price above the welcome bonus.
+  const pricey = await gm.upsertShopItem(pw, { ...beer, stock: 5, price: WELCOME_BONUS + 1 });
+  await expectCode(api.buyItem(fattig, pricey.id), "insufficient_balance");
+
+  // Ångra puts the RM, the shelf and the receipt back where they were.
+  const refunded = await gm.refundPurchase(pw, purchase.id);
+  assert.equal(refunded.id, purchase.id);
+  const undone = (await api.getPlayer(rik.playerId))!;
+  assert.equal(undone.balance, after.balance + 300 - 100);
+  assert.equal(undone.spent, after.spent + 100 - 300);
+  assert.equal(undone.badge, "👑", "a granted badge survives the refund");
+  assert.equal(
+    (await api.getShopItems()).find((i) => i.id === beer.id)!.stock,
+    6,
+    "the refund restocks the shelf",
+  );
+  await expectCode(gm.refundPurchase(pw, purchase.id), "purchase_not_found");
+
+  for (const id of [beer.id, crown.id, shelved.id]) await gm.deleteShopItem(pw, id);
+  assert.equal((await api.getShopItems()).length, shelf.length);
+});
+
+await step("gm butik management", async () => {
+  const before = (await api.getShopItems()).length;
+  const created = await gm.upsertShopItem(pw, {
+    id: null,
+    name: "  Smoke Vara  ",
+    blurb: "  Text.  ",
+    price: 250,
+    stock: 3,
+    kind: "physical",
+    effect: "none",
+    effect_value: "",
+    sort: 950,
+    active: true,
+  });
+  assert.equal(created.name, "Smoke Vara");
+  assert.equal(created.blurb, "Text.");
+
+  const updated = await gm.upsertShopItem(pw, {
+    ...created,
+    price: 400,
+    stock: null,
+    active: false,
+  });
+  assert.equal(updated.id, created.id);
+  assert.equal(updated.price, 400);
+  assert.equal(updated.stock, null, "an empty lager means obegränsat");
+  assert.equal(updated.active, false);
+
+  await expectCode(gm.upsertShopItem(pw, { ...created, name: " " }), "name_empty");
+  await expectCode(gm.upsertShopItem(pw, { ...created, price: -1 }), "bad_price");
+  await expectCode(gm.upsertShopItem(pw, { ...created, stock: -1 }), "bad_stock");
+  await expectCode(
+    gm.upsertShopItem(pw, { ...created, kind: "liquid" as never }),
+    "bad_kind",
+  );
+  await expectCode(
+    gm.upsertShopItem(pw, { ...created, effect: "money" as never }),
+    "bad_effect",
+  );
+  await expectCode(
+    gm.upsertShopItem("fel lösenord", { ...created }),
+    "gm_unauthorized",
+  );
+
+  await gm.deleteShopItem(pw, created.id);
+  await expectCode(gm.deleteShopItem(pw, created.id), "item_not_found");
+  await expectCode(gm.upsertShopItem(pw, { ...created }), "item_not_found");
+  assert.equal((await api.getShopItems()).length, before);
+});
+
 await step("reset night", async () => {
   await gm.resetNight(pw);
   assert.equal(await api.getActiveRace(), null);
   assert.deepEqual(await api.getPlayers(), []);
   assert.deepEqual(await api.getRaces(), []);
   assert.equal((await api.getKusks()).length, initialKuskCount.n);
+  // The catalogue survives the night reset (like kuskar); receipts cascade off the players.
+  assert.ok((await api.getShopItems()).length > 0);
+  assert.deepEqual(await api.getPurchases(), []);
 });
 
 await db.removeAllChannels();

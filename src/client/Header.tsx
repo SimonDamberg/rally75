@@ -1,20 +1,18 @@
 // Sticky top bar: logo, who you are, the balance (flashes when it moves) and debt.
+// No connection dot here: the "Ingen anslutning" banner under this bar already says it, louder.
 import { useState } from 'react'
-import type { ConnectionStatus } from '../lib/connection'
 import type { PlayerRow } from '../lib/types'
 import { HEADER } from '../shared/content/client'
 import { UI_LABELS } from '../shared/content/ui'
-import { fmtRm, playerLabel } from '../shared/game/format'
-import { ConnectionBadge, cx, Logo } from '../ui'
+import { badgedLabel, fmtRm } from '../shared/game/format'
+import { cx, Logo } from '../ui'
 
 export function Header({
   player,
-  connection,
   broke,
   onLoan,
 }: {
   player: PlayerRow | undefined
-  connection: ConnectionStatus
   broke: boolean
   onLoan: () => void
 }) {
@@ -31,7 +29,8 @@ export function Header({
       <div className="flex min-w-0 flex-col gap-1">
         <Logo size="sm" />
         <span className="truncate text-xs font-semibold text-ink-dim">
-          {player ? playerLabel(player.name, player.tag) : UI_LABELS.loading}
+          {player ? badgedLabel(player) : UI_LABELS.loading}
+          {player?.title && <span className="ml-1.5 font-bold text-sleaze uppercase">{player.title}</span>}
         </span>
       </div>
       <span className="flex-1" />
@@ -62,7 +61,6 @@ export function Header({
           </span>
         )}
       </div>
-      <ConnectionBadge status={connection} className="self-start" />
     </header>
   )
 }

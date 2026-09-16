@@ -44,6 +44,13 @@ export function byLosses(players: readonly PlayerRow[]): PlayerRow[] {
   return players.slice().sort((a, b) => nightNet(a) - nightNet(b) || b.loans_taken - a.loans_taken)
 }
 
+/** "Kvällens största slösare": most RM left in the Butik first; ties by name. */
+export function bySpending(players: readonly PlayerRow[]): PlayerRow[] {
+  return players
+    .filter((p) => p.spent > 0)
+    .sort((a, b) => b.spent - a.spent || a.name.localeCompare(b.name, 'sv'))
+}
+
 export interface FreshBets {
   seen: ReadonlySet<string>
   fresh: BetRow[]

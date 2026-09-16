@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { nightNet, WELCOME_BONUS } from '../shared/game/economy'
-import { applyChange, byLosses, byNetWorth, freshBets } from './realtime'
+import { applyChange, byLosses, byNetWorth, bySpending, freshBets } from './realtime'
 import { toBet, type BetRow, type PlayerRow } from './types'
 
 const bet = (id: string, race_id: string, odds: unknown = '2.50') => ({
@@ -41,13 +41,16 @@ describe('applyChange', () => {
 })
 
 describe('leaderboard sorting', () => {
-  const p = (name: string, balance: number, debt = 0, loans_taken = 0): PlayerRow => ({
+  const p = (name: string, balance: number, debt = 0, loans_taken = 0, spent = 0): PlayerRow => ({
     id: name,
     name,
     tag: 11,
     balance,
     debt,
     loans_taken,
+    spent,
+    title: '',
+    badge: '',
     created_at: '',
   })
 
@@ -75,6 +78,24 @@ describe('leaderboard sorting', () => {
     const a = p('Låntagare', 1337, 1337, 2)
     const b = p('Snål', 1337, 1337, 0)
     expect(byLosses([b, a]).map((x) => x.name)).toEqual(['Låntagare', 'Snål'])
+  })
+
+  it('leaves both existing lists untouched by Butik spending', () => {
+    // Same player, one round of beers later: the money moved from balance to spent, nothing else.
+    const saver = p('Snål', 3000)
+    const spender = p('Slösare', 1000, 0, 0, 2000)
+    expect(byNetWorth([saver, spender]).map((x) => x.name)).toEqual(['Slösare', 'Snål'])
+    expect(nightNet(spender)).toBe(nightNet(saver))
+  })
+
+  it('ranks slösare by spending and hides anyone who bought nothing', () => {
+    const players = [p('Anna', 100, 0, 0, 900), p('Bo', 5000), p('Cia', 0, 0, 0, 4000)]
+    expect(bySpending(players).map((x) => x.name)).toEqual(['Cia', 'Anna'])
+  })
+
+  it('breaks spending ties by name', () => {
+    const players = [p('Bosse', 0, 0, 0, 500), p('Anna', 0, 0, 0, 500)]
+    expect(bySpending(players).map((x) => x.name)).toEqual(['Anna', 'Bosse'])
   })
 })
 

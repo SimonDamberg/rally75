@@ -5,9 +5,20 @@ import { measureOffset, serverTime, usableOffset } from './clock'
 import { connectionStore, type ConnectionStatus } from './connection'
 import { RallyError, toRallyError } from './errors'
 import { identityStore } from './identity'
-import { applyChange, byLosses, byNetWorth, type RowChange } from './realtime'
+import { applyChange, byLosses, byNetWorth, bySpending, type RowChange } from './realtime'
 import { getApi, getSupabase } from './supabase'
-import { toBet, toPlayer, toRace, type BetRow, type Identity, type KuskRow, type PlayerRow, type RaceRow } from './types'
+import {
+  toBet,
+  toPlayer,
+  toRace,
+  type BetRow,
+  type Identity,
+  type KuskRow,
+  type PlayerRow,
+  type PurchaseRow,
+  type RaceRow,
+  type ShopItemRow,
+} from './types'
 
 export interface LiveResult<T> {
   /** undefined until the first successful fetch. */
@@ -233,6 +244,8 @@ export interface Leaderboard {
   top: PlayerRow[]
   /** "Kvällens största förlorare": lowest balance minus debt first. */
   losers: PlayerRow[]
+  /** "Kvällens största slösare": most RM left in the Butik first. Only players who bought something. */
+  spenders: PlayerRow[]
 }
 
 export function useLeaderboard(): LiveResult<Leaderboard> {
@@ -244,7 +257,10 @@ export function useLeaderboard(): LiveResult<Leaderboard> {
   })
   const players = live.data
   const data = useMemo(
-    () => (players ? { players, top: byNetWorth(players), losers: byLosses(players) } : undefined),
+    () =>
+      players
+        ? { players, top: byNetWorth(players), losers: byLosses(players), spenders: bySpending(players) }
+        : undefined,
     [players],
   )
   return { data, error: live.error, reload: live.reload }
@@ -253,6 +269,49 @@ export function useLeaderboard(): LiveResult<Leaderboard> {
 /** Kuskar are not in the Realtime publication; call reload() after GM edits. */
 export function useKusks(): LiveResult<KuskRow[]> {
   return useLive({ key: 'kusks', load: () => getApi().getKusks(), tables: [] })
+}
+
+/**
+ * The Butik catalogue. Realtime, unlike useKusks: stock has to drop on every phone the moment
+ * someone else buys the last beer, not when the GM happens to reload.
+ */
+export function useShopItems(): LiveResult<ShopItemRow[]> {
+  return useLive({
+    key: 'shop-items',
+    load: () => getApi().getShopItems(),
+    tables: ['shop_items'],
+    apply: (prev, change) => {
+      const next = applyChange(prev, change, (row) => row as unknown as ShopItemRow)
+      return next === prev ? prev : next.slice().sort((a, b) => a.sort - b.sort || a.price - b.price)
+    },
+  })
+}
+
+/** Everything sold tonight, newest first. Drives the GM feed and the display toasts. */
+export function usePurchases(): LiveResult<PurchaseRow[]> {
+  return useLive({
+    key: 'purchases',
+    load: () => getApi().getPurchases(),
+    tables: ['purchases'],
+    apply: (prev, change) => {
+      const next = applyChange(prev, change, (row) => row as unknown as PurchaseRow)
+      return next === prev ? prev : next.slice().sort((a, b) => b.created_at.localeCompare(a.created_at))
+    },
+  })
+}
+
+/** One player's receipts, newest first. */
+export function usePlayerPurchases(playerId: string | null): LiveResult<PurchaseRow[]> {
+  return useLive({
+    key: playerId && `player-purchases:${playerId}`,
+    load: () => getApi().getPlayerPurchases(playerId!),
+    // Unfiltered: Realtime does not deliver filtered DELETEs (an Ångra from the GM).
+    tables: ['purchases'],
+    apply: (prev, change) => {
+      const next = applyChange(prev, change, (row) => row as unknown as PurchaseRow, (p) => p.player_id === playerId)
+      return next === prev ? prev : next.slice().sort((a, b) => b.created_at.localeCompare(a.created_at))
+    },
+  })
 }
 
 /**

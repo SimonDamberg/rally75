@@ -4,7 +4,7 @@ import { createContext, useCallback, useContext, useState } from 'react'
 import type { Api } from '../lib/api'
 import { toRallyError } from '../lib/errors'
 import { getApi } from '../lib/supabase'
-import type { BetRow, Identity, PlayerRow, RaceRow } from '../lib/types'
+import type { BetRow, Identity, PlayerRow, RaceRow, ShopItemRow } from '../lib/types'
 import { GUEST_ERRORS } from '../shared/content/client'
 import { toast } from '../ui'
 
@@ -18,6 +18,8 @@ export interface Guest {
   /** Every bet on the active race, oldest first; undefined while loading. */
   raceBets: BetRow[] | undefined
   raceError: Error | null
+  /** The Butik catalogue, shared so only the shell opens a channel; undefined while loading. */
+  shopItems: ShopItemRow[] | undefined
   forget: () => void
 }
 

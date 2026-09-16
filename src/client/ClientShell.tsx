@@ -1,14 +1,15 @@
-// Signed-in guest: header, the four tabs, and the pop-ups that can appear from any tab (bonus
+// Signed-in guest: header, the five tabs, and the pop-ups that can appear from any tab (bonus
 // reveal after sign-up, result reveal after a race, Snabblån when broke, pop-up offers), plus the
 // fake social proof.
 import { useMemo, useState } from 'react'
-import { useActiveRace, useConnection, useLeaderboard, usePlayerBets, useRaceBets } from '../lib/hooks'
+import { useActiveRace, useConnection, useLeaderboard, usePlayerBets, useRaceBets, useShopItems } from '../lib/hooks'
 import type { Identity, PlayerRow } from '../lib/types'
 import { CLIENT_TABS } from '../shared/content/client'
 import { MIN_STAKE } from '../shared/game/economy'
 import { BonusBar, ConnectionBadge, cx } from '../ui'
 import { Bank } from './Bank'
 import { BonusReveal } from './BonusReveal'
+import { Butik } from './Butik'
 import { GuestContext, type Guest } from './guest'
 import { Header } from './Header'
 import { Home } from './Home'
@@ -22,9 +23,9 @@ import { useOffers } from './useOffers'
 import { useResultReveal } from './useResultReveal'
 import { useSocialProof } from './useSocialProof'
 
-type Tab = 'home' | 'bets' | 'bank' | 'board'
-const TABS: readonly Tab[] = ['home', 'bets', 'bank', 'board']
-const TAB_ICON: Record<Tab, string> = { home: '★', bets: '▤', bank: '¤', board: '♛' }
+type Tab = 'home' | 'bets' | 'bank' | 'butik' | 'board'
+const TABS: readonly Tab[] = ['home', 'bets', 'bank', 'butik', 'board']
+const TAB_ICON: Record<Tab, string> = { home: '★', bets: '▤', bank: '¤', butik: '◆', board: '♛' }
 
 export interface ClientShellProps {
   identity: Identity
@@ -41,14 +42,16 @@ export function ClientShell({ identity, player, forget, justJoined, cookiesAccep
   const { data: bets } = usePlayerBets(identity.playerId)
   const { data: raceBets } = useRaceBets(race?.id ?? null)
   const { data: board } = useLeaderboard()
+  const { data: shopItems } = useShopItems()
   const [tab, setTab] = useState<Tab>('home')
   const [confirming, setConfirming] = useState(false)
   const [slipOpen, setSlipOpen] = useState(false)
   const [loanRequested, setLoanRequested] = useState(false)
+  const [buying, setBuying] = useState(false)
 
   const guest = useMemo<Guest>(
-    () => ({ identity, player, bets, race, raceBets, raceError, forget }),
-    [identity, player, bets, race, raceBets, raceError, forget],
+    () => ({ identity, player, bets, race, raceBets, raceError, shopItems, forget }),
+    [identity, player, bets, race, raceBets, raceError, shopItems, forget],
   )
   const players = useMemo(() => new Map((board?.players ?? []).map((p) => [p.id, p])), [board?.players])
 
@@ -56,24 +59,25 @@ export function ClientShell({ identity, player, forget, justJoined, cookiesAccep
   // Broke with nothing still riding: winnings from open bets may be on the way.
   const broke = !!player && player.balance < MIN_STAKE && !!bets && !bets.some((b) => b.status === 'open')
   const blocked = justJoined || reveal.open || confirming
-  // Offers also wait for the cookie banner, a bet in progress and Snabblån (offered while broke).
-  const offers = useOffers(blocked || slipOpen || broke || !cookiesAccepted)
+  // Offers also wait for the cookie banner, a bet or a purchase in progress and Snabblån (broke).
+  const offers = useOffers(blocked || slipOpen || buying || broke || !cookiesAccepted)
   useSocialProof({ race, raceBets, playerId: identity.playerId, players, paused: blocked || !cookiesAccepted })
 
   return (
     <GuestContext value={guest}>
       <div className="flex h-dvh flex-col">
         <BonusBar />
-        <Header player={player} connection={connection} broke={broke} onLoan={() => setLoanRequested(true)} />
+        <Header player={player} broke={broke} onLoan={() => setLoanRequested(true)} />
         <SocialStrip />
         <ConnectionBadge status={connection} variant="banner" />
         <main className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain">
           {tab === 'home' && <Home onConfirmChange={setConfirming} onSlipChange={setSlipOpen} />}
           {tab === 'bets' && <MyBets />}
           {tab === 'bank' && <Bank broke={broke} onLoan={() => setLoanRequested(true)} />}
+          {tab === 'butik' && <Butik onConfirmChange={setBuying} />}
           {tab === 'board' && <Leaderboard />}
         </main>
-        <nav className="grid shrink-0 grid-cols-4 border-t border-white/10 bg-night-deep pb-[env(safe-area-inset-bottom)]">
+        <nav className="grid shrink-0 grid-cols-5 border-t border-white/10 bg-night-deep pb-[env(safe-area-inset-bottom)]">
           {TABS.map((t) => (
             <button
               key={t}
@@ -81,7 +85,7 @@ export function ClientShell({ identity, player, forget, justJoined, cookiesAccep
               aria-pressed={tab === t}
               onClick={() => setTab(t)}
               className={cx(
-                'flex min-h-15 flex-col items-center justify-center gap-0.5 px-1 text-center font-display text-sm font-extrabold tracking-wide uppercase',
+                'flex min-h-15 flex-col items-center justify-center gap-0.5 px-0.5 text-center font-display text-xs leading-tight font-extrabold tracking-wide uppercase',
                 tab === t ? 'text-plate' : 'text-ink-dim active:text-ink',
               )}
             >

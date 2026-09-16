@@ -16,6 +16,9 @@ export const ERROR_MESSAGES = {
   bad_amount: 'Välj ett belopp först.',
   no_debt: 'Du är skuldfri. Njut medan det varar.',
   repay_too_large: 'Beloppet är större än din skuld eller ditt saldo. Försök igen.',
+  item_not_found: 'Varan finns inte längre i butiken.',
+  item_inactive: 'Varan är tillfälligt ur sortimentet.',
+  out_of_stock: 'Slutsålt. Någon var snabbare än du.',
   // Game master
   gm_unauthorized: 'Fel lösenord.',
   gm_no_password: 'Inget spelledarlösenord är satt i databasen.',
@@ -29,6 +32,11 @@ export const ERROR_MESSAGES = {
   balance_negative: 'Saldot kan inte bli negativt.',
   bad_run_ms: 'Ogiltig looptid.',
   kusk_not_found: 'Kusken finns inte.',
+  bad_price: 'Priset måste vara noll eller mer.',
+  bad_stock: 'Lagret måste vara noll eller mer, eller tomt för obegränsat.',
+  bad_kind: 'Okänd varutyp.',
+  bad_effect: 'Okänd effekt.',
+  purchase_not_found: 'Köpet finns inte.',
   // Client side
   network: 'Ingen anslutning. Försöker igen...',
   config: 'Rally75 saknar serverinställningar.',

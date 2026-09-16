@@ -13,9 +13,12 @@ import {
   type KuskRow,
   type NewPlayer,
   type PlayerRow,
+  type PurchaseRow,
   type RaceCardInput,
   type RaceRow,
   type RaceSecrets,
+  type ShopItemInputRow,
+  type ShopItemRow,
 } from './types'
 
 type Row = Record<string, unknown>
@@ -113,6 +116,25 @@ export function createApi(db: SupabaseClient) {
       return query<KuskRow[]>(() => db.from('kusks').select('*').order('created_at').order('name'))
     },
 
+    /** The Butik catalogue, in the order the GM put it in. Inactive items come along; the shop hides them. */
+    async getShopItems(): Promise<ShopItemRow[]> {
+      return query<ShopItemRow[]>(() => db.from('shop_items').select('*').order('sort').order('price'))
+    },
+
+    /** One player's receipts, newest first. */
+    async getPlayerPurchases(playerId: string): Promise<PurchaseRow[]> {
+      return query<PurchaseRow[]>(() =>
+        db.from('purchases').select('*').eq('player_id', playerId).order('created_at', { ascending: false }),
+      )
+    },
+
+    /** Everything sold tonight, newest first. Drives the GM feed and the display toasts. */
+    async getPurchases(limit = 200): Promise<PurchaseRow[]> {
+      return query<PurchaseRow[]>(() =>
+        db.from('purchases').select('*').order('created_at', { ascending: false }).limit(limit),
+      )
+    },
+
     // Guest RPCs -------------------------------------------------------------------------
 
     createPlayer(name: string): Promise<NewPlayer> {
@@ -143,6 +165,11 @@ export function createApi(db: SupabaseClient) {
           p_amount: Math.floor(amount),
         }),
       )
+    },
+
+    /** Spends RM in the Butik. The server captures the price, so a stale catalogue cannot cheat. */
+    buyItem(identity: Identity, itemId: string): Promise<PurchaseRow> {
+      return rpc('buy_item', { p_player_id: identity.playerId, p_token: identity.token, p_item_id: itemId })
     },
 
     /**
@@ -240,6 +267,31 @@ export function createApi(db: SupabaseClient) {
 
       async deleteKusk(password: string, kuskId: string): Promise<void> {
         await rpc('gm_delete_kusk', { p_password: password, p_id: kuskId })
+      },
+
+      upsertShopItem(password: string, item: ShopItemInputRow): Promise<ShopItemRow> {
+        return rpc('gm_upsert_shop_item', {
+          p_password: password,
+          p_id: item.id,
+          p_name: item.name,
+          p_blurb: item.blurb,
+          p_price: item.price,
+          p_stock: item.stock,
+          p_kind: item.kind,
+          p_effect: item.effect,
+          p_effect_value: item.effect_value,
+          p_sort: item.sort,
+          p_active: item.active,
+        })
+      },
+
+      async deleteShopItem(password: string, itemId: string): Promise<void> {
+        await rpc('gm_delete_shop_item', { p_password: password, p_id: itemId })
+      },
+
+      /** Ångra: refunds the RM, restocks the shelf and deletes the receipt. Keeps any title or badge. */
+      refundPurchase(password: string, purchaseId: string): Promise<PurchaseRow> {
+        return rpc('gm_refund_purchase', { p_password: password, p_id: purchaseId })
       },
 
       /** Wipes players, bets and races. Keeps kuskar and the password. */
