@@ -17,7 +17,10 @@ export const STATUS_LABELS: Record<
     subtitle: "Inga fler spel. Hästarna går till start.",
   },
   running: { title: "Loppet pågår", subtitle: "Håll i hatten och i kvittot." },
-  finished: { title: "Resultat klart", subtitle: "Domarna har talat. Huset har räknat." },
+  finished: {
+    title: "Resultat klart",
+    subtitle: "Domarna har talat. Huset har räknat.",
+  },
   void: { title: "Struket", subtitle: "Loppet räknas inte." },
 };
 
@@ -63,12 +66,12 @@ export const ATTRACT = {
     `${label} och ${more} till är med`,
   joinedBonus: (amount: string) => `+${amount} på kontot`,
   /** Display iPad, while a race is in the paddock, betting or closed. */
-  fieldTitle: "Kvällens startfält",
+  fieldTitle: "Nästa Lopp",
   spotlightTitle: "Spelet är öppet",
   spotlightOf: (i: number, n: number) => `Häst ${i} av ${n}`,
   closedTitle: "Spelet är stängt",
   closedSub: "Loppet startar strax",
-  paddockSub: "Studera fältet, spelet öppnar snart",
+  paddockSub: "Studera fältet, snart kan du satsa allt du äger.",
   lines: [
     "Inget konto behövs!",
     "Huset har aldrig varit så generöst",

@@ -23,7 +23,7 @@ export const CONNECT_LINES = [
 ] as const;
 
 export const BONUS_BAR =
-  "Välkomstbonus 500 % • Licensierad i Atlantis • 13+ • Uttag inom 3 till 5 arbetsliv • Spela lagom";
+  "Välkomstbonus 500 % • Licensierad i Atlantis • 13+ • Uttag inom 3 till 5 arbetsliv • Spela inte lagom";
 
 // Prototype said "Nat Casino Derby ... Nat Holdings Ltd"; rebranded for Rally75.
 export const LEGAL_TEXT =
