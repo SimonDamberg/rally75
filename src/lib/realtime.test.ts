@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { nightNet, WELCOME_BONUS } from '../shared/game/economy'
 import { applyChange, byBalance, byLosses } from './realtime'
 import { toBet, type PlayerRow } from './types'
 
@@ -54,5 +55,18 @@ describe('leaderboard sorting', () => {
     const players = [p('Anna', 500), p('Bo', 1500), p('Cia', 900, 1337, 1), p('Dan', 0)]
     expect(byBalance(players).map((x) => x.name)).toEqual(['Bo', 'Cia', 'Anna', 'Dan'])
     expect(byLosses(players).map((x) => x.name)).toEqual(['Cia', 'Dan', 'Anna', 'Bo'])
+  })
+
+  it('does not treat the untouched welcome bonus as winnings', () => {
+    // Sat on the bonus all night, so break even and behind anyone actually up.
+    const players = [p('Vinnare', WELCOME_BONUS + 300), p('Soffliggare', WELCOME_BONUS), p('Förlorare', 400)]
+    expect(nightNet(players[1])).toBe(0)
+    expect(byLosses(players).map((x) => x.name)).toEqual(['Förlorare', 'Soffliggare', 'Vinnare'])
+  })
+
+  it('breaks ties on losses by who borrowed most', () => {
+    const a = p('Låntagare', 1337, 1337, 2)
+    const b = p('Snål', 1337, 1337, 0)
+    expect(byLosses([b, a]).map((x) => x.name)).toEqual(['Låntagare', 'Snål'])
   })
 })

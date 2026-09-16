@@ -1,4 +1,5 @@
 // Pure helpers for applying Realtime postgres_changes payloads to local row lists.
+import { nightNet } from '../shared/game/economy'
 import type { PlayerRow } from './types'
 
 /** The subset of a supabase-js postgres_changes payload we use. */
@@ -38,9 +39,7 @@ export function byBalance(players: readonly PlayerRow[]): PlayerRow[] {
   return players.slice().sort((a, b) => b.balance - a.balance || a.name.localeCompare(b.name, 'sv'))
 }
 
-/** "Kvällens största förlorare": lowest balance minus debt first. */
+/** "Kvällens största förlorare": furthest behind for the night first (see nightNet). */
 export function byLosses(players: readonly PlayerRow[]): PlayerRow[] {
-  return players
-    .slice()
-    .sort((a, b) => a.balance - a.debt - (b.balance - b.debt) || b.loans_taken - a.loans_taken)
+  return players.slice().sort((a, b) => nightNet(a) - nightNet(b) || b.loans_taken - a.loans_taken)
 }

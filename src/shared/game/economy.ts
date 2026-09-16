@@ -10,3 +10,14 @@ export const LOAN_AMOUNT = 500
 export const LOAN_DEBT = 1337
 /** Longest allowed player name, after trimming. */
 export const MAX_NAME_LENGTH = 24
+
+/**
+ * How far ahead or behind a player is for the night, counted from zero.
+ *
+ * The welcome bonus is not winnings, so it has to come back off: someone who never placed a bet
+ * sits on WELCOME_BONUS and is break even, not 1000 RM up. Debt counts against you in full (you
+ * received LOAN_AMOUNT but owe LOAN_DEBT), which is the joke.
+ */
+export function nightNet(player: { balance: number; debt: number }): number {
+  return player.balance - player.debt - WELCOME_BONUS
+}
