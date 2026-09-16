@@ -3,106 +3,112 @@
 
 export interface Silk {
   /** CSS background, usually a gradient. */
-  bg: string
+  bg: string;
   /** Solid accent colour for borders. */
-  edge: string
+  edge: string;
 }
 
 /** Public race card info, visible to guests. */
 export interface HorsePublic {
   /** Start number, 1..n */
-  n: number
-  name: string
-  jockey: string
+  n: number;
+  name: string;
+  jockey: string;
   /** Kusk epithet. Kept in the data, never shown in the UI. */
-  title: string
-  story: string
-  jnote: string
+  title: string;
+  story: string;
+  jnote: string;
   /** Last five starts, g = galopp, d = diskad. Pure flavour. */
-  form: string
-  note: string
-  tip: string
-  silk: Silk
+  form: string;
+  note: string;
+  tip: string;
+  silk: Silk;
   /** Morning line. */
-  baseOdds: number
+  baseOdds: number;
 }
 
 /** Hidden per-horse stats. Never shown to guests. */
 export interface HorseStats {
-  n: number
+  n: number;
   /** 0.72..1.32 */
-  strength: number
+  strength: number;
   /** 0.80..1.20, bites after 55 % of the race */
-  stamina: number
+  stamina: number;
   /** 0.02..0.16, tendency to break (galopp) */
-  temper: number
+  temper: number;
 }
 
 export interface KuskInput {
-  name: string
-  title: string
-  notes: readonly string[]
+  name: string;
+  title: string;
+  notes: readonly string[];
 }
 
 export interface Field {
-  horses: HorsePublic[]
-  stats: HorseStats[]
+  horses: HorsePublic[];
+  stats: HorseStats[];
 }
 
 export interface RaceCard extends Field {
   /** Stored (and `dist` drives the sim clock) but never shown: no race stats on screen. */
-  dist: string
-  cond: string
+  dist: string;
+  cond: string;
 }
 
-export type RaceStatus = 'paddock' | 'betting' | 'closed' | 'running' | 'finished' | 'void'
-export type BetStatus = 'open' | 'won' | 'lost' | 'void'
+export type RaceStatus =
+  | "paddock"
+  | "betting"
+  | "closed"
+  | "running"
+  | "finished"
+  | "void";
+export type BetStatus = "open" | "won" | "lost" | "void";
 /** GM ruling after a race. pay_new_winner = winner demoted to last, second place pays. */
-export type Ruling = 'none' | 'pay_new_winner' | 'void' | 'dismiss'
+export type Ruling = "none" | "pay_new_winner" | "void" | "dismiss";
 
 export interface RaceComment {
-  text: string
+  text: string;
   /** Gold, louder styling. */
-  hype: boolean
+  hype: boolean;
 }
 
 export interface RunnerFrame {
-  n: number
+  n: number;
   /** Distance covered in abstract units. */
-  pos: number
+  pos: number;
   /** Screen position in percent of lane width, gap-based. */
-  left: number
+  left: number;
   /** Currently in a galopp. */
-  broke: boolean
+  broke: boolean;
 }
 
 export interface RaceFrame {
-  tick: number
+  tick: number;
   /** 0..1 */
-  progress: number
-  meters: number
+  progress: number;
+  meters: number;
   /** Start number of the leader, null before the start. */
-  leader: number | null
+  leader: number | null;
   /** Same order as the input horses. */
-  runners: RunnerFrame[]
+  runners: RunnerFrame[];
   /** Commentary line that appears on this tick, if any. */
-  comment?: RaceComment
+  comment?: RaceComment;
 }
 
 export interface RaceTimeline {
-  seed: number
-  tickMs: number
+  seed: number;
+  tickMs: number;
   /** frames[0] is the start, frames[TICKS] the last step. */
-  frames: RaceFrame[]
+  frames: RaceFrame[];
   /** Start numbers, winner first. */
-  finishOrder: number[]
+  finishOrder: number[];
   /** Winning margin in units. */
-  margin: number
+  margin: number;
   /** Margin under 1.6: MÅLFOTO. */
-  photo: boolean
+  photo: boolean;
   /** Final resting screen positions by start number (leader at 91 %). */
-  finalLeft: Record<number, number>
-  finishComment: RaceComment
+  finalLeft: Record<number, number>;
+  finishComment: RaceComment;
   /** Set in ~10 % of races; the GM then picks a ruling. */
-  inquiry: { text: string } | null
+  inquiry: { text: string } | null;
 }

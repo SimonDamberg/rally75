@@ -42,7 +42,6 @@ export const UI_LABELS = {
   odds: "Odds",
   pool: "Insatt",
   kusk: "Kusk",
-  form: "Form",
   close: "Stäng",
   loading: "Laddar",
   startNumber: (n: number) => `Startnummer ${n}`,

@@ -1,17 +1,18 @@
 import { describe, expect, it } from 'vitest'
 import { createRng } from './rng'
 import { buildField, buildRaceCard, finalWord, FIELD_SIZE } from './field'
-import { NAMED_KUSKAR } from '../content/kuskar'
+import { ALL_KUSKAR, GAST_KUSKAR, NAMED_KUSKAR } from '../content/kuskar'
 import { SUBST } from '../content/names'
 import { KOMMENTARER, TIPS } from '../content/race'
 
 const SEEDS = Array.from({ length: 1000 }, (_, i) => i * 7919 + 1)
-const namedNames = new Set(NAMED_KUSKAR.map((k) => k.name))
+const namedNames = new Set(ALL_KUSKAR.map((k) => k.name))
+const friendNames = new Set(NAMED_KUSKAR.map((k) => k.name))
 
 describe('buildField', () => {
   it('respects all per-field constraints', () => {
     for (const seed of SEEDS) {
-      const { horses, stats } = buildField(FIELD_SIZE, NAMED_KUSKAR, createRng(seed))
+      const { horses, stats } = buildField(FIELD_SIZE, ALL_KUSKAR, createRng(seed))
       expect(horses.map((h) => h.n)).toEqual([1, 2, 3, 4])
       expect(stats.map((s) => s.n)).toEqual([1, 2, 3, 4])
 
@@ -22,9 +23,10 @@ describe('buildField', () => {
       expect(new Set(horses.map((h) => h.note)).size).toBe(FIELD_SIZE)
       expect(new Set(horses.map((h) => h.tip)).size).toBe(FIELD_SIZE)
 
-      const named = horses.filter((h) => namedNames.has(h.jockey)).length
-      expect(named).toBeGreaterThanOrEqual(2)
-      expect(named).toBeLessThanOrEqual(4)
+      // Three from the stable, one nobody, and never a race without one of Simon's own.
+      const named = horses.filter((h) => namedNames.has(h.jockey))
+      expect(named, `seed ${seed}`).toHaveLength(3)
+      expect(named.filter((h) => friendNames.has(h.jockey)).length, `seed ${seed}`).toBeGreaterThanOrEqual(1)
 
       for (const h of horses) {
         expect(h.baseOdds).toBeGreaterThanOrEqual(1.45)
@@ -48,8 +50,8 @@ describe('buildField', () => {
 
   it('named kuskar use their own title and notes', () => {
     for (const seed of SEEDS.slice(0, 200)) {
-      for (const h of buildField(FIELD_SIZE, NAMED_KUSKAR, createRng(seed)).horses) {
-        const k = NAMED_KUSKAR.find((x) => x.name === h.jockey)
+      for (const h of buildField(FIELD_SIZE, ALL_KUSKAR, createRng(seed)).horses) {
+        const k = ALL_KUSKAR.find((x) => x.name === h.jockey)
         if (!k) continue
         expect(h.title).toBe(k.title)
         expect(k.notes).toContain(h.jnote)
@@ -62,6 +64,9 @@ describe('buildField', () => {
       expect(buildField(FIELD_SIZE, [], createRng(seed)).horses.some((h) => namedNames.has(h.jockey))).toBe(false)
       const one = buildField(FIELD_SIZE, NAMED_KUSKAR.slice(0, 1), createRng(seed)).horses
       expect(one.filter((h) => h.jockey === NAMED_KUSKAR[0].name)).toHaveLength(1)
+      // An all-guest stable still fills the three named slots.
+      const guestsOnly = buildField(FIELD_SIZE, GAST_KUSKAR, createRng(seed)).horses
+      expect(guestsOnly.filter((h) => namedNames.has(h.jockey))).toHaveLength(3)
     }
   })
 
@@ -74,12 +79,12 @@ describe('buildField', () => {
   })
 
   it('is deterministic per seed', () => {
-    expect(buildRaceCard(NAMED_KUSKAR, createRng(99))).toEqual(buildRaceCard(NAMED_KUSKAR, createRng(99)))
-    expect(buildRaceCard(NAMED_KUSKAR, createRng(99))).not.toEqual(buildRaceCard(NAMED_KUSKAR, createRng(100)))
+    expect(buildRaceCard(ALL_KUSKAR, createRng(99))).toEqual(buildRaceCard(ALL_KUSKAR, createRng(99)))
+    expect(buildRaceCard(ALL_KUSKAR, createRng(99))).not.toEqual(buildRaceCard(ALL_KUSKAR, createRng(100)))
   })
 
   it('race card has distance and conditions', () => {
-    const card = buildRaceCard(NAMED_KUSKAR, createRng(5))
+    const card = buildRaceCard(ALL_KUSKAR, createRng(5))
     expect(card.dist).toMatch(/\d m/)
     expect(card.cond).toBeTruthy()
   })
@@ -91,7 +96,7 @@ describe('content rules', () => {
   })
 
   it('every named kusk has a title and seven notes', () => {
-    for (const k of NAMED_KUSKAR) {
+    for (const k of ALL_KUSKAR) {
       expect(k.title).toBeTruthy()
       expect(k.notes, k.name).toHaveLength(7)
     }

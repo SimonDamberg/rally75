@@ -77,13 +77,7 @@ export function HorseRow({
         <span className={cx('col-span-full flex flex-col', tv ? 'mt-3' : 'mt-2')}>
           <span className={cx('text-ink-dim', text)}>{horse.story}</span>
           <span className={cx('mt-1 text-ink-dim/80 italic', text)}>{horse.jnote}</span>
-          <span className={cx('mt-2 flex flex-wrap items-center gap-x-3 gap-y-1', tv ? 'text-xl' : 'text-xs')}>
-            <span className="text-ink-dim">
-              {UI_LABELS.form} <b className="font-bold tracking-[0.14em] text-ink">{horse.form}</b>
-            </span>
-            <span className="text-ink-dim">{horse.note}</span>
-            <span className="rounded-full bg-sleaze/15 px-2 py-0.5 font-semibold text-sleaze">{horse.tip}</span>
-          </span>
+          <span className={cx('mt-2 text-ink-dim', tv ? 'text-xl' : 'text-xs')}>{horse.note}</span>
           {children}
         </span>
       )}
