@@ -23,9 +23,9 @@ import { BANOR, DISTANSER, KOMMENTARER, SILKS, TIPS } from "../content/race";
 
 export const FIELD_SIZE = 4;
 /** One slot in every field goes to a nobody from FORNAMN + EFTERNAMN. */
-export const RANDOM_KUSKAR_PER_FIELD = 1;
+export const RANDOM_KUSKAR_PER_FIELD = 0;
 /** The other three come from the stable, and at least one of them is a friend. */
-export const NAMED_KUSKAR_PER_FIELD = 3;
+export const NAMED_KUSKAR_PER_FIELD = 4;
 
 const round = (x: number, decimals: number) => {
   const f = 10 ** decimals;
