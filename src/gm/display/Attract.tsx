@@ -8,7 +8,13 @@ import type { PlayerRow } from "../../lib/types";
 import { ATTRACT } from "../../shared/content/ui";
 import { WELCOME_BONUS } from "../../shared/game/economy";
 import { fmtRmLong, playerLabel } from "../../shared/game/format";
-import { BonusBar, ConnectionBadge, Logo, NightPaidNumber, QrCode } from "../../ui";
+import {
+  BonusBar,
+  ConnectionBadge,
+  Logo,
+  NightPaidNumber,
+  QrCode,
+} from "../../ui";
 import { Jackpot } from "./Jackpot";
 import { JoinFanfare } from "./JoinFanfare";
 import { TrotParade } from "./TrotParade";
@@ -69,7 +75,9 @@ function NightPaid() {
   const { data } = useNightPaid();
   return (
     <p className="flex flex-col items-end font-display leading-none font-black uppercase">
-      <span className="text-2xl tracking-[0.12em] text-ink-dim">{ATTRACT.nightPaid}</span>
+      <span className="text-2xl tracking-[0.12em] text-ink-dim">
+        {ATTRACT.nightPaid}
+      </span>
       <span className="mt-1 text-[min(2.5rem,3.6vw)] whitespace-nowrap text-cash drop-shadow-[0_0_1rem_rgb(61_255_168/0.35)]">
         <NightPaidNumber realPaid={data ?? 0} /> RM
       </span>
@@ -124,7 +132,6 @@ export function Attract({ children }: { children?: ReactNode }) {
           <p className="rounded-full bg-sleaze px-5 py-1.5 font-display text-tv-sm font-black text-white uppercase">
             {ATTRACT.bonus(fmtRmLong(WELCOME_BONUS))}
           </p>
-          <p className="text-2xl font-semibold text-ink-dim">{host}</p>
         </div>
       </div>
 
