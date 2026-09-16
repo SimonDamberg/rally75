@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { settle, summarizeBook } from './book'
+import { bettorsOn, settle, summarizeBook } from './book'
 import { computeOdds, payoutFor, roundOdds } from '../shared/game/odds'
 
 const horses = [
@@ -56,5 +56,49 @@ describe('settle', () => {
     expect(settle([bet(1, 100, 2, 'won', 200), bet(2, 30, 3, 'lost', 0)])).toEqual({ staked: 130, paidOut: 200, houseNet: -70 })
     expect(settle([bet(1, 100, 2, 'void', 100)]).houseNet).toBe(0)
     expect(settle([bet(1, 100, 2, 'void', 0)]).houseNet).toBe(100)
+  })
+})
+
+describe('bettorsOn', () => {
+  let tick = 0
+  const own = (player_id: string, horse_n: number, stake: number, status: 'open' | 'void' = 'open') => ({
+    player_id,
+    horse_n,
+    stake,
+    status,
+    created_at: `2026-09-20T18:00:${String(tick++).padStart(2, '0')}Z`,
+  })
+
+  it('lists only the bettors on that horse, biggest first', () => {
+    const bets = [own('anna', 1, 50), own('bo', 2, 400), own('cia', 1, 200)]
+    expect(bettorsOn(bets, 1)).toEqual([
+      { player_id: 'cia', stake: 200, count: 1 },
+      { player_id: 'anna', stake: 50, count: 1 },
+    ])
+    expect(bettorsOn(bets, 4)).toEqual([])
+  })
+
+  it('folds repeat bets by the same player into one summed row', () => {
+    const bets = [own('anna', 1, 50), own('bo', 1, 120), own('anna', 1, 100)]
+    expect(bettorsOn(bets, 1)).toEqual([
+      { player_id: 'anna', stake: 150, count: 2 },
+      { player_id: 'bo', stake: 120, count: 1 },
+    ])
+  })
+
+  it('drops voided bets, like summarizeBook', () => {
+    const bets = [own('anna', 1, 50, 'void'), own('bo', 1, 30)]
+    expect(bettorsOn(bets, 1)).toEqual([{ player_id: 'bo', stake: 30, count: 1 }])
+  })
+
+  it('keeps equal stakes in the order they were bet', () => {
+    const bets = [own('anna', 1, 100), own('bo', 1, 100), own('cia', 1, 100)]
+    expect(bettorsOn(bets, 1).map((b) => b.player_id)).toEqual(['anna', 'bo', 'cia'])
+  })
+
+  it('agrees with the horse pool in summarizeBook', () => {
+    const bets = [own('anna', 1, 50), own('bo', 1, 120), own('anna', 1, 100), own('cia', 2, 75)]
+    const total = bettorsOn(bets, 1).reduce((s, b) => s + b.stake, 0)
+    expect(total).toBe(summarizeBook(horses, bets.map((b) => ({ ...b, odds: 2, payout: null }))).horses[0].pool)
   })
 })

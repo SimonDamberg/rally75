@@ -127,10 +127,12 @@ describe("content rules", () => {
     for (const s of SUBST) expect(s, s).toMatch(/(n|t)$/);
   });
 
-  it("every named kusk has a title and seven notes", () => {
+  // buildRaceCard only needs one note to pick from, but a character that repeats itself every
+  // other race stops being funny, so hold the roster to a few each.
+  it("every named kusk has a title and several notes", () => {
     for (const k of NAMED_KUSKAR) {
       expect(k.title).toBeTruthy();
-      expect(k.notes, k.name).toHaveLength(7);
+      expect(k.notes.length, k.name).toBeGreaterThanOrEqual(3);
     }
   });
 });

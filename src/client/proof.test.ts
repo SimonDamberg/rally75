@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { BetRow } from '../lib/types'
 import { createRng } from '../shared/game/rng'
-import { betToastTexts, FAKE_WIN_MS, fakeWinDelay, fakeWinText, freshBets } from './proof'
+import { betToastTexts, FAKE_WIN_MS, fakeWinDelay, fakeWinText } from './proof'
 
 const bet = (id: string, player_id: string, horse_n = 1, stake = 50): BetRow => ({
   id,
@@ -32,27 +32,6 @@ describe('fake wins', () => {
       expect(d).toBeGreaterThanOrEqual(FAKE_WIN_MS[0])
       expect(d).toBeLessThanOrEqual(FAKE_WIN_MS[1])
     }
-  })
-})
-
-describe('freshBets', () => {
-  it('announces nothing on first load', () => {
-    const r = freshBets(null, [bet('a', 'p2'), bet('b', 'p3')], 'me')
-    expect(r.fresh).toEqual([])
-    expect([...r.seen]).toEqual(['a', 'b'])
-  })
-
-  it('returns new bets by others only, and remembers all', () => {
-    const first = freshBets(null, [bet('a', 'p2')], 'me')
-    const next = freshBets(first.seen, [bet('a', 'p2'), bet('b', 'me'), bet('c', 'p3')], 'me')
-    expect(next.fresh.map((b) => b.id)).toEqual(['c'])
-    expect(next.seen.has('b')).toBe(true)
-    expect(freshBets(next.seen, [bet('a', 'p2'), bet('b', 'me'), bet('c', 'p3')], 'me').fresh).toEqual([])
-  })
-
-  it('keeps the same set when nothing changed', () => {
-    const first = freshBets(null, [bet('a', 'p2')], 'me')
-    expect(freshBets(first.seen, [bet('a', 'p2')], 'me').seen).toBe(first.seen)
   })
 })
 

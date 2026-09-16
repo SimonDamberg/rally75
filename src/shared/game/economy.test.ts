@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { LOAN_AMOUNT, LOAN_DEBT, MAX_NAME_LENGTH, MIN_STAKE, nightNet, WELCOME_BONUS } from './economy'
+import { LOAN_AMOUNT, LOAN_DEBT, MAX_NAME_LENGTH, MIN_STAKE, netWorth, nightNet, WELCOME_BONUS } from './economy'
 
 const MIGRATIONS = join(import.meta.dirname, '..', '..', '..', 'supabase', 'migrations')
 
@@ -17,6 +17,24 @@ describe('economy constants', () => {
     expect(sql).toContain(`balance >= ${MIN_STAKE}`)
     expect(sql).toContain(`balance = balance + ${LOAN_AMOUNT}, debt = debt + ${LOAN_DEBT}`)
     expect(sql).toContain(`char_length(v) > ${MAX_NAME_LENGTH}`)
+  })
+})
+
+describe('netWorth', () => {
+  it('takes the debt off the balance', () => {
+    expect(netWorth({ balance: 2000, debt: 0 })).toBe(2000)
+    expect(netWorth({ balance: 2000, debt: LOAN_DEBT })).toBe(2000 - LOAN_DEBT)
+  })
+
+  it('goes negative when the debt is larger than the balance', () => {
+    // A Snabblån hands over LOAN_AMOUNT but books LOAN_DEBT, so one loan alone puts you under.
+    expect(netWorth({ balance: LOAN_AMOUNT, debt: LOAN_DEBT })).toBe(LOAN_AMOUNT - LOAN_DEBT)
+    expect(netWorth({ balance: LOAN_AMOUNT, debt: LOAN_DEBT })).toBeLessThan(0)
+  })
+
+  it('is nightNet plus the welcome bonus', () => {
+    const player = { balance: 1750, debt: LOAN_DEBT }
+    expect(netWorth(player) - WELCOME_BONUS).toBe(nightNet(player))
   })
 })
 

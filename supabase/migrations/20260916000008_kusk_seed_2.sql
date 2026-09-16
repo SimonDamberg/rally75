@@ -25,7 +25,7 @@ insert into public.kusks (name, title, notes) values
   ('Emma', 'kör med slutna ögon', array[
     'Emma kör hela loppet med slutna ögon och hävdar att det går fortare så.',
     'Emma har inte sett en målkamera på fyra år.',
-    'Emma blinkade 2023 och missade hela upploppet.',
+    'Emma blinkade 2023 och missade hela upploppet.'
   ]),
   ('Axel', 'gentlemannen', array[
     'Axel anser att omkörningar är ohyfsat och undviker dem när det går.',

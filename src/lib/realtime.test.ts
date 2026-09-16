@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { nightNet, WELCOME_BONUS } from '../shared/game/economy'
-import { applyChange, byBalance, byLosses } from './realtime'
-import { toBet, type PlayerRow } from './types'
+import { applyChange, byLosses, byNetWorth, freshBets } from './realtime'
+import { toBet, type BetRow, type PlayerRow } from './types'
 
 const bet = (id: string, race_id: string, odds: unknown = '2.50') => ({
   id,
@@ -51,10 +51,16 @@ describe('leaderboard sorting', () => {
     created_at: '',
   })
 
-  it('ranks by balance and by net losses', () => {
+  it('ranks by net worth and by net losses', () => {
+    // Cia is holding the most cash after Bo, but the Snabblan debt drops her below everyone.
     const players = [p('Anna', 500), p('Bo', 1500), p('Cia', 900, 1337, 1), p('Dan', 0)]
-    expect(byBalance(players).map((x) => x.name)).toEqual(['Bo', 'Cia', 'Anna', 'Dan'])
+    expect(byNetWorth(players).map((x) => x.name)).toEqual(['Bo', 'Anna', 'Dan', 'Cia'])
     expect(byLosses(players).map((x) => x.name)).toEqual(['Cia', 'Dan', 'Anna', 'Bo'])
+  })
+
+  it('breaks net worth ties by name', () => {
+    const players = [p('Bosse', 900), p('Anna', 900), p('Cia', 2237, 1337, 1)]
+    expect(byNetWorth(players).map((x) => x.name)).toEqual(['Anna', 'Bosse', 'Cia'])
   })
 
   it('does not treat the untouched welcome bonus as winnings', () => {
@@ -62,11 +68,41 @@ describe('leaderboard sorting', () => {
     const players = [p('Vinnare', WELCOME_BONUS + 300), p('Soffliggare', WELCOME_BONUS), p('Förlorare', 400)]
     expect(nightNet(players[1])).toBe(0)
     expect(byLosses(players).map((x) => x.name)).toEqual(['Förlorare', 'Soffliggare', 'Vinnare'])
+    expect(byNetWorth(players).map((x) => x.name)).toEqual(['Vinnare', 'Soffliggare', 'Förlorare'])
   })
 
   it('breaks ties on losses by who borrowed most', () => {
     const a = p('Låntagare', 1337, 1337, 2)
     const b = p('Snål', 1337, 1337, 0)
     expect(byLosses([b, a]).map((x) => x.name)).toEqual(['Låntagare', 'Snål'])
+  })
+})
+
+describe('freshBets', () => {
+  const b = (id: string, player_id: string): BetRow => toBet({ ...bet(id, 'r1'), player_id })
+
+  it('announces nothing on first load', () => {
+    const r = freshBets(null, [b('a', 'p2'), b('b', 'p3')], 'me')
+    expect(r.fresh).toEqual([])
+    expect([...r.seen]).toEqual(['a', 'b'])
+  })
+
+  it('returns new bets by others only, and remembers all', () => {
+    const first = freshBets(null, [b('a', 'p2')], 'me')
+    const next = freshBets(first.seen, [b('a', 'p2'), b('b', 'me'), b('c', 'p3')], 'me')
+    expect(next.fresh.map((x) => x.id)).toEqual(['c'])
+    expect(next.seen.has('b')).toBe(true)
+    expect(freshBets(next.seen, [b('a', 'p2'), b('b', 'me'), b('c', 'p3')], 'me').fresh).toEqual([])
+  })
+
+  it('keeps every bet when no player is excluded', () => {
+    // The GM display has no player of its own, so it passes an empty id.
+    const first = freshBets(null, [b('a', 'p2')], '')
+    expect(freshBets(first.seen, [b('a', 'p2'), b('b', 'p3')], '').fresh.map((x) => x.id)).toEqual(['b'])
+  })
+
+  it('keeps the same set when nothing changed', () => {
+    const first = freshBets(null, [b('a', 'p2')], 'me')
+    expect(freshBets(first.seen, [b('a', 'p2')], 'me').seen).toBe(first.seen)
   })
 })

@@ -134,6 +134,17 @@ export function createApi(db: SupabaseClient) {
       return rpc('take_loan', { p_player_id: identity.playerId, p_token: identity.token })
     },
 
+    /** Pays RM off the Snabblån debt. Floored: a fractional amount would fail Postgres' int cast. */
+    async repayDebt(identity: Identity, amount: number): Promise<PlayerRow> {
+      return toPlayer(
+        await rpc<Row>('repay_debt', {
+          p_player_id: identity.playerId,
+          p_token: identity.token,
+          p_amount: Math.floor(amount),
+        }),
+      )
+    },
+
     /**
      * Database clock, for measuring this device's offset. The race replay runs off
      * races.started_at, so the display and the control device must agree on "now".

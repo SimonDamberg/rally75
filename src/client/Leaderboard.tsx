@@ -1,10 +1,11 @@
-// "Topplista": richest guests, and "Kvällens största förlorare" (how far behind you are, from zero).
+// "Topplista": richest guests (saldo minus skuld), and "Kvällens största förlorare" (how far behind
+// you are, from zero).
 import { useState } from 'react'
 import { useLeaderboard } from '../lib/hooks'
 import type { PlayerRow } from '../lib/types'
 import { BOARD } from '../shared/content/client'
 import { UI_LABELS } from '../shared/content/ui'
-import { nightNet } from '../shared/game/economy'
+import { netWorth, nightNet } from '../shared/game/economy'
 import { fmtRm, playerLabel } from '../shared/game/format'
 import { cx, SmallPrint } from '../ui'
 import { useGuest } from './guest'
@@ -65,6 +66,9 @@ export function Leaderboard() {
 function Row({ player, rank, view, mine }: { player: PlayerRow; rank: number; view: View; mine: boolean }) {
   // Counted from zero: the welcome bonus is not a win, so break even shows as 0, not 1 000 RM.
   const net = nightNet(player)
+  // The top list counts the debt against you, so a pile of Snabblån cannot buy a place up there.
+  const worth = netWorth(player)
+  const value = view === 'top' ? worth : net
   return (
     <li
       className={cx(
@@ -94,14 +98,18 @@ function Row({ player, rank, view, mine }: { player: PlayerRow; rank: number; vi
         )}
       </span>
       <span className="flex shrink-0 flex-col items-end leading-none">
-        {view === 'losers' && <span className="text-[0.6rem] font-bold tracking-[0.14em] text-ink-dim uppercase">{BOARD.net}</span>}
+        {(view === 'losers' || player.debt > 0) && (
+          <span className="text-[0.6rem] font-bold tracking-[0.14em] text-ink-dim uppercase">
+            {view === 'losers' ? BOARD.net : BOARD.worth}
+          </span>
+        )}
         <span
           className={cx(
             'font-display text-xl font-black tabular-nums',
-            view === 'top' ? 'text-plate' : net < 0 ? 'text-drift' : net > 0 ? 'text-cash' : 'text-ink-dim',
+            value < 0 ? 'text-drift' : view === 'top' ? 'text-plate' : value > 0 ? 'text-cash' : 'text-ink-dim',
           )}
         >
-          {view === 'top' ? fmtRm(player.balance) : `${net > 0 ? '+' : ''}${fmtRm(net)}`}
+          {view === 'top' ? fmtRm(worth) : `${net > 0 ? '+' : ''}${fmtRm(net)}`}
         </span>
       </span>
     </li>

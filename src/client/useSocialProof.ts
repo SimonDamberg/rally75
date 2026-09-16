@@ -2,10 +2,11 @@
 // guests on the active race.
 import { useEffect, useEffectEvent, useRef } from 'react'
 import { useConnection } from '../lib/hooks'
+import { freshBets } from '../lib/realtime'
 import type { BetRow, PlayerRow, RaceRow } from '../lib/types'
 import { createRng, randomSeed } from '../shared/game/rng'
 import { toast } from '../ui'
-import { betToastTexts, fakeWinDelay, fakeWinText, freshBets } from './proof'
+import { betToastTexts, fakeWinDelay, fakeWinText } from './proof'
 
 const rng = createRng(randomSeed())
 const WIN_TOAST_MS = 4000

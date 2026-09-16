@@ -6,6 +6,7 @@ import { computeOdds } from '../../shared/game/odds'
 import { createRng } from '../../shared/game/rng'
 import { fakeWinToast } from '../../shared/content/parody'
 import { NAMED_KUSKAR } from '../../shared/content/kuskar'
+import { ATTRACT } from '../../shared/content/ui'
 import { fmtRm } from '../../shared/game/format'
 import type { RaceStatus } from '../../shared/game/types'
 import type { ConnectionStatus } from '../../lib/connection'
@@ -212,8 +213,11 @@ export default function Gallery() {
             <Button variant="ghost" onClick={() => toast({ text: fakeWinToast('Bosse', 'Östhammar', fmtRm(31573)), tone: 'win' })}>
               Vinsttoast
             </Button>
-            <Button variant="ghost" onClick={() => toast({ text: 'Kenneth #42 satsade 250 RM på Bålsta Blixten' })}>
+            <Button variant="ghost" onClick={() => toast({ text: ATTRACT.bet('Kenneth #42', fmtRm(250), card.horses[0].name) })}>
               Infotoast
+            </Button>
+            <Button variant="ghost" onClick={() => toast({ text: ATTRACT.betsMany(4) })}>
+              Spelrusning
             </Button>
             <Button variant="ghost" onClick={() => toast({ text: 'Spelet är stängt för det här loppet.', tone: 'error' })}>
               Feltoast
@@ -273,7 +277,7 @@ export default function Gallery() {
       >
         Pop-up nummer två, staplad ovanpå. Den här går inte att klicka bort.
       </Modal>
-      <Toaster />
+      <Toaster size={tv ? 'tv' : 'md'} />
     </div>
   )
 }

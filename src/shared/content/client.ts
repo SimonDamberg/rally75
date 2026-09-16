@@ -4,6 +4,7 @@
 export const CLIENT_TABS = {
   home: 'Spela',
   bets: 'Mina spel',
+  bank: 'Bank',
   board: 'Topplista',
 } as const
 
@@ -138,6 +139,29 @@ export const LOAN = {
   debtSmallPrint: 'Skulden syns på topplistan. Det är en del av avtalet.',
 } as const
 
+export const BANK = {
+  title: 'Bank',
+  balance: 'Saldo',
+  debt: 'Skuld',
+  net: 'Netto i kväll',
+  netHint: 'Räknat från noll. Välkomstbonusen är inte en vinst, den är ett lockbete.',
+  repayTitle: 'Betala av skulden',
+  repayText: 'Lös ut ditt Snabblån, helt eller lite i taget. Vi tar emot pengar dygnet runt.',
+  pick: 'Välj belopp',
+  all: 'Allt',
+  clear: 'Rensa',
+  pay: (rm: string) => `Betala ${rm}`,
+  payNothing: 'Betala',
+  after: (balance: string, debt: string) => `Kvar efter: ${balance} i saldo, ${debt} i skuld`,
+  paid: (rm: string) => `${rm} avbetalt. Skulden krymper, känslan består.`,
+  debtFree: 'Du är skuldfri',
+  debtFreeText: 'Inga lån, inga krav, ingen spänning. Det går att lösa.',
+  noMoney: 'Saldot är slut. Svårt att betala av med tomma händer.',
+  loan: 'Ta ett snabblån',
+  loanLocked: 'Snabblån öppnas när saldot är slut. Vi hjälper bara den som verkligen behöver.',
+  smallPrint: 'Avbetalning påverkar inte topplistan. Skulden försvinner bara från din rad.',
+} as const
+
 export const MY_BETS = {
   title: 'Mina spel',
   staked: 'Insatt',
@@ -158,6 +182,8 @@ export const BOARD = {
   debt: (rm: string) => `Skuld ${rm}`,
   loans: (n: number) => (n === 1 ? '1 snabblån' : `${n} snabblån`),
   net: 'Netto',
+  /** The top list counts the debt off, so the number needs saying out loud. */
+  worth: 'Efter skuld',
 } as const
 
 export const GUEST_ERRORS = {

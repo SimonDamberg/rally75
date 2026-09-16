@@ -8,32 +8,52 @@ const TONE: Record<ToastTone, string> = {
   error: 'border-drift text-ink',
 }
 
+export type ToasterSize = 'md' | 'tv'
+
+// tv: the GM display iPad, read across the room. It sits above the trot parade along the bottom.
+const STACK: Record<ToasterSize, string> = {
+  md: 'inset-x-3 bottom-3 pb-[env(safe-area-inset-bottom)] md:inset-x-auto md:right-5 md:bottom-5 md:w-96 md:items-end',
+  tv: 'left-8 bottom-[min(5.5rem,10dvh)] w-[min(38rem,45vw)]',
+}
+
+const TOAST: Record<ToasterSize, string> = {
+  md: 'rounded-lg border-l-4 px-4 py-2.5 text-sm',
+  tv: 'rounded-xl border-l-8 px-7 py-4 text-tv-sm',
+}
+
 const EMPTY: readonly never[] = []
 
-/** Renders toasts pushed with toast(). Mount once per app. Tap a toast to dismiss it. */
-export function Toaster({ className }: { className?: string }) {
+/**
+ * Renders toasts pushed with toast(). Tap a toast to dismiss it, except at size "tv": the display
+ * iPad is pure output, so there its toasts are plain text that only times out.
+ *
+ * Mount once per app. Every Toaster reads the same module-level store, so two mounted at once would
+ * show every toast twice.
+ */
+export function Toaster({ size = 'md', className }: { size?: ToasterSize; className?: string }) {
   const toasts = useSyncExternalStore(toastStore.subscribe, toastStore.getSnapshot, () => EMPTY)
+  const tv = size === 'tv'
   return (
     <div
       aria-live="polite"
-      className={cx(
-        'pointer-events-none fixed inset-x-3 bottom-3 z-40 flex flex-col items-start gap-2 pb-[env(safe-area-inset-bottom)] md:inset-x-auto md:right-5 md:bottom-5 md:w-96 md:items-end',
-        className,
-      )}
+      className={cx('pointer-events-none fixed z-40 flex flex-col items-start gap-2', STACK[size], className)}
     >
-      {toasts.map((t) => (
-        <button
-          key={t.id}
-          type="button"
-          onClick={() => toastStore.dismiss(t.id)}
-          className={cx(
-            'pointer-events-auto max-w-full animate-toast-in rounded-lg border-l-4 bg-night-deep/95 px-4 py-2.5 text-left text-sm font-semibold shadow-[0_0.5rem_1.5rem_rgb(0_0_0/0.5)] ring-1 ring-white/10',
-            TONE[t.tone],
-          )}
-        >
-          {t.text}
-        </button>
-      ))}
+      {toasts.map((t) => {
+        const look = cx(
+          'max-w-full animate-toast-in bg-night-deep/95 text-left font-semibold shadow-[0_0.5rem_1.5rem_rgb(0_0_0/0.5)] ring-1 ring-white/10',
+          TOAST[size],
+          TONE[t.tone],
+        )
+        return tv ? (
+          <div key={t.id} className={look}>
+            {t.text}
+          </div>
+        ) : (
+          <button key={t.id} type="button" onClick={() => toastStore.dismiss(t.id)} className={cx('pointer-events-auto', look)}>
+            {t.text}
+          </button>
+        )
+      })}
     </div>
   )
 }

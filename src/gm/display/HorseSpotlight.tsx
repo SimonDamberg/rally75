@@ -7,21 +7,25 @@
 // viewport instead, so the card always fits between the header and the parade.
 import { useEffect, useEffectEvent, useState } from "react";
 import { useServerClock } from "../../lib/hooks";
-import type { BetRow, RaceRow } from "../../lib/types";
+import type { BetRow, PlayerRow, RaceRow } from "../../lib/types";
 import { ATTRACT, UI_LABELS } from "../../shared/content/ui";
-import { fmtRm } from "../../shared/game/format";
+import { fmtRm, playerLabel } from "../../shared/game/format";
 import { OddsValue, SilkBadge } from "../../ui";
-import { summarizeBook } from "../book";
+import { bettorsOn, summarizeBook } from "../book";
 import { SPOTLIGHT_MS, spotlightIndex, spotlightRemaining } from "./spotlight";
 
 const TICK_MS = 100;
+/** Bettors listed before the rest fold into one line, so the card always fits the iPad. */
+const BETTORS_SHOWN = 5;
 
 export function Spotlight({
   race,
   bets,
+  players,
 }: {
   race: RaceRow;
   bets: readonly BetRow[] | undefined;
+  players: ReadonlyMap<string, PlayerRow>;
 }) {
   const { now: serverNow } = useServerClock();
   const [now, setNow] = useState(serverNow);
@@ -44,6 +48,9 @@ export function Spotlight({
 
   if (!horse) return null;
   const hb = book.horses[i];
+  const backers = bettorsOn(bets ?? [], horse.n);
+  const shown = backers.slice(0, BETTORS_SHOWN);
+  const rest = backers.length - shown.length;
 
   return (
     <div className="flex min-h-0 min-w-0 flex-col gap-[1.5vh] overflow-hidden">
@@ -80,13 +87,49 @@ export function Spotlight({
           </span>
         </div>
 
-        <p className="line-clamp-4 text-[min(1.4rem,2.1vw)] leading-snug text-ink-dim">
+        <p className="line-clamp-3 text-[min(1.4rem,2.1vw)] leading-snug text-ink-dim">
           {horse.jnote}
         </p>
         {/* <p className="line-clamp-1 text-[min(1.2rem,1.9vw)] leading-snug text-ink-dim/80 italic">{horse.jnote}</p> */}
         <p className="text-[min(1.3rem,2vw)] text-ink-dim italic">
           {horse.note}
         </p>
+
+        {/* Who is on this horse, so the room can see who to blame. */}
+        <div className="flex min-h-0 flex-col gap-[0.6vh] border-t border-white/10 pt-[1vh]">
+          <h3 className="font-display text-[min(1.2rem,1.8vw)] font-black tracking-[0.12em] text-plate uppercase">
+            {ATTRACT.onHorse}
+          </h3>
+          {backers.length === 0 ? (
+            <p className="text-[min(1.3rem,2vw)] text-ink-dim italic">
+              {ATTRACT.noBettors}
+            </p>
+          ) : (
+            <ul className="flex min-h-0 flex-col gap-[0.4vh] overflow-hidden">
+              {shown.map((b) => {
+                const p = players.get(b.player_id);
+                return (
+                  <li
+                    key={b.player_id}
+                    className="flex items-baseline justify-between gap-4 text-[min(1.5rem,2.2vw)] leading-tight"
+                  >
+                    <span className="truncate font-bold [font-stretch:82%]">
+                      {p ? playerLabel(p.name, p.tag) : ATTRACT.someone}
+                    </span>
+                    <span className="shrink-0 font-display font-black text-cash tabular-nums">
+                      {fmtRm(b.stake)}
+                    </span>
+                  </li>
+                );
+              })}
+              {rest > 0 && (
+                <li className="text-[min(1.2rem,1.8vw)] text-ink-dim italic">
+                  {ATTRACT.moreBettors(rest)}
+                </li>
+              )}
+            </ul>
+          )}
+        </div>
       </div>
 
       <div className="flex shrink-0 items-center gap-3">

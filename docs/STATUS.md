@@ -537,3 +537,63 @@ the admin device. The META_PLAN Decisions table (Devices, Race view, GM auth) wa
 1. Reset the GM password (see the open issue above) so hosted smoke and the night reset work.
 2. On the iPad open `https://rally75.vercel.app/gm/display` in Safari and "Lägg till på hemskärmen";
    on your phone do the same with `https://rally75.vercel.app/gm`. Both ask for the password once.
+
+## Playtest fixes: display bet feed, net-of-debt topplista, Bank tab (done, 2026-09-16)
+
+Three notes from Simon's playtest, plus a broken migration found on the way.
+
+**Done**
+
+- **Bet toasts on the display iPad.** `useBetToasts` (`src/gm/display/`) announces every bet as it
+  lands, folding more than one at a time into a single line. `freshBets` moved from
+  `src/client/proof.ts` to `src/lib/realtime.ts` so both apps can use it (client and gm may not
+  import each other); its tests moved with it. `<Toaster>` gained `size="tv"`: bigger text, lifted
+  clear of the trot parade, and rendered as plain `<div>`s rather than buttons, since the display is
+  pure output. It moved out of `GmApp`'s root into the two route components so only one mounts at a
+  time (they share one store, so two would double every toast).
+- **The spotlighted horse lists who is on it.** New pure `bettorsOn` in `src/gm/book.ts`: one row
+  per player with repeat bets summed, biggest first, voids dropped, ties in arrival order. Capped at
+  5 with "och N till"; the kusk note dropped to `line-clamp-3` to pay for the space.
+- **"Toppen" ranks on saldo minus skuld.** New `netWorth` in `src/shared/game/economy.ts`, with
+  `nightNet` re-expressed through it so the two cannot drift. `byBalance` became `byNetWorth`. The
+  row shows an "Efter skuld" label whenever the player owes something, and goes red below zero.
+- **New "Bank" tab** (4th tab, `src/client/Bank.tsx`): saldo, skuld and netto for the night, then
+  repayment with chips 100/500/1000 plus "Allt", a "kvar efter" preview and a Snabblån button that
+  is disabled until you are actually broke (the loan pop-up stays shell-owned). Pure maths and tests
+  in `src/client/repay.ts` (named for the action, like `slip.ts`; `bank.ts` would collide with
+  `Bank.tsx` on a case-insensitive filesystem). New RPC `repay_debt` in
+  `supabase/migrations/20260916000009_repay_debt.sql`, with codes `bad_amount`, `no_debt` and
+  `repay_too_large`, plus a smoke step covering all three.
+
+**Deviations from META_PLAN**
+
+- Debt repayment is a new mechanic; the Decisions table describes the Snabblån as one-way. It is
+  deliberately **not** a way up either leaderboard: repaying moves saldo and skuld by the same
+  amount, so `netWorth` and `nightNet` are both unchanged (asserted in `repay.test.ts` and in
+  smoke). The Bank small print says so out loud.
+
+**Fixed on the way (not asked for, worth knowing)**
+
+- `20260916000008_kusk_seed_2.sql` **had a SQL syntax error** (a trailing comma before `]` in Emma's
+  notes) and had therefore never applied anywhere. `npx supabase db reset` aborted on it, so no
+  kuskar from it were ever in any database. One character removed; all nine now seed.
+- That migration and `src/shared/content/kuskar.ts` had drifted apart, which is what
+  `kuskSeed.test.ts` was failing on (already red before this work). Per Simon, the **seed file is
+  the source of truth**, so `NAMED_KUSKAR` was regenerated from it and the file header now says
+  which way that dependency runs.
+- `field.test.ts` asserted exactly seven notes per kusk. The seed roster has 3 to 6, and
+  `buildRaceCard` only needs one to pick from, so the rule is now "at least 3".
+
+**Open issues**
+
+- **Emma has 3 notes where everyone else has 5 or 6**, and the syntax error sat in exactly that
+  block. It looks like an edit that was interrupted, not a decision. Worth a look before the party;
+  add the missing notes to the seed file first, then rerun `npm test`.
+- The hosted `GM_PASSWORD` drift from Stage 7a is still open, so all verification here was against
+  the local stack. `20260916000008` and `20260916000009` are **not pushed** to hosted yet.
+
+**Manual steps for Simon**
+
+1. `npx supabase db push` to apply the kusk seed fix and `repay_debt` to the hosted project. The
+   seed migration has never applied there, so this is also the first time the current kuskar land.
+2. Decide on Emma's missing notes (see above).

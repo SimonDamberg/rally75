@@ -29,6 +29,7 @@ import {
   LOAN_AMOUNT,
   LOAN_DEBT,
   MIN_STAKE,
+  netWorth,
   WELCOME_BONUS,
 } from "../src/shared/game/economy";
 import type { KuskInput } from "../src/shared/game/types";
@@ -596,6 +597,33 @@ await step("Snabblån and balance adjustments", async () => {
   const back = await gm.adjustBalance(pw, cia.playerId, 250);
   assert.equal(back.balance, LOAN_AMOUNT + 250);
   await expectCode(gm.adjustBalance("fel", cia.playerId, 1), "gm_unauthorized");
+});
+
+await step("paying the debt back", async () => {
+  // Cia is left by the previous step holding LOAN_AMOUNT + 250 with a debt of LOAN_DEBT.
+  const before = (await api.getPlayer(cia.playerId))!;
+  assert.equal(before.debt, LOAN_DEBT);
+
+  await expectCode(api.repayDebt(cia, 0), "bad_amount");
+  await expectCode(api.repayDebt(cia, -100), "bad_amount");
+  await expectCode(api.repayDebt({ ...cia, token: bo.token }, 100), "invalid_token");
+  // Over the balance, which is the lower of balance and debt here.
+  await expectCode(api.repayDebt(cia, before.balance + 1), "repay_too_large");
+
+  const partly = await api.repayDebt(cia, 250);
+  assert.equal(partly.balance, before.balance - 250);
+  assert.equal(partly.debt, LOAN_DEBT - 250);
+  // The whole point: the same amount comes off both, so no leaderboard moves.
+  assert.equal(netWorth(partly), netWorth(before));
+  assert.equal(partly.loans_taken, 1);
+
+  // Clearing the rest needs the money first; the debt outruns one loan by design.
+  await gm.adjustBalance(pw, cia.playerId, LOAN_DEBT);
+  const clear = await api.repayDebt(cia, partly.debt);
+  assert.equal(clear.debt, 0);
+  assert.equal(clear.balance, partly.balance + LOAN_DEBT - partly.debt);
+  assert.equal(netWorth(clear), netWorth(partly) + LOAN_DEBT);
+  await expectCode(api.repayDebt(cia, 100), "no_debt");
 });
 
 await step("gm player management", async () => {

@@ -23,25 +23,6 @@ export function fakeWinText(rng: Rng): string {
   return fakeWinToast(rng.pick(TOAST_NAMN), rng.pick(ORTER), fmtRm(lo + rng.int(hi - lo + 1)))
 }
 
-export interface FreshBets {
-  seen: ReadonlySet<string>
-  fresh: BetRow[]
-}
-
-/**
- * Bets not seen before, placed by someone else. With no previous `seen` set (first load) nothing
- * is fresh: bets already there are not announced.
- */
-export function freshBets(seen: ReadonlySet<string> | null, bets: readonly BetRow[], playerId: string): FreshBets {
-  if (!seen) return { seen: new Set(bets.map((b) => b.id)), fresh: [] }
-  const added = bets.filter((b) => !seen.has(b.id))
-  if (added.length === 0) return { seen, fresh: [] }
-  return {
-    seen: new Set([...seen, ...added.map((b) => b.id)]),
-    fresh: added.filter((b) => b.player_id !== playerId),
-  }
-}
-
 /** Toast texts for fresh bets; a rush folds into one. */
 export function betToastTexts(
   fresh: readonly BetRow[],

@@ -13,6 +13,9 @@ export const ERROR_MESSAGES = {
   stake_too_low: 'Minsta insats är 10 RM.',
   insufficient_balance: 'Du har inte råd med den insatsen. Snabblån finns, tyvärr.',
   loan_not_allowed: 'Du har fortfarande pengar kvar. Spela upp dem först.',
+  bad_amount: 'Välj ett belopp först.',
+  no_debt: 'Du är skuldfri. Njut medan det varar.',
+  repay_too_large: 'Beloppet är större än din skuld eller ditt saldo. Försök igen.',
   // Game master
   gm_unauthorized: 'Fel lösenord.',
   gm_no_password: 'Inget spelledarlösenord är satt i databasen.',

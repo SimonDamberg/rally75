@@ -12,6 +12,14 @@ export const LOAN_DEBT = 1337
 export const MAX_NAME_LENGTH = 24
 
 /**
+ * What a player actually owns: the balance with the debt taken off. This is what the Topplista
+ * ranks on, so a stack of Snabblån cannot buy a place at the top.
+ */
+export function netWorth(player: { balance: number; debt: number }): number {
+  return player.balance - player.debt
+}
+
+/**
  * How far ahead or behind a player is for the night, counted from zero.
  *
  * The welcome bonus is not winnings, so it has to come back off: someone who never placed a bet
@@ -19,5 +27,5 @@ export const MAX_NAME_LENGTH = 24
  * received LOAN_AMOUNT but owe LOAN_DEBT), which is the joke.
  */
 export function nightNet(player: { balance: number; debt: number }): number {
-  return player.balance - player.debt - WELCOME_BONUS
+  return netWorth(player) - WELCOME_BONUS
 }

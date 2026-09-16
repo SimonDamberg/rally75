@@ -21,18 +21,25 @@ function Gate({ children }: { children: React.ReactNode }) {
 function Control() {
   useGmManifest('control')
   return (
-    <Gate>
-      <ControlShell />
-    </Gate>
+    <>
+      <Gate>
+        <ControlShell />
+      </Gate>
+      <Toaster />
+    </>
   )
 }
 
 function Display() {
   useGmManifest('display')
+  // Read across the room, so the toasts are sized up and lifted clear of the trot parade.
   return (
-    <Gate>
-      <DisplayShell />
-    </Gate>
+    <>
+      <Gate>
+        <DisplayShell />
+      </Gate>
+      <Toaster size="tv" />
+    </>
   )
 }
 
@@ -44,7 +51,6 @@ export default function GmApp() {
         <Route path="/" element={<Control />} />
         <Route path="display" element={<Display />} />
       </Routes>
-      <Toaster />
     </GmAuthProvider>
   )
 }

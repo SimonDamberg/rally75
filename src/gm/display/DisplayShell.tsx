@@ -10,6 +10,7 @@ import { FieldBoard } from "./FieldBoard";
 import { RaceScreen } from "./RaceScreen";
 import { ResultDisplay } from "./ResultDisplay";
 import { Spotlight } from "./HorseSpotlight";
+import { useBetToasts } from "./useBetToasts";
 import { useFallbackPublish } from "./useFallbackPublish";
 
 /** How long a finished race holds the screen before the attract loop takes over again. */
@@ -27,6 +28,8 @@ export function DisplayShell() {
 
   // Safety net if the control phone dies between the finish and the publish.
   useFallbackPublish(race);
+  // Every bet gets announced across the room as it lands.
+  useBetToasts(race, bets, players);
 
   // Hold the result, then fall back to attract. Keyed on the race so a new one resets the timer.
   const settledId =
@@ -49,7 +52,7 @@ export function DisplayShell() {
   if (race?.status === "betting") {
     return (
       <Attract>
-        <Spotlight race={race} bets={bets} />
+        <Spotlight race={race} bets={bets} players={players} />
       </Attract>
     );
   }

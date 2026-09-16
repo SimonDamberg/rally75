@@ -71,6 +71,16 @@ export const ATTRACT = {
   spotlightOf: (i: number, n: number) => `Häst ${i} av ${n}`,
   closedTitle: "Spelet är stängt",
   closedSub: "Loppet startar strax",
+  /** Toasts on the display iPad when money lands on a horse. */
+  bet: (label: string, amount: string, horse: string) =>
+    `${label} satsade ${amount} på ${horse}`,
+  betsMany: (n: number) => `${n} nya spel. Oddsen rör sig!`,
+  /** A bet whose player row has not landed on this device yet. */
+  someone: "En anonym spelare",
+  /** Who is on the spotlighted horse. */
+  onHorse: "Pengar på hästen",
+  noBettors: "Ingen vågar. Än.",
+  moreBettors: (n: number) => `och ${n} till`,
   paddockSub: "Studera fältet, snart kan du satsa allt du äger.",
   lines: [
     "Inget konto behövs!",

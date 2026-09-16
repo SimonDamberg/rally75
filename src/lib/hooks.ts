@@ -5,7 +5,7 @@ import { measureOffset, serverTime, usableOffset } from './clock'
 import { connectionStore, type ConnectionStatus } from './connection'
 import { RallyError, toRallyError } from './errors'
 import { identityStore } from './identity'
-import { applyChange, byBalance, byLosses, type RowChange } from './realtime'
+import { applyChange, byLosses, byNetWorth, type RowChange } from './realtime'
 import { getApi, getSupabase } from './supabase'
 import { toBet, toPlayer, toRace, type BetRow, type Identity, type KuskRow, type PlayerRow, type RaceRow } from './types'
 
@@ -229,7 +229,7 @@ export function usePlayer(): PlayerState {
 
 export interface Leaderboard {
   players: PlayerRow[]
-  /** Richest first. */
+  /** Richest first, with each player's debt counted against them (see netWorth). */
   top: PlayerRow[]
   /** "Kvällens största förlorare": lowest balance minus debt first. */
   losers: PlayerRow[]
@@ -244,7 +244,7 @@ export function useLeaderboard(): LiveResult<Leaderboard> {
   })
   const players = live.data
   const data = useMemo(
-    () => (players ? { players, top: byBalance(players), losers: byLosses(players) } : undefined),
+    () => (players ? { players, top: byNetWorth(players), losers: byLosses(players) } : undefined),
     [players],
   )
   return { data, error: live.error, reload: live.reload }
