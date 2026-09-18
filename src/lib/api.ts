@@ -8,6 +8,8 @@ import {
   toPlayer,
   toRace,
   type BetRow,
+  type CouponBatch,
+  type CouponRow,
   type Identity,
   type KuskInputRow,
   type KuskRow,
@@ -135,6 +137,16 @@ export function createApi(db: SupabaseClient) {
       )
     },
 
+    /**
+     * Every printed kupong, newest first. No codes: those are in coupon_secrets, which no browser
+     * can read. Drives the display toasts and the counts on /gm/kuponger.
+     */
+    async getCoupons(limit = 500): Promise<CouponRow[]> {
+      return query<CouponRow[]>(() =>
+        db.from('coupons').select('*').order('created_at', { ascending: false }).limit(limit),
+      )
+    },
+
     // Guest RPCs -------------------------------------------------------------------------
 
     createPlayer(name: string): Promise<NewPlayer> {
@@ -170,6 +182,18 @@ export function createApi(db: SupabaseClient) {
     /** Spends RM in the Butik. The server captures the price, so a stale catalogue cannot cheat. */
     buyItem(identity: Identity, itemId: string): Promise<PurchaseRow> {
       return rpc('buy_item', { p_player_id: identity.playerId, p_token: identity.token, p_item_id: itemId })
+    },
+
+    /**
+     * Cashes in a printed kupong. The server normalises the code (case, dashes, the Crockford
+     * lookalikes) and refuses one that is already stamped, so a second scan always loses.
+     */
+    redeemCoupon(identity: Identity, code: string): Promise<CouponRow> {
+      return rpc('redeem_coupon', {
+        p_player_id: identity.playerId,
+        p_token: identity.token,
+        p_code: code,
+      })
     },
 
     /**
@@ -292,6 +316,41 @@ export function createApi(db: SupabaseClient) {
       /** Ångra: refunds the RM, restocks the shelf and deletes the receipt. Keeps any title or badge. */
       refundPurchase(password: string, purchaseId: string): Promise<PurchaseRow> {
         return rpc('gm_refund_purchase', { p_password: password, p_id: purchaseId })
+      },
+
+      /**
+       * Mints a print run and returns the plaintext codes. They are readable here and in
+       * batchCodes and nowhere else, so whatever calls this is also what prints them.
+       */
+      createCoupons(
+        password: string,
+        tier: number,
+        amount: number,
+        label: string,
+        count: number,
+      ): Promise<CouponBatch> {
+        return rpc('gm_create_coupons', {
+          p_password: password,
+          p_tier: tier,
+          p_amount: amount,
+          p_label: label,
+          p_count: count,
+        })
+      },
+
+      /** Reads a print run's codes back out, for reprinting a sheet. */
+      batchCodes(password: string, batch: string): Promise<CouponBatch> {
+        return rpc('gm_batch_codes', { p_password: password, p_batch: batch })
+      },
+
+      /** Ångra: takes the RM back off the balance and frees the kupong to be claimed again. */
+      voidClaim(password: string, couponId: string): Promise<CouponRow> {
+        return rpc('gm_void_claim', { p_password: password, p_id: couponId })
+      },
+
+      /** Throws away a whole print run, codes included. Returns how many kuponger went. */
+      deleteCouponBatch(password: string, batch: string): Promise<number> {
+        return rpc('gm_delete_coupon_batch', { p_password: password, p_batch: batch })
       },
 
       /** Wipes players, bets and races. Keeps kuskar and the password. */

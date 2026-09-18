@@ -161,6 +161,23 @@ export const BANK = {
   loan: 'Ta ett snabblån',
   loanLocked: 'Snabblån öppnas när saldot är slut. Vi hjälper bara den som verkligen behöver.',
   smallPrint: 'Avbetalning påverkar inte topplistan. Skulden försvinner bara från din rad.',
+  couponTitle: 'Lös in en kupong',
+  couponText: 'Vann du något i baren? Skriv av koden från kupongen, eller skanna QR-koden.',
+  couponPlaceholder: 'ABCD-1234',
+  couponSubmit: 'Lös in',
+} as const
+
+/** The printed kupong: the reveal pop-up and the manual entry in Bank. */
+export const KUPONG = {
+  waitingTitle: 'Du har en kupong',
+  waitingText: 'Någon har betalat ut i den fysiska världen. Vi tar hand om resten.',
+  redeem: 'Lös in kupongen',
+  later: 'Inte nu',
+  wonTitle: 'Inlöst!',
+  redeemedCta: 'Tillbaka till spelet',
+  wonText: 'Pengarna ligger på kontot. Ingen handläggningstid, ingen motprestation, ingen ånger.',
+  from: (label: string) => `Från ${label}`,
+  smallPrint: 'En kupong gäller en gång. Den som skannar först får pengarna.',
 } as const
 
 export const MY_BETS = {

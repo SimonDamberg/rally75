@@ -79,6 +79,10 @@ export const ATTRACT = {
   bought: (label: string, item: string, amount: string) =>
     `${label} köpte ${item} för ${amount}`,
   boughtMany: (n: number) => `${n} köp i butiken. Baren går varm!`,
+  /** Toasts on the display iPad when a printed kupong is cashed in. */
+  coupon: (label: string, tier: string, amount: string) =>
+    `${label} löste in en ${tier} på ${amount}`,
+  couponMany: (n: number) => `${n} kuponger inlösta. Utbetalningarna rullar!`,
   /** A bet or a purchase whose player row has not landed on this device yet. */
   someone: "En anonym spelare",
   /** Who is on the spotlighted horse. */

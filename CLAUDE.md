@@ -15,7 +15,9 @@ Supabase is the shared backend.
 - **No em dash** (U+2014) anywhere under `src/`, in any language. A test enforces this. Use a
   comma, a period or parentheses instead. In source code write `'\u2014'` if you must refer to it.
 - **No audio.** No sounds, no speech synthesis. Drama is carried visually.
-- Never use ATG's real name or logo. The brand is Rally75.
+- Never use ATG's real name or logo. The brand is Rally75. **One exception, Simon's call:** the
+  printed kupong carries a parody Mr Green logo (`public/kupong-logo.png`) as a corner mark. It
+  stays on the paper ticket and nowhere else: never on the guest app, the iPad or anything public.
 - Balance is authoritative in the DB and changes **only** through server-side RPCs.
 - Network is required; show clear "Ingen anslutning" states with auto-retry, no offline mode.
 
@@ -158,6 +160,35 @@ Two devices, one password gate, one lazy-loaded chunk (`src/gm/GmApp.tsx` routes
   drops the receipts with the players.
 - Guest copy is `BUTIK` in `client.ts`, GM copy `GM_SHOP` in `gm.ts`, display copy `ATTRACT`.
   Pure logic: `src/client/buy.ts`, `parsePrice`/`parseStock` in `src/gm/parse.ts`.
+
+## Kuponger (printed QR tickets)
+
+Printed tickets the guests running the physical games hand out, scanned at `/k/<code>` for RM.
+
+- **The code never reaches a browser.** Plaintext lives in `coupon_secrets` (no grants, no policies,
+  like `player_secrets`); `coupons` is public read and in the Realtime publication but holds only
+  tier, amount, label, batch and redemption state. Never grant `coupon_secrets` or publish it.
+- **One ticket, one claim**, enforced by `redeem_coupon`: the row is locked `for update` and the
+  update carries `and redeemed_at is null`. `redeemed_at` is the authority on "spent";
+  `redeemed_by` is only who, and goes null if the GM deletes the player.
+- Codes are 8 Crockford base32 characters from `gen_random_bytes` (one byte per character, 256 is a
+  multiple of 32 so there is no bias). `normalizeCode` in `src/shared/game/coupon.ts` and
+  `private.clean_coupon_code` in SQL must stay in step: both map I and L to 1, O to 0.
+- **A kupong is not rank neutral**, unlike a Butik purchase or a repayment: the RM lands in
+  `balance` alone, so it lifts Toppen and `nightNet`. It is the only RM the GM can mint, hence the
+  `COUPON_MAX_AMOUNT` / `COUPON_MAX_BATCH` caps in `economy.ts`, mirrored in SQL and tested.
+- `/gm/kuponger` (`src/gm/coupons/`) is a third GM surface behind the same password: a laptop page
+  for minting a run, printing A4 sheets (12 per page), reprinting a lost one, and the "Inlösta i
+  kväll" feed with Ångra (`gm_void_claim`, which also frees the ticket). The QR address field must
+  be the real host: a sheet printed from `localhost` is waste paper.
+- The guest side is shell-owned like the other pop-ups: `ClientApp` parks a scanned code in
+  localStorage (so the scan survives onboarding) and cleans the URL, `useCoupon` + `CouponReveal`
+  do the claim, and it queues behind the bonus and result reveals. Bank has a typed-code fallback.
+- Coupons survive `gm_reset_night` (they are physical objects). Clear a rehearsal run with
+  `gm_delete_coupon_batch`.
+- Guest copy `KUPONG` in `client.ts`, GM copy `GM_COUPONS` in `gm.ts`, shared tier and ticket copy
+  in `src/shared/content/coupons.ts`, iPad toast in `ATTRACT`. Print CSS lives at the end of
+  `src/index.css` and is the only light surface in the app.
 
 ## Conventions
 

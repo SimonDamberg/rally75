@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { parseDelta, parseNotes, parsePrice, parseStock } from './parse'
+import { parseCount, parseDelta, parseNotes, parsePrice, parseStock } from './parse'
+import { COUPON_MAX_BATCH } from '../shared/game/economy'
 
 describe('parseDelta', () => {
   it('reads signed integers, including the typographic minus', () => {
@@ -47,5 +48,22 @@ describe('parseStock', () => {
 
   it('rejects negatives and junk', () => {
     for (const t of ['-1', '2,5', 'många']) expect(parseStock(t)).toBeNull()
+  })
+})
+
+describe('parseCount', () => {
+  it('reads a print run size', () => {
+    expect(parseCount('1')).toBe(1)
+    expect(parseCount('12')).toBe(12)
+    expect(parseCount(String(COUPON_MAX_BATCH))).toBe(COUPON_MAX_BATCH)
+  })
+
+  it('refuses zero, an empty field and more than one print run allows', () => {
+    // Zero kuponger is a wasted trip to the printer; the cap is also enforced in SQL (bad_count).
+    for (const t of ['', '0', String(COUPON_MAX_BATCH + 1), '9999']) expect(parseCount(t)).toBeNull()
+  })
+
+  it('rejects negatives, decimals and junk', () => {
+    for (const t of ['-5', '1,5', '12.5', 'tolv']) expect(parseCount(t)).toBeNull()
   })
 })

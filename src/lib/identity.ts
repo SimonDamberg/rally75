@@ -7,6 +7,7 @@ const IDENTITY_KEY = 'rally75.identity'
 const GM_PASSWORD_KEY = 'rally75.gmPassword'
 const SEEN_RESULT_KEY = 'rally75.seenResult'
 const COOKIES_KEY = 'rally75.cookiesAccepted'
+const PENDING_CODE_KEY = 'rally75.pendingCode'
 
 function readStorage(key: string): string | null {
   try {
@@ -97,4 +98,17 @@ export function loadCookiesAccepted(): boolean {
 
 export function saveCookiesAccepted(): void {
   writeStorage(COOKIES_KEY, '1')
+}
+
+/**
+ * A kupong code scanned from a printed ticket, waiting to be cashed in. Parked here because a scan
+ * can land on a device with no account at all: the guest goes through onboarding first, and the
+ * code has to survive that. Cleared as soon as the redemption resolves, either way.
+ */
+export function loadPendingCode(): string | null {
+  return readStorage(PENDING_CODE_KEY)
+}
+
+export function savePendingCode(code: string | null): void {
+  writeStorage(PENDING_CODE_KEY, code)
 }

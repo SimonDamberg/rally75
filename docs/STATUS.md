@@ -686,3 +686,108 @@ Simon's choices: **no fulfilment tracking** (a purchase is a receipt, not an ord
    this shop migration to the hosted project in one go.
 2. Open the **Butik** tab on the control phone and set real prices and stock against what is
    actually in the fridge. The seeded catalogue is a starting point, not a decision.
+
+## Kuponger: printed QR tickets (done, 2026-09-18)
+
+Simon's addition: friends run physical games at the party (dart, beer pong), and winning one should
+pay in RallyMynt. Printed tickets with a QR at `/k/<code>`, made and printed days in advance.
+
+Simon's choices: **stacks of one-time tickets** (not a poster per game, not a code generated on a
+member's phone), **250 / 500 / 1 000 RM** as Brons / Silver / Guld, minted and printed from a
+**page at `/gm/kuponger`** on a laptop, and monitored through **iPad toasts plus that page**, so the
+control phone keeps its five tabs.
+
+**The security model** (the question that drove the design: can these be pre-printed without being
+farmable?)
+
+1. One-time use is enforced in SQL. `redeem_coupon` locks the row `for update` and the update
+   carries `and redeemed_at is null`, so two phones scanning the same ticket in the same
+   millisecond cannot both win.
+2. Codes are 8 Crockford base32 characters from `gen_random_bytes`: 2^40 possibilities for the
+   hundred-odd tickets that exist, with no sequence to increment. Fishing for a valid code through
+   the RPC is hopeless, so there is no rate limiting to maintain.
+3. Plaintext codes live in `coupon_secrets`, which has no grants and no policies (the
+   `player_secrets` / `race_secrets` pattern) and is deliberately **not** in the Realtime
+   publication. `coupons` is public read but holds no code. Proven in smoke.
+
+The residual risk is physical: a ticket is a bearer token, so the stacks are handed out one at a
+time and kept face down.
+
+**Done**
+
+- Migration `20260918000011_coupons.sql`: `coupons` (tier, amount, label, batch, redeemed_by,
+  redeemed_at; public read, in the Realtime publication) and `coupon_secrets` (no grants). RPCs
+  `redeem_coupon`, `gm_create_coupons`, `gm_batch_codes` (reprint a lost sheet), `gm_void_claim`
+  (Ångra: RM back, ticket freed) and `gm_delete_coupon_batch`. New codes in `errors.ts`.
+- `COUPON_TIERS`, `COUPON_MAX_AMOUNT` (5 000), `COUPON_MAX_BATCH` (200) and `COUPON_CODE_LENGTH` in
+  `economy.ts`, mirrored in SQL and asserted byte for byte by `economy.test.ts`.
+- Guest: route `/k/:code`, `ClientApp` parks the code and cleans the URL, `useCoupon` +
+  `CouponReveal` (two beats: acknowledge the ticket, then the money lands, with `CoinBurst` over a
+  guldkupong). Queues behind the bonus and result reveals and blocks offers while open. Bank has a
+  typed-code fallback for a ticket whose QR will not scan.
+- GM: `/gm/kuponger` (`src/gm/coupons/`), a third role behind the same password gate. Mint a run,
+  print A4 sheets of twelve with cut lines, reprint a batch, delete a batch, and the "Inlösta i
+  kväll" feed with Ångra. The QR address defaults to `window.location.origin` and warns when that
+  looks like a dev server.
+- Display iPad toasts every redemption (`useCouponToasts`), diffing on redeemed ids because a
+  redemption arrives as an UPDATE, not an INSERT.
+- First `@media print` in the repo, at the end of `src/index.css`.
+
+**Verified**
+
+- `npm run build`, `npm test` (192, up from 170) and `npm run lint` pass.
+- `npx supabase db reset` applies the migration from scratch; `npm run smoke -- --reset` passes all
+  21 steps against the local stack, including the new **kuponger** step (code shape, every error
+  code, the happy redemption with `netWorth` up by the amount, `coupon_used` from both the same and
+  a second guest, reprint returning the same codes, Ångra restoring the balance and freeing the
+  ticket, batch delete taking the codes with it) and an extended **RLS** step proving anon cannot
+  write `coupons` or read `coupon_secrets` at all.
+- Headless Chromium against the local stack, four windows (laptop 1280x900, two phones 390x844,
+  iPad 1180x820), 25 checks green: minting and the sheet, a **brand new** phone scanning `/k/<code>`
+  through onboarding and the bonus reveal to a 2 000 RM balance, a reload not claiming twice, the
+  same ticket refused for the second guest in Swedish, a hand-typed lowercase dashed code paying
+  out, the iPad toast (and no toast for redemptions predating the load), the GM counts, Ångra
+  freeing a ticket and the next guest then claiming it. No horizontal overflow anywhere; the only
+  console error is the intended 400 behind the `coupon_used` toast.
+- Print: 14 kuponger render as exactly 2 A4 pages (no trailing blank), a ticket is 66 mm in a
+  264 mm page, and print media puts the body and the QR on white with the page chrome hidden.
+
+**Deviations from META_PLAN**
+
+- Kuponger are a new mechanic; the Decisions table has no row for them.
+- **They are deliberately not rank neutral**, unlike the Butik and `repay_debt`. The RM lands in
+  `balance` alone and lifts Toppen and `nightNet`, because winning at dart should be worth
+  something. That makes this the only RM the GM can mint, hence the two SQL caps.
+- Pure code helpers went to `src/shared/game/coupon.ts`, not `src/client/`: the printed ticket has
+  to format a code the same way the guest's phone does, and `src/gm` may not import `src/client`.
+- `useGuestAction(self?)` takes an optional explicit identity. `ClientShell` renders `GuestContext`,
+  so it sits above its own context and could not otherwise use the standard guest RPC path; the
+  alternative was duplicating the toast and sign-out logic. Found because the first browser run
+  went blank with "useGuest utanför GuestContext".
+- **Brand rule override, Simon's call:** the ticket carries a parody Mr Green logo
+  (`public/kupong-logo.png`) as a colour corner mark, against the "no real gambling brand" rule in
+  CLAUDE.md. Flagged before it went in. It is confined to the printed paper: it is not on the guest
+  app, the iPad or anything reachable from a public URL, and the rule in CLAUDE.md now records the
+  exception.
+
+**Open issues**
+
+- The ticket is colour in one corner and black elsewhere. Off a mono printer the frog prints as a
+  dark block; print the stacks in colour, or use coloured paper per valör.
+- `getCoupons` reads at most 500 rows, so a night with more printed tickets than that would show
+  incomplete counts on `/gm/kuponger`. Far above a party.
+- `gm_void_claim` clamps the balance at zero rather than going negative (the guest may already have
+  spent the RM), so a claw-back after the money is gone is only partial. Deliberate.
+- Untracked `.claude/` in the repo root (local settings plus a leftover worktree from an earlier
+  session). Not committed here; worth a `.gitignore` line if it is not wanted.
+
+**Manual steps for Simon**
+
+1. Still open from Stage 7a: the hosted `GM_PASSWORD` has drifted, and `20260916000008`,
+   `20260916000009`, `20260916000010` were never pushed. Reset the password with
+   `supabase/snippets/set_gm_password.sql`, update `.env.local`, then `npx supabase db push` to
+   apply those three plus this coupon migration in one go. Nothing here works on hosted until then.
+2. On a laptop open `https://rally75.vercel.app/gm/kuponger`, check the address field says the
+   Vercel host (not localhost), and print one run per game with that game's name as the etikett.
+   Cut along the dashed lines and give each friend their stack, face down.
+3. Delete any rehearsal batch before the party so nobody turns up holding a test ticket.

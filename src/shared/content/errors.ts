@@ -19,6 +19,8 @@ export const ERROR_MESSAGES = {
   item_not_found: 'Varan finns inte längre i butiken.',
   item_inactive: 'Varan är tillfälligt ur sortimentet.',
   out_of_stock: 'Slutsålt. Någon var snabbare än du.',
+  coupon_not_found: 'Vi hittar ingen kupong med den koden. Kontrollera koden och försök igen.',
+  coupon_used: 'Kupongen är redan inlöst. En kupong gäller en gång.',
   // Game master
   gm_unauthorized: 'Fel lösenord.',
   gm_no_password: 'Inget spelledarlösenord är satt i databasen.',
@@ -37,6 +39,12 @@ export const ERROR_MESSAGES = {
   bad_kind: 'Okänd varutyp.',
   bad_effect: 'Okänd effekt.',
   purchase_not_found: 'Köpet finns inte.',
+  bad_tier: 'Okänd kupongvalör.',
+  bad_count: 'Antalet kuponger måste vara mellan 1 och 200.',
+  coupon_amount: 'Kupongvärdet måste vara mellan 1 och 5 000 RM.',
+  coupon_code_failed: 'Kunde inte skapa unika koder. Försök igen.',
+  coupon_batch_not_found: 'Kupongomgången finns inte.',
+  coupon_not_redeemed: 'Kupongen är inte inlöst.',
   // Client side
   network: 'Ingen anslutning. Försöker igen...',
   config: 'Rally75 saknar serverinställningar.',

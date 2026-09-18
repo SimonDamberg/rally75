@@ -1,10 +1,12 @@
-// Game master app, in two roles behind one password gate:
-//   /gm          Simon's phone. Every control.
-//   /gm/display  the iPad on its stand. Pure output, nothing to tap.
+// Game master app, in three roles behind one password gate:
+//   /gm           Simon's phone. Every control.
+//   /gm/display   the iPad on its stand. Pure output, nothing to tap.
+//   /gm/kuponger  a laptop by a printer, before the party. A4 kupong sheets.
 // Separate URLs so each device's home-screen icon opens straight into its own role.
 import { Route, Routes } from 'react-router'
 import { Toaster } from '../ui'
 import { ControlShell } from './control/ControlShell'
+import { CouponsPage } from './coupons/CouponsPage'
 import { Login } from './control/Login'
 import { DisplayShell } from './display/DisplayShell'
 import { useGmAuth } from './gmAuth'
@@ -43,6 +45,18 @@ function Display() {
   )
 }
 
+/** No manifest and no wake lock worth having: this one is opened once, on a laptop, to print. */
+function Coupons() {
+  return (
+    <>
+      <Gate>
+        <CouponsPage />
+      </Gate>
+      <Toaster />
+    </>
+  )
+}
+
 export default function GmApp() {
   useWakeLock()
   return (
@@ -50,6 +64,7 @@ export default function GmApp() {
       <Routes>
         <Route path="/" element={<Control />} />
         <Route path="display" element={<Display />} />
+        <Route path="kuponger" element={<Coupons />} />
       </Routes>
     </GmAuthProvider>
   )

@@ -1,7 +1,19 @@
 import { describe, expect, it } from 'vitest'
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { LOAN_AMOUNT, LOAN_DEBT, MAX_NAME_LENGTH, MIN_STAKE, netWorth, nightNet, WELCOME_BONUS } from './economy'
+import {
+  COUPON_CODE_LENGTH,
+  COUPON_MAX_AMOUNT,
+  COUPON_MAX_BATCH,
+  COUPON_TIERS,
+  LOAN_AMOUNT,
+  LOAN_DEBT,
+  MAX_NAME_LENGTH,
+  MIN_STAKE,
+  netWorth,
+  nightNet,
+  WELCOME_BONUS,
+} from './economy'
 
 const MIGRATIONS = join(import.meta.dirname, '..', '..', '..', 'supabase', 'migrations')
 
@@ -17,6 +29,55 @@ describe('economy constants', () => {
     expect(sql).toContain(`balance >= ${MIN_STAKE}`)
     expect(sql).toContain(`balance = balance + ${LOAN_AMOUNT}, debt = debt + ${LOAN_DEBT}`)
     expect(sql).toContain(`char_length(v) > ${MAX_NAME_LENGTH}`)
+  })
+
+  /**
+   * The coupon caps live in their own migration, so this targets the newest file ending _coupons.sql
+   * the way kuskSeed.test.ts targets the newest seed (the mirror header above is in an applied file
+   * and migrations are append-only).
+   */
+  it('match the SQL mirror for the kupong caps', () => {
+    const file = readdirSync(MIGRATIONS)
+      .filter((f) => f.endsWith('_coupons.sql'))
+      .sort()
+      .at(-1)!
+    const sql = readFileSync(join(MIGRATIONS, file), 'utf8')
+    expect(sql).toContain(`COUPON_MAX_AMOUNT ${COUPON_MAX_AMOUNT}, COUPON_MAX_BATCH ${COUPON_MAX_BATCH}.`)
+    // The table constraint and the RPC guard, which are what actually stop a typo minting a fortune.
+    expect(sql).toContain(`amount > 0 and amount <= ${COUPON_MAX_AMOUNT}`)
+    expect(sql).toContain(`p_amount < 1 or p_amount > ${COUPON_MAX_AMOUNT}`)
+    expect(sql).toContain(`p_count < 1 or p_count > ${COUPON_MAX_BATCH}`)
+    // One byte per character, so the alphabet and the code length have to agree with the loop.
+    expect(sql).toContain(`extensions.gen_random_bytes(${COUPON_CODE_LENGTH})`)
+    expect(sql).toContain(`for b in 0..${COUPON_CODE_LENGTH - 1} loop`)
+  })
+})
+
+describe('coupon tiers', () => {
+  it('stay inside what the server will mint', () => {
+    for (const { tier, amount } of COUPON_TIERS) {
+      expect(tier).toBeGreaterThanOrEqual(1)
+      expect(tier).toBeLessThanOrEqual(3)
+      expect(amount).toBeGreaterThan(0)
+      expect(amount).toBeLessThanOrEqual(COUPON_MAX_AMOUNT)
+    }
+  })
+
+  it('has one tier per valör, in rising order', () => {
+    expect(COUPON_TIERS.map((t) => t.tier)).toEqual([1, 2, 3])
+    const amounts = COUPON_TIERS.map((t) => t.amount)
+    expect(amounts).toEqual([...amounts].sort((a, b) => a - b))
+  })
+
+  /**
+   * The one place RM is created outside the welcome bonus and the Snabblån, and deliberately the
+   * only one that moves you up a leaderboard. Butik spending and repayments are both neutral.
+   */
+  it('lifts netWorth, unlike a purchase or a repayment', () => {
+    const before = { balance: WELCOME_BONUS, debt: 0, spent: 0 }
+    const after = { ...before, balance: before.balance + COUPON_TIERS[2].amount }
+    expect(netWorth(after)).toBe(netWorth(before) + COUPON_TIERS[2].amount)
+    expect(nightNet(after)).toBe(COUPON_TIERS[2].amount)
   })
 })
 

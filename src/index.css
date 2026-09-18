@@ -156,3 +156,22 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/*
+ * The only light surface in the whole app: a printed kupong sheet on /gm/kuponger. The app is dark
+ * only by design, so printing needs the page forced back to white paper. The sheet itself sets its
+ * own colours; this just stops the dark body from being painted (or silently dropped) around it.
+ */
+@media print {
+  @page {
+    size: A4;
+    margin: 8mm;
+  }
+  html,
+  body {
+    background: #fff;
+    color: #000;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+}

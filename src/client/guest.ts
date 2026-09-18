@@ -40,8 +40,15 @@ export interface GuestAction {
   busy: boolean
 }
 
-export function useGuestAction(): GuestAction {
-  const { identity, forget } = useGuest()
+/**
+ * `self` is for the shell itself: ClientShell renders the provider, so it sits *above* its own
+ * context and cannot read it. Every component inside the shell omits it and takes the context.
+ */
+export function useGuestAction(self?: Pick<Guest, 'identity' | 'forget'>): GuestAction {
+  const context = useContext(GuestContext)
+  const source = self ?? context
+  if (!source) throw new Error('useGuestAction utanför GuestContext')
+  const { identity, forget } = source
   const [pending, setPending] = useState(0)
 
   const run = useCallback(

@@ -187,3 +187,48 @@ export const GM_KUSKAR = {
   deleted: (name: string) => `${name} är raderad.`,
   empty: "Inga kuskar än.",
 } as const;
+
+export const GM_COUPONS = {
+  title: "Kuponger",
+  subtitle:
+    "Skriv ut kuponger som gästerna skannar när de vinner något i den fysiska världen. En kupong gäller en gång.",
+  createTitle: "Skapa kuponger",
+  tierLabel: "Valör",
+  countLabel: "Antal",
+  countHint: "Hur många kuponger i den här omgången. Max 200.",
+  countError: "Skriv ett tal mellan 1 och 200.",
+  labelLabel: "Etikett",
+  labelHint:
+    "Vilken lek kupongen tillhör, till exempel Dart. Trycks på kupongen och syns i flödet.",
+  baseLabel: "Adress i QR-koden",
+  baseHint: "Måste vara adressen gästernas telefoner kan nå.",
+  baseWarning:
+    "Det här ser ut som en testadress. Kuponger med den här adressen fungerar inte på festen.",
+  create: "Skapa och visa",
+  created: (n: number) => (n === 1 ? "1 kupong skapad." : `${n} kuponger skapade.`),
+  sheetTitle: "Utskrift",
+  sheetHint:
+    "Tolv kuponger per A4. Skriv ut, klipp längs de streckade linjerna och dela ut en per vinst.",
+  print: "Skriv ut",
+  sheetClose: "Stäng utskriften",
+  batchesTitle: "Omgångar",
+  batchesEmpty: "Inga kuponger skapade än.",
+  batchCount: (total: number, redeemed: number) =>
+    `${total} st, ${redeemed} inlösta`,
+  batchLeft: (n: number) => (n === 1 ? "1 kvar" : `${n} kvar`),
+  batchNoLabel: "Utan etikett",
+  reprint: "Skriv ut igen",
+  deleteBatch: "Radera",
+  cancel: "Avbryt",
+  deleteConfirmTitle: "Radera omgången?",
+  deleteConfirmText:
+    "Alla kuponger i omgången slutar gälla, även de som redan är utskrivna och utdelade. Inlösta pengar ligger kvar på kontona. Det går inte att ångra.",
+  deleteConfirmOk: "Ja, radera",
+  deleted: (n: number) =>
+    n === 1 ? "1 kupong raderad." : `${n} kuponger raderade.`,
+  claimsTitle: "Inlösta i kväll",
+  claimsEmpty: "Ingen har löst in en kupong än.",
+  undo: "Ångra",
+  undone: (rm: string) => `${rm} draget tillbaka. Kupongen går att lösa in igen.`,
+  someone: "Raderad spelare",
+} as const;

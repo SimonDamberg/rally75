@@ -10,6 +10,7 @@ import { BonusBar, ConnectionBadge, cx } from '../ui'
 import { Bank } from './Bank'
 import { BonusReveal } from './BonusReveal'
 import { Butik } from './Butik'
+import { CouponReveal } from './CouponReveal'
 import { GuestContext, type Guest } from './guest'
 import { Header } from './Header'
 import { Home } from './Home'
@@ -19,6 +20,7 @@ import { MyBets } from './MyBets'
 import { OfferPopup } from './OfferPopup'
 import { ResultReveal } from './ResultReveal'
 import { SocialStrip } from './SocialStrip'
+import { useCoupon } from './useCoupon'
 import { useOffers } from './useOffers'
 import { useResultReveal } from './useResultReveal'
 import { useSocialProof } from './useSocialProof'
@@ -56,9 +58,13 @@ export function ClientShell({ identity, player, forget, justJoined, cookiesAccep
   const players = useMemo(() => new Map((board?.players ?? []).map((p) => [p.id, p])), [board?.players])
 
   const reveal = useResultReveal(race, bets, player)
+  const coupon = useCoupon(guest)
   // Broke with nothing still riding: winnings from open bets may be on the way.
   const broke = !!player && player.balance < MIN_STAKE && !!bets && !bets.some((b) => b.status === 'open')
-  const blocked = justJoined || reveal.open || confirming
+  // A scanned kupong waits its turn behind the welcome bonus, a result and the bet confirm, then
+  // blocks everything else itself: a pop-up offer over the reveal would bury the payout.
+  const couponOpen = (!!coupon.pending || !!coupon.claimed) && !justJoined && !reveal.open && !confirming
+  const blocked = justJoined || reveal.open || confirming || couponOpen
   // Offers also wait for the cookie banner, a bet or a purchase in progress and Snabblån (broke).
   const offers = useOffers(blocked || slipOpen || buying || broke || !cookiesAccepted)
   useSocialProof({ race, raceBets, playerId: identity.playerId, players, paused: blocked || !cookiesAccepted })
@@ -73,7 +79,14 @@ export function ClientShell({ identity, player, forget, justJoined, cookiesAccep
         <main className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain">
           {tab === 'home' && <Home onConfirmChange={setConfirming} onSlipChange={setSlipOpen} />}
           {tab === 'bets' && <MyBets />}
-          {tab === 'bank' && <Bank broke={broke} onLoan={() => setLoanRequested(true)} />}
+          {tab === 'bank' && (
+            <Bank
+              broke={broke}
+              onLoan={() => setLoanRequested(true)}
+              onRedeemCoupon={(code) => void coupon.redeem(code)}
+              couponBusy={coupon.busy}
+            />
+          )}
           {tab === 'butik' && <Butik onConfirmChange={setBuying} />}
           {tab === 'board' && <Leaderboard />}
         </main>
@@ -99,6 +112,15 @@ export function ClientShell({ identity, player, forget, justJoined, cookiesAccep
       </div>
 
       <BonusReveal open={justJoined && !!player} player={player} onClose={onBonusSeen} />
+      {couponOpen && (
+        <CouponReveal
+          pending={coupon.pending}
+          claimed={coupon.claimed}
+          busy={coupon.busy}
+          onRedeem={(code) => void coupon.redeem(code)}
+          onClose={coupon.close}
+        />
+      )}
       {reveal.open && race && reveal.data && <ResultReveal race={race} reveal={reveal.data} onClose={reveal.close} />}
       <LoanOffer
         broke={broke}

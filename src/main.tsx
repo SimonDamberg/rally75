@@ -21,6 +21,9 @@ createRoot(document.getElementById('root')!).render(
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<ClientApp />} />
+        {/* A scanned kupong. Same app: ClientApp parks the code and cleans the URL, so this also
+            works on a phone that has never been here (onboarding runs first). */}
+        <Route path="/k/:code" element={<ClientApp />} />
         <Route
           path="/gm/*"
           element={

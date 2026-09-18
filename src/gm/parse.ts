@@ -1,4 +1,5 @@
 // Pure input parsing for the GM forms.
+import { COUPON_MAX_BATCH } from '../shared/game/economy'
 
 /** "100", "+100", "-50" or "\u221250" (iPad minus) to an integer; null otherwise. */
 export function parseDelta(text: string): number | null {
@@ -28,4 +29,12 @@ export function parseStock(text: string): number | null | undefined {
   const t = text.replace(/[\s\u00a0]/g, '')
   if (t === '') return undefined
   return /^\d{1,7}$/.test(t) ? Number(t) : null
+}
+
+/** How many kuponger to mint in one print run; null outside 1..COUPON_MAX_BATCH. */
+export function parseCount(text: string): number | null {
+  const t = text.replace(/[\s\u00a0]/g, '')
+  if (!/^\d{1,4}$/.test(t)) return null
+  const n = Number(t)
+  return n >= 1 && n <= COUPON_MAX_BATCH ? n : null
 }

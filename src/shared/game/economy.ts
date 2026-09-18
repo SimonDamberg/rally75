@@ -12,6 +12,30 @@ export const LOAN_DEBT = 1337
 export const MAX_NAME_LENGTH = 24
 
 /**
+ * Printed kupong tiers (`*_coupons.sql` mirrors the caps below, not these amounts: the GM page sends
+ * the value with the call, so the tiers are a starting point Simon can override).
+ *
+ * A kupong is the one thing in the game that is **not** rank neutral. Its RM lands in
+ * `players.balance` and nowhere else, so unlike a Butik purchase or a debt repayment it does move
+ * you on Toppen and on `nightNet`. Winning at dart is meant to be worth something, which is also
+ * why the value and the batch size are capped in SQL: this is the only RM the GM can mint at will.
+ */
+export const COUPON_TIERS = [
+  { tier: 1, amount: 250 },
+  { tier: 2, amount: 500 },
+  { tier: 3, amount: 1000 },
+] as const
+
+export type CouponTier = (typeof COUPON_TIERS)[number]['tier']
+
+/** Most RM one kupong may be worth. */
+export const COUPON_MAX_AMOUNT = 5000
+/** Most kuponger one print run may mint. */
+export const COUPON_MAX_BATCH = 200
+/** Characters in a printed code (Crockford base32, so 2^40 possibilities). */
+export const COUPON_CODE_LENGTH = 8
+
+/**
  * What a player actually owns: the balance with the debt taken off and the Butik spending added
  * back. This is what the Topplista ranks on, so a stack of Snabblån cannot buy a place at the top,
  * and a round of beers from the svarta marknaden cannot cost you one. Spending has its own list

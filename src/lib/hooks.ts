@@ -12,6 +12,7 @@ import {
   toPlayer,
   toRace,
   type BetRow,
+  type CouponRow,
   type Identity,
   type KuskRow,
   type PlayerRow,
@@ -295,6 +296,23 @@ export function usePurchases(): LiveResult<PurchaseRow[]> {
     tables: ['purchases'],
     apply: (prev, change) => {
       const next = applyChange(prev, change, (row) => row as unknown as PurchaseRow)
+      return next === prev ? prev : next.slice().sort((a, b) => b.created_at.localeCompare(a.created_at))
+    },
+  })
+}
+
+/**
+ * Every printed kupong, newest first. One hook for both readers: the display iPad toasts each
+ * redemption, and /gm/kuponger counts what is left per omgång. A redemption arrives as an UPDATE,
+ * which applyChange handles like any other row change.
+ */
+export function useCoupons(): LiveResult<CouponRow[]> {
+  return useLive({
+    key: 'coupons',
+    load: () => getApi().getCoupons(),
+    tables: ['coupons'],
+    apply: (prev, change) => {
+      const next = applyChange(prev, change, (row) => row as unknown as CouponRow)
       return next === prev ? prev : next.slice().sort((a, b) => b.created_at.localeCompare(a.created_at))
     },
   })

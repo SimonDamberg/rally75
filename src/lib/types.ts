@@ -119,6 +119,31 @@ export interface ShopItemInputRow {
   active: boolean;
 }
 
+/**
+ * A printed kupong. The code itself is never here: it lives in coupon_secrets, which no browser can
+ * read. `redeemed_at` is the authority on whether a ticket is spent, since deleting a player only
+ * clears `redeemed_by`.
+ */
+export interface CouponRow {
+  id: string;
+  /** 1 brons, 2 silver, 3 guld. */
+  tier: number;
+  amount: number;
+  /** Which game handed it out ("Dart"); '' when the GM left it blank. */
+  label: string;
+  /** One print run. */
+  batch: string;
+  created_at: string;
+  redeemed_by: string | null;
+  redeemed_at: string | null;
+}
+
+/** Returned once by gm_create_coupons or gm_batch_codes. The only time codes are readable. */
+export interface CouponBatch {
+  batch: string;
+  coupons: { id: string; code: string }[];
+}
+
 export interface GameStateRow {
   id: boolean;
   active_race_id: string | null;

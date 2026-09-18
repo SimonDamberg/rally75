@@ -26,6 +26,9 @@ import {
 } from "../src/shared/game/odds";
 import { createRng } from "../src/shared/game/rng";
 import {
+  COUPON_MAX_AMOUNT,
+  COUPON_MAX_BATCH,
+  COUPON_TIERS,
   LOAN_AMOUNT,
   LOAN_DEBT,
   MIN_STAKE,
@@ -243,7 +246,25 @@ await step("RLS: anon cannot write tables or read secrets", async () => {
     initialKuskCount.n,
     "kusks unchanged",
   );
-  for (const table of ["player_secrets", "race_secrets", "gm_auth"]) {
+  const coupon = await db
+    .from("coupons")
+    .insert({ tier: 3, amount: 5000, batch: anna.playerId });
+  assert.ok(coupon.error, "insert coupons must fail");
+  const couponsBefore = (await api.getCoupons()).length;
+  await db.from("coupons").update({ redeemed_at: null }).neq("amount", 0);
+  await db.from("coupons").delete().neq("amount", 0);
+  assert.equal(
+    (await api.getCoupons()).length,
+    couponsBefore,
+    "coupons unchanged",
+  );
+  for (const table of [
+    "player_secrets",
+    "race_secrets",
+    "gm_auth",
+    // The whole kupong security model: the printed codes must be unreadable from a browser.
+    "coupon_secrets",
+  ]) {
     const res = await db.from(table).select("*");
     assert.ok(
       res.error || (res.data ?? []).length === 0,
@@ -828,6 +849,102 @@ await step("gm butik management", async () => {
   await expectCode(gm.deleteShopItem(pw, created.id), "item_not_found");
   await expectCode(gm.upsertShopItem(pw, { ...created }), "item_not_found");
   assert.equal((await api.getShopItems()).length, before);
+});
+
+await step("kuponger", async () => {
+  // Own players and own print run, so the step is independent of what came before it.
+  const vinnare = await newPlayer("Smoke Vinnare");
+  const tjuv = await newPlayer("Smoke Tjuv");
+  const before = (await api.getCoupons()).length;
+
+  await expectCode(gm.createCoupons(pw!, 4, 250, "Dart", 1), "bad_tier");
+  await expectCode(
+    gm.createCoupons(pw!, 1, COUPON_MAX_AMOUNT + 1, "Dart", 1),
+    "coupon_amount",
+  );
+  await expectCode(
+    gm.createCoupons(pw!, 1, 250, "Dart", COUPON_MAX_BATCH + 1),
+    "bad_count",
+  );
+  await expectCode(gm.createCoupons("fel", 1, 250, "Dart", 1), "gm_unauthorized");
+
+  const tier = COUPON_TIERS[2];
+  const made = await gm.createCoupons(pw!, tier.tier, tier.amount, "Smoke Dart", 3);
+  assert.equal(made.coupons.length, 3, "three kuponger minted");
+  assert.equal(new Set(made.coupons.map((c) => c.code)).size, 3, "codes are unique");
+  for (const c of made.coupons) {
+    assert.match(
+      c.code,
+      /^[0-9ABCDEFGHJKMNPQRSTVWXYZ]{8}$/,
+      `code ${c.code} must be 8 Crockford base32 characters`,
+    );
+  }
+  assert.equal((await api.getCoupons()).length, before + 3);
+
+  await expectCode(api.redeemCoupon(vinnare, "ZZZZZZZZ"), "coupon_not_found");
+  await expectCode(api.redeemCoupon(vinnare, ""), "coupon_not_found");
+  await expectCode(
+    api.redeemCoupon({ ...vinnare, token: tjuv.token }, made.coupons[0].code),
+    "invalid_token",
+  );
+
+  // The happy path, typed the way a guest would off a printed card: lowercase, with the dash.
+  const paid = await api.getPlayer(vinnare.playerId);
+  const code = made.coupons[0].code;
+  const typed = `${code.slice(0, 4)}-${code.slice(4)}`.toLowerCase();
+  const claimed = await api.redeemCoupon(vinnare, typed);
+  assert.equal(claimed.amount, tier.amount);
+  assert.equal(claimed.tier, tier.tier);
+  assert.equal(claimed.label, "Smoke Dart");
+  assert.equal(claimed.redeemed_by, vinnare.playerId);
+  assert.ok(claimed.redeemed_at, "a redeemed kupong is stamped");
+  const after = (await api.getPlayer(vinnare.playerId))!;
+  assert.equal(after.balance, paid!.balance + tier.amount);
+  assert.equal(after.spent, paid!.spent, "a kupong is not Butik spending");
+  assert.equal(after.debt, paid!.debt);
+  // Unlike a purchase or a repayment, kupong RM is meant to move you up the Topplista.
+  assert.equal(netWorth(after), netWorth(paid!) + tier.amount);
+
+  // One ticket, one claim: not by the same guest, not by the next one to find the code.
+  await expectCode(api.redeemCoupon(vinnare, code), "coupon_used");
+  await expectCode(api.redeemCoupon(tjuv, typed), "coupon_used");
+  assert.equal(
+    (await api.getPlayer(tjuv.playerId))!.balance,
+    WELCOME_BONUS,
+    "the second scanner gets nothing",
+  );
+
+  // Reprinting a lost sheet gives back exactly the same codes.
+  const again = await gm.batchCodes(pw!, made.batch);
+  assert.deepEqual(
+    again.coupons.map((c) => c.code).sort(),
+    made.coupons.map((c) => c.code).sort(),
+    "a reprint is the same print run",
+  );
+  await expectCode(gm.batchCodes(pw!, crypto.randomUUID()), "coupon_batch_not_found");
+
+  // Ångra: the RM comes back off the balance and the ticket is claimable again, by someone else.
+  const freed = await gm.voidClaim(pw!, claimed.id);
+  assert.equal(freed.redeemed_at, null);
+  assert.equal(freed.redeemed_by, null);
+  assert.equal(
+    (await api.getPlayer(vinnare.playerId))!.balance,
+    paid!.balance,
+    "voiding a claim takes the RM back",
+  );
+  await expectCode(gm.voidClaim(pw!, claimed.id), "coupon_not_redeemed");
+  await expectCode(gm.voidClaim(pw!, crypto.randomUUID()), "coupon_not_found");
+  const reclaimed = await api.redeemCoupon(tjuv, code);
+  assert.equal(reclaimed.redeemed_by, tjuv.playerId, "a freed ticket works again");
+
+  // Deleting the run takes the codes with it (coupon_secrets cascades).
+  assert.equal(await gm.deleteCouponBatch(pw!, made.batch), 3);
+  await expectCode(
+    gm.deleteCouponBatch(pw!, made.batch),
+    "coupon_batch_not_found",
+  );
+  assert.equal((await api.getCoupons()).length, before);
+  await expectCode(api.redeemCoupon(vinnare, made.coupons[1].code), "coupon_not_found");
 });
 
 await step("reset night", async () => {
