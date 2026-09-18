@@ -155,6 +155,6 @@ export const STODLINJE = {
     loan: "Tveksam? Prata med någon som inte vill åt dina pengar:",
     debt: "Skuld? Vår vän tar emot samtal dygnet runt:",
     loss: "Hästen hade en dålig dag. Det kan du också ha:",
-    kyc: "Frågor om verifieringen? Vår kundtjänst är också en människa:",
+    kyc: "Frågor om verifieringen? Vår kundtjänst är (typ) en människa:",
   },
 } as const;
