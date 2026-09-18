@@ -142,3 +142,19 @@ export const SMALL_PRINT = [
   "Genom att läsa detta har du godkänt villkoren.",
   "Huset vinner alltid. Huset är dessutom trevligt.",
 ] as const;
+
+/** Stödlinje: a real phone number answered by a friend in costume. `lead` texts precede the link. */
+export const STODLINJE = {
+  label: "Stödlinje",
+  /** E.164, for the tel: link. */
+  number: "+46767767679",
+  display: "076 776 76 79",
+  callLabel: "Ring Stödlinjen",
+  lead: {
+    smallPrint: "Eller ring vår",
+    loan: "Tveksam? Prata med någon som inte vill åt dina pengar:",
+    debt: "Skuld? Vår vän tar emot samtal dygnet runt:",
+    loss: "Hästen hade en dålig dag. Det kan du också ha:",
+    kyc: "Frågor om verifieringen? Vår kundtjänst är också en människa:",
+  },
+} as const;

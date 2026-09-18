@@ -136,6 +136,9 @@ Two devices, one password gate, one lazy-loaded chunk (`src/gm/GmApp.tsx` routes
   `SocialStrip` (viewer count, "Utbetalt i kväll"). Pure helpers in `src/client/proof.ts` and
   `src/shared/game/hype.ts`. "Utbetalt i kväll" is `nightPaidDisplay(now, useNightPaid())` on both apps.
 - New parody copy goes in `parody.ts` (`OFFERS`, `OFFER_UI`, `PROOF`, `SMALL_PRINT`).
+- Stödlinje: a `tel:` link to a friend in costume. Number and lead lines are `STODLINJE` in
+  `parody.ts`; render with `StodlinjeLink`/`StodlinjeNote` from `src/ui`. Placed in `SmallPrint`
+  (every tab), the Snabblån modal, Bank (when in debt), the loss reveal and the KYC form.
 
 ## Butik (black market)
 

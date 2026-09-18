@@ -4,6 +4,7 @@ import { join } from 'node:path'
 import { createRng } from '../game/rng'
 import { KUSK_NOTER, STORY_MALLAR } from './stories'
 import { COMMENTARY, disqualifiedLine, inquiryText } from './commentary'
+import { STODLINJE } from './parody'
 
 const EM_DASH = '\u2014'
 const SRC = join(import.meta.dirname, '..', '..')
@@ -14,6 +15,13 @@ function walk(dir: string): string[] {
     return statSync(p).isDirectory() ? walk(p) : [p]
   })
 }
+
+describe('Stödlinje', () => {
+  it('has a dialable Swedish number that matches the displayed one', () => {
+    expect(STODLINJE.number).toMatch(/^\+46\d{9}$/)
+    expect(STODLINJE.display.replace(/\D/g, '')).toBe(STODLINJE.number.replace('+46', '0'))
+  })
+})
 
 describe('no em dash', () => {
   it('appears in any file under src/', () => {

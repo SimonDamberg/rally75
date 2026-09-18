@@ -3,10 +3,11 @@
 // leaderboard (see repay.test.ts). The small print says so; that is the joke.
 import { useState } from 'react'
 import { BANK } from '../shared/content/client'
+import { STODLINJE } from '../shared/content/parody'
 import { UI_LABELS } from '../shared/content/ui'
 import { nightNet } from '../shared/game/economy'
 import { fmtRm } from '../shared/game/format'
-import { Button, cx, SmallPrint, toast } from '../ui'
+import { Button, cx, SmallPrint, StodlinjeNote, toast } from '../ui'
 import { useGuest, useGuestAction } from './guest'
 import { addRepayChip, afterRepay, checkRepay, maxRepay, REPAY_CHIPS } from './repay'
 
@@ -55,6 +56,7 @@ export function Bank({ onLoan, broke }: { onLoan: () => void; broke: boolean }) 
         <section className="flex flex-col gap-3 rounded-2xl bg-tote/40 p-4 ring-1 ring-white/10 ring-inset">
           <h2 className="font-display text-2xl leading-none font-black uppercase">{BANK.repayTitle}</h2>
           <p className="text-sm text-ink-dim">{BANK.repayText}</p>
+          <StodlinjeNote lead={STODLINJE.lead.debt} />
 
           {check === 'no_money' ? (
             <p className="text-sm font-semibold text-drift">{BANK.noMoney}</p>

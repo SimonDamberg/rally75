@@ -2,9 +2,10 @@
 // demand from the header button.
 import { useEffect, useState } from 'react'
 import { LOAN } from '../shared/content/client'
+import { STODLINJE } from '../shared/content/parody'
 import { LOAN_AMOUNT, LOAN_DEBT } from '../shared/game/economy'
 import { fmtRm } from '../shared/game/format'
-import { Button, Modal, toast } from '../ui'
+import { Button, Modal, StodlinjeNote, toast } from '../ui'
 import { useGuestAction } from './guest'
 
 const COOLDOWN_MS = 90_000
@@ -75,6 +76,7 @@ export function LoanOffer({ broke, blocked, requested, onRequestHandled }: LoanO
         ))}
       </dl>
       <p className="mt-3 text-xs text-ink-dim">{LOAN.debtSmallPrint}</p>
+      <StodlinjeNote lead={STODLINJE.lead.loan} className="mt-3" />
     </Modal>
   )
 }

@@ -22,6 +22,7 @@ import {
   RollingNumber,
   SilkBadge,
   SmallPrint,
+  StodlinjeNote,
   StatusBanner,
   toast,
   Toaster,
@@ -236,6 +237,7 @@ export default function Gallery() {
             <NightPaidNumber realPaid={0} /> RM
           </p>
           <SmallPrint />
+          <StodlinjeNote lead="Skuld? Vår vän tar emot samtal dygnet runt:" />
         </Section>
 
         <Section title="Anslutning">

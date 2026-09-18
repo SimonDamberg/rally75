@@ -3,9 +3,9 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { toRallyError } from '../lib/errors'
 import { ONBOARDING } from '../shared/content/client'
 import { ERROR_MESSAGES } from '../shared/content/errors'
-import { CONNECT_LINES, KYC_CONFIRM, KYC_PLACEHOLDER, KYC_TEXT, KYC_TITLE, LEGAL_TEXT } from '../shared/content/parody'
+import { CONNECT_LINES, KYC_CONFIRM, KYC_PLACEHOLDER, KYC_TEXT, KYC_TITLE, LEGAL_TEXT, STODLINJE } from '../shared/content/parody'
 import { MAX_NAME_LENGTH } from '../shared/game/economy'
-import { BonusBar, Button, cx, Logo } from '../ui'
+import { BonusBar, Button, cx, Logo, StodlinjeNote } from '../ui'
 
 const LINE_MS = 850
 
@@ -152,6 +152,7 @@ function Kyc({ onCreate }: { onCreate: (name: string) => Promise<void> }) {
           {busy ? ONBOARDING.creating : KYC_CONFIRM}
         </Button>
         <p className="text-[0.7rem] leading-snug text-ink-dim/70">{LEGAL_TEXT}</p>
+        <StodlinjeNote lead={STODLINJE.lead.kyc} className="text-xs" />
       </form>
     </main>
   )
