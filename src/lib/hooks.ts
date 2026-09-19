@@ -264,9 +264,9 @@ export interface Leaderboard {
   players: PlayerRow[]
   /** Richest first, with each player's debt counted against them (see netWorth). */
   top: PlayerRow[]
-  /** "Kvällens största förlorare": lowest balance minus debt first. */
+  /** "Dagens största förlorare": lowest balance minus debt first. */
   losers: PlayerRow[]
-  /** "Kvällens största slösare": most RM left in the Butik first. Only players who bought something. */
+  /** "Dagens största slösare": most RM left in the Butik first. Only players who bought something. */
   spenders: PlayerRow[]
 }
 

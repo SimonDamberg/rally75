@@ -1,5 +1,5 @@
-// "Topplista": richest guests (saldo minus skuld plus det som gått i Butiken), "Kvällens största
-// förlorare" (how far behind you are, from zero) and "Kvällens största slösare" (what you left at
+// "Topplista": richest guests (saldo minus skuld plus det som gått i Butiken), "Dagens största
+// förlorare" (how far behind you are, from zero) and "Dagens största slösare" (what you left at
 // the black market). Buying moves you only on the third list, which is the whole point.
 import { useState } from 'react'
 import { useLeaderboard } from '../lib/hooks'

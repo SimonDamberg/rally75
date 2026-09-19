@@ -99,7 +99,7 @@ export const GM_BETS = {
 } as const;
 
 export const GM_PLINKO = {
-  title: "Plånko i kväll",
+  title: "Plånko idag",
   empty: "Ingen har släppt en kula än.",
   drops: "Kulor",
   staked: "Insatt",
@@ -132,12 +132,12 @@ export const GM_PLAYERS = {
   edit: "Redigera",
   delete: "Radera",
   close: "Klar",
-  reset: "Nollställ kvällen",
-  resetConfirmTitle: "Nollställ hela kvällen?",
+  reset: "Nollställ dagen",
+  resetConfirmTitle: "Nollställ hela dagen?",
   resetConfirmText:
     "Alla spelare, spel och lopp raderas. Kuskar och lösenord finns kvar. Gäster måste registrera sig igen. Det går inte att ångra.",
   resetConfirmOk: "Ja, nollställ allt",
-  resetDone: "Kvällen är nollställd.",
+  resetDone: "Dagen är nollställd.",
 } as const;
 
 export const GM_SHOP = {
@@ -180,7 +180,7 @@ export const GM_SHOP = {
   deleteConfirmOk: "Ja, radera",
   deleted: (name: string) => `${name} är raderad.`,
   empty: "Inga varor än. Lägg upp det som faktiskt står i kylen.",
-  soldTitle: "Sålt i kväll",
+  soldTitle: "Sålt idag",
   soldHint: "Nyast först. Varje rad är något någon vill ha i handen.",
   soldEmpty: "Ingen har handlat än.",
   soldTotal: (rm: string) => `${rm} omsatt`,
@@ -254,7 +254,7 @@ export const GM_COUPONS = {
   deleteConfirmOk: "Ja, radera",
   deleted: (n: number) =>
     n === 1 ? "1 kupong raderad." : `${n} kuponger raderade.`,
-  claimsTitle: "Inlösta i kväll",
+  claimsTitle: "Inlösta idag",
   claimsEmpty: "Ingen har löst in en kupong än.",
   undo: "Ångra",
   undone: (rm: string) => `${rm} draget tillbaka. Kupongen går att lösa in igen.`,

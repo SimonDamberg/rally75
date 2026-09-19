@@ -1,6 +1,6 @@
 // First screen for a phone with no account: an overhyped casino homepage in front of the sign-up.
 // Every call to action leads to the same place (onStart, the connect + KYC flow), which is the joke.
-// Nothing here writes anything; the live bits are the real "Utbetalt i kväll" and invented wins.
+// Nothing here writes anything; the live bits are the real "Utbetalt idag" and invented wins.
 import { useEffect, useState } from 'react'
 import { LANDING, OFFER_UI, STODLINJE, type LandingProduct } from '../shared/content/parody'
 import { WELCOME_BONUS } from '../shared/game/economy'

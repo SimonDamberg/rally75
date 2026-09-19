@@ -66,7 +66,7 @@ export const UI_LABELS = {
 /** GM attract screen: shown on the iPad between races to pull guests in. */
 export const ATTRACT = {
   jackpotLabel: "Dagens jackpott",
-  nightPaid: "Utbetalt i kväll",
+  nightPaid: "Utbetalt idag",
   jackpotSmallPrint: "* Betalas enbart ut till Rallykå i utbyte mot tidsavdrag",
   scan: "Skanna och spela",
   bonus: (amount: string) => `${amount} i välkomstbonus`,

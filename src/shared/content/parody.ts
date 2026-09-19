@@ -126,7 +126,7 @@ export const OFFER_UI = {
 
 export const PROOF = {
   viewers: "tittar",
-  paid: "Utbetalt i kväll",
+  paid: "Utbetalt idag",
   someone: "En hemlig VIP",
   bet: (label: string, rm: string, horse: string) =>
     `${label} satsade ${rm} på ${horse}`,

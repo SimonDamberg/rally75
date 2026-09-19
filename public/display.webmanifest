@@ -1,7 +1,7 @@
 {
   "name": "Rally75 Skärm",
   "short_name": "Skärm",
-  "description": "Storbildsvyn för kvällens lopp.",
+  "description": "Storbildsvyn för dagens lopp.",
   "lang": "sv",
   "start_url": "/gm/display",
   "scope": "/gm/display",

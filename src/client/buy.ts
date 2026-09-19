@@ -52,7 +52,7 @@ export function afterBuy(
   return { balance: player.balance - price, debt: player.debt, spent: player.spent + price }
 }
 
-/** Total on the receipts, for the "Spenderat i kväll" line. */
+/** Total on the receipts, for the "Spenderat idag" line. */
 export function purchaseTotal(purchases: readonly PurchaseRow[]): number {
   return purchases.reduce((sum, p) => sum + p.price, 0)
 }

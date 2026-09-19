@@ -97,7 +97,7 @@ export function createApi(db: SupabaseClient) {
     },
 
     /**
-     * Sum of every winning payout tonight ("Utbetalt i kväll"). Aggregated server-side: summing
+     * Sum of every winning payout tonight ("Utbetalt idag"). Aggregated server-side: summing
      * the rows here would cap out at PostgREST's 1000-row default and ship the whole winners
      * list to every phone after each race.
      */
