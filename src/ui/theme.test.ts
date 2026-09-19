@@ -31,6 +31,9 @@ describe('brand theme scopes', () => {
     expect(mrgreen).toEqual([
       '--color-ink',
       '--color-ink-dim',
+      '--color-marquee',
+      '--color-marquee-bulb',
+      '--color-marquee-ink',
       '--color-night',
       '--color-night-deep',
       '--color-night-glow',

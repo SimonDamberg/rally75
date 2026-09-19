@@ -20,7 +20,8 @@ export interface ModalProps {
 
 const TONE: Record<ModalTone, { box: string; title: string }> = {
   default: { box: 'ring-tote-hi', title: 'text-plate' },
-  sleaze: { box: 'ring-sleaze shadow-[0_0_3rem_rgb(255_46_136/0.45)]', title: 'text-sleaze' },
+  // The glow reads --color-sleaze, so it follows the brand instead of staying Rally75 pink.
+  sleaze: { box: 'ring-sleaze shadow-[0_0_3rem] shadow-sleaze/45', title: 'text-sleaze' },
   danger: { box: 'ring-drift', title: 'text-drift' },
 }
 

@@ -19,7 +19,7 @@ export function MyBets() {
   const groups = groupByRace(bets, races ?? [])
 
   return (
-    <div className="theme-rally75 flex flex-1 flex-col gap-4 p-3">
+    <div className="flex flex-1 flex-col gap-4 p-3">
       <h1 className="px-1 font-display text-4xl leading-none font-black text-plate uppercase">{MY_BETS.title}</h1>
 
       <dl className="grid grid-cols-3 gap-2">
@@ -41,7 +41,7 @@ export function MyBets() {
         const race = g.race
         const t = totals(g.bets)
         return (
-          <section key={g.raceId} className="flex flex-col gap-1.5">
+          <section key={g.raceId} className="theme-rally75 flex flex-col gap-1.5 rounded-2xl bg-night p-2.5 ring-1 ring-tote-hi/25">
             <h2 className="flex items-baseline gap-2 px-1">
               <span className="font-display text-2xl leading-none font-black uppercase">
                 {race ? MY_BETS.race(race.race_no) : MY_BETS.unknownRace}

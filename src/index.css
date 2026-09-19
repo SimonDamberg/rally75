@@ -35,6 +35,10 @@
   --color-sleaze-shade: var(--color-sleaze-pink-shade);
   /* Text that sits on a solid sleaze surface. A token because the two brands need opposite ink. */
   --color-sleaze-ink: var(--color-sleaze-pink-ink);
+  /* The scrolling bonus strip: its own surface, because it is the one full-width band on the page. */
+  --color-marquee: var(--color-sleaze-pink);
+  --color-marquee-ink: var(--color-sleaze-pink-ink);
+  --color-marquee-bulb: var(--color-plate);
   --color-cash: #3dffa8;
   --color-drift: #ff5a3c;
   --color-drift-shade: #9a2a14;
@@ -134,7 +138,7 @@
     height: 6px;
     pointer-events: none;
     background-image:
-      radial-gradient(circle at 6px 50%, var(--color-plate) 2.2px, transparent 3px),
+      radial-gradient(circle at 6px 50%, var(--color-bulb, var(--color-plate)) 2.2px, transparent 3px),
       radial-gradient(circle at 18px 50%, rgb(255 255 255 / 0.4) 2.2px, transparent 3px);
     background-size: 24px 100%;
     animation: bulbs 0.9s steps(2) infinite;
@@ -196,6 +200,10 @@
   --color-sleaze: #7fe3b1;
   --color-sleaze-shade: #3fae7d;
   --color-sleaze-ink: #052b12;
+  /* Gold band, felt-green lettering and bulbs: the marquee reads as a banner, not a third accent. */
+  --color-marquee: #ffd60a;
+  --color-marquee-ink: #052b12;
+  --color-marquee-bulb: #052b12;
 }
 
 /*
@@ -225,6 +233,10 @@
   --color-sleaze: var(--color-sleaze-pink);
   --color-sleaze-shade: var(--color-sleaze-pink-shade);
   --color-sleaze-ink: var(--color-sleaze-pink-ink);
+  /* The scrolling bonus strip: its own surface, because it is the one full-width band on the page. */
+  --color-marquee: var(--color-sleaze-pink);
+  --color-marquee-ink: var(--color-sleaze-pink-ink);
+  --color-marquee-bulb: var(--color-plate);
 }
 
 @media (prefers-reduced-motion: reduce) {

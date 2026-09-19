@@ -906,3 +906,21 @@ component was touched, and again in `dist/assets/*.css` after.
    unaffected.
 3. Still open from before: reset the GM password and `npx supabase db push` the four unpushed
    migrations.
+
+### Follow-up pass, same day (Simon's notes from the screenshots)
+
+- **"Mina spel" was entirely blue.** It is the site's ledger, not a race surface (the skraplott's
+  results will land here too), so the tab chrome is Mr Green and **each per-race group is its own
+  Rally75 panel**, the same inset the Rally75 tab uses. This is the rule the rest of the app follows;
+  the first pass had put `theme-rally75` on the whole tab.
+- **Pop-ups kept a pink glow.** `Modal`'s `sleaze` tone had the glow hardcoded as
+  `rgb(255_46_136/0.45)`, so it did not follow the token when the accent went mint. It is now
+  `shadow-[0_0_3rem] shadow-sleaze/45`, which compiles to a `var(--color-sleaze)` reference.
+- **The scrolling marquee is now a gold band** with felt-green lettering and bulbs, instead of
+  sharing the mint accent and shouting louder than the logo. It needed three tokens of its own
+  (`marquee`, `marquee-ink`, `marquee-bulb`), because the bulbs and the `★` are plate yellow
+  everywhere else and would have vanished on gold. The defaults keep GM's bar exactly as it was:
+  verified in the browser that `/gm`, `/gm/display` and `/gm/kuponger` still resolve
+  `--color-marquee: #ff2e88`, `--color-marquee-ink: #ffffff`, `--color-marquee-bulb: #ffd60a`.
+- The `bulbs` utility now reads `var(--color-bulb, var(--color-plate))`, so a surface can pick its
+  own bulb colour. Only `BonusBar` sets it; the seven other `bulbs` users are unchanged.
