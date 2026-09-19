@@ -13,6 +13,7 @@ export const TOAST_NAMN = [
   "Ewa",
   "Lena",
   "Anette",
+  "Pia",
 ] as const;
 
 export const CONNECT_LINES = [
@@ -258,7 +259,7 @@ export const LANDING = {
       },
       {
         text: "Snabblånet ändrade mitt liv. Jag vet bara inte åt vilket håll än.",
-        who: "Agneta, Nynäshamn",
+        who: "Agneta, Knivsta",
       },
       {
         text: "Kundtjänst svarade direkt. Han var utklädd, men han lyssnade.",
