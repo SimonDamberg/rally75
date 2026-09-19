@@ -125,8 +125,8 @@ Two devices, one password gate, one lazy-loaded chunk (`src/gm/GmApp.tsx` routes
 
 - **`/gm/display`**, the iPad on its stand: `src/gm/display/`. Pure output, nothing to tap, and it
   **never publishes a result**. `DisplayShell` picks the view from the race status alone: `Attract`
-  when idle, `FieldBoard` in paddock and closed, the rotating `Spotlight` while betting, `RaceScreen`
-  while running, `ResultDisplay` for 45 s after settlement. `Attract` is the standing chrome (join QR
+  when idle and in paddock, the rotating `Spotlight` while betting and closed (the header says
+  which), `RaceScreen` while running, `ResultDisplay` for 45 s after settlement. `Attract` is the standing chrome (join QR
   plus trot parade); its `children` are the swappable left panel.
 - **`/gm`**, Simon's phone: `src/gm/control/`. Phone-first (bottom tab bar like `ClientShell`, `md`
   sizes, never `tv`). Every control lives here, including Snabbspola, the inquiry rulings and

@@ -1,4 +1,4 @@
-// One horse at a time on the display iPad while betting is open, so the room has something to
+// One horse at a time on the display iPad while betting is open (and on after it closes), so the room has something to
 // study and argue about. Which horse is showing is a pure function of the server clock
 // (spotlight.ts), so a reload does not restart the rotation.
 //
@@ -56,7 +56,9 @@ export function Spotlight({
     <div className="flex min-h-0 min-w-0 flex-col gap-[1.5vh] overflow-hidden">
       <div className="flex items-baseline justify-between gap-4">
         <h2 className="font-display text-[min(2.5rem,3.6vw)] leading-none font-black tracking-wide text-plate uppercase">
-          {ATTRACT.spotlightTitle}
+          {race.status === "closed"
+            ? ATTRACT.closedTitle
+            : ATTRACT.spotlightTitle}
         </h2>
         <span className="font-display text-[min(1.5rem,2.2vw)] font-bold text-ink-dim uppercase">
           {ATTRACT.spotlightOf(i + 1, count)}

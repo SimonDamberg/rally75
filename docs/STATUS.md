@@ -1264,3 +1264,10 @@ and nothing else. `/gm` and `/gm/kuponger` stay pure Rally75.
   runner-up is why it loses; a turbo on the runner-up can send it into the lead before it fades.
 - Never kommitte, never a boost on the winner. The result is untouched (the order is still drawn
   first). Late lead changes rose from 70 % to 75 %; photos and win rates are unchanged.
+
+### Follow-up: closed keeps the horse spotlight (Simon's call, 2026-09-19)
+
+- The static `FieldBoard` on the display while betting is closed was dull, so it is gone. `closed`
+  now shows the same rotating `Spotlight` as `betting`. The rotation is clocked from `betting_at`, so
+  it carries on without a jump; only the header changes from "Spelet är öppet" to "Spelet är stängt".
+- `FieldBoard.tsx` and the `ATTRACT.closedSub` line are deleted.

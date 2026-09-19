@@ -12,9 +12,7 @@ import {
 } from "../../lib/hooks";
 import type { PlayerRow } from "../../lib/types";
 import { KUSK_PHOTOS } from "../../shared/content/kuskar";
-import { ATTRACT } from "../../shared/content/ui";
 import { Attract } from "./Attract";
-import { FieldBoard } from "./FieldBoard";
 import { RaceScreen } from "./RaceScreen";
 import { ResultDisplay } from "./ResultDisplay";
 import { Spotlight } from "./HorseSpotlight";
@@ -82,22 +80,12 @@ export function DisplayShell() {
     return <ResultDisplay race={race} bets={bets} players={players} />;
   }
 
-  if (race?.status === "betting") {
+  // Closed keeps the same rotation as betting (it is clocked from betting_at, so it carries on
+  // without a jump); only the header changes to say the book is shut.
+  if (race?.status === "betting" || race?.status === "closed") {
     return (
       <Attract>
         <Spotlight race={race} bets={bets} players={players} />
-      </Attract>
-    );
-  }
-  if (race?.status === "closed") {
-    return (
-      <Attract>
-        <FieldBoard
-          race={race}
-          bets={bets}
-          title={ATTRACT.closedTitle}
-          subtitle={ATTRACT.closedSub}
-        />
       </Attract>
     );
   }
