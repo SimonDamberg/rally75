@@ -1253,3 +1253,10 @@ and nothing else. `/gm` and `/gm/kuponger` stay pure Rally75.
   Eckerölinjen) still stand still.
 - 5000 seeds: comic gag in 99 % of races, and gag moments per race 2: 34 %, 3: 42 %, 4+: 15 %.
   Results unchanged: favourite 38 %, late lead change 70 %, photo 24 %, wire to wire 9 %.
+
+### Follow-up: closed keeps the horse spotlight (Simon's call, 2026-09-19)
+
+- The static `FieldBoard` on the display while betting is closed was dull, so it is gone. `closed`
+  now shows the same rotating `Spotlight` as `betting`. The rotation is clocked from `betting_at`, so
+  it carries on without a jump; only the header changes from "Spelet är öppet" to "Spelet är stängt".
+- `FieldBoard.tsx` and the `ATTRACT.closedSub` line are deleted.

@@ -87,7 +87,6 @@ export const ATTRACT = {
   spotlightTitle: "Spelet är öppet",
   spotlightOf: (i: number, n: number) => `Häst ${i} av ${n}`,
   closedTitle: "Spelet är stängt",
-  closedSub: "Loppet startar strax",
   /** Toasts on the display iPad when money lands on a horse. */
   bet: (label: string, amount: string, horse: string) =>
     `${label} satsade ${amount} på ${horse}`,
