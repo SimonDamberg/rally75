@@ -924,3 +924,61 @@ component was touched, and again in `dist/assets/*.css` after.
   `--color-marquee: #ff2e88`, `--color-marquee-ink: #ffffff`, `--color-marquee-bulb: #ffd60a`.
 - The `bulbs` utility now reads `var(--color-bulb, var(--color-plate))`, so a surface can pick its
   own bulb colour. Only `BonusBar` sets it; the seven other `bulbs` users are unchanged.
+
+## Plånko: a Plinko tab in the Mr Green client (done, 2026-09-19)
+
+The umbrella rebrand was made for a Triss-parody skraplott, but a guest is already coming dressed as
+Triss, so Simon swapped it for **Plinko**: drop a ball through twelve rows of pegs, it lands in a
+multiplier slot. Named **Plånko** (plånbok + Plinko, "Töm plånboken, en kula i taget").
+
+Simon's choices: **Plinko only** (not Mines), **~90 % back**, the GM side gets **iPad toasts for big
+hits and a stats card** (no controls), and Plånko gets **its own colour scheme**, embedded in the green
+site the way the Rally75 panel is.
+
+**Done**
+
+- Migration `20260919000012_plinko.sql`: `plinko_drops` (public read, Realtime) and the guest RPC
+  `plinko_drop`, which draws 12 random bits, pays and records the drop in one transaction. New code
+  `stake_too_high`. `gm_reset_night` needed no change (drops cascade off players).
+- Rules in `src/shared/game/plinko.ts`, mirrored in SQL and checked by string: 13 slots at
+  100x / 12x / 4x / 1,5x / 1x / 0,5x / 0,3x (symmetric), RTP 3735,2 / 4096 = 91,2 %, stake 10 to 250,
+  chips 10/25/50/100/250. Integer payout maths like `payoutFor`.
+- Guest tab (second, after Rally75): an SVG board, balls animated with the Web Animations API along
+  the server's path, several at once (max 8), the landing slot flashes, coins rain on 10x and up,
+  last-drop line, history pills, night totals. `.theme-plinko` is a third token scope (violet
+  ground, magenta pegs, same 14 tokens, never `plate`/`cash`/`drift`); `theme.test.ts` checks all three.
+- **No spoilers**: the header holds the balance while balls fall (`heldBalance` from the new
+  `balance_after` column, so it is right whichever of the RPC reply and the Realtime update comes
+  first); the history ignores drops that have not landed on this phone; the iPad waits the fall time
+  (`PLINKO_FALL_MS`) before toasting.
+- GM: `PlinkoCard` at the bottom of the control phone's Spel tab (balls, in, out, house, best hit),
+  and `usePlinkoToasts` on the iPad for hits of 10x and up.
+
+**Verified**
+
+- `npm run build`, `npm test` (216, up from 197) and `npm run lint` pass.
+- `npx supabase db reset` + `npm run smoke -- --reset`: all 22 steps pass against the local stack,
+  including the new **plånko** step (error codes, 50 drops with SQL payout = TS payout and
+  `slot = popcount(path)`, `balance_after` tracking, the final balance) and RLS proving anon cannot
+  insert a drop.
+- Headless Chromium against the local stack: guest at 390x844 (six tabs fit, no overflow, violet
+  panel; mid-fall the header read 950 while the DB already said 975, then matched on landing; five
+  balls in flight at once; history only after landing), control phone card totals, iPad toast only
+  after the fall time, `/gm` still without `data-brand`, no console errors.
+
+**Deviations from META_PLAN**
+
+- A second game is a new mechanic; the Decisions table has only races. Like a bet, it is not rank
+  neutral.
+- `night_paid()` ("Utbetalt i kväll") still counts race payouts only.
+
+**Open issues**
+
+- Plånko drops are not in "Mina spel"; the tab has its own history and night totals.
+- `getPlinkoDrops` reads the latest 1 000 drops, so the control card undercounts past that. Spam
+  dropping could get there on a long night; raise the limit or add an SQL sum if it matters.
+- The local GM password was reset to a throwaway by `db reset` + smoke; set your own locally if needed.
+
+**Manual steps for Simon**
+
+1. `npx supabase db push` to apply this migration (with the four still-unpushed ones) to hosted.

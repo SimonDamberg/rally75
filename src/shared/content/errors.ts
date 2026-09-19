@@ -11,6 +11,7 @@ export const ERROR_MESSAGES = {
   race_not_betting: 'Spelet är stängt för det här loppet.',
   horse_not_found: 'Hästen finns inte i det här loppet.',
   stake_too_low: 'Minsta insats är 10 RM.',
+  stake_too_high: 'Max 250 RM per kula. Brädet tål inte mer.',
   insufficient_balance: 'Du har inte råd med den insatsen. Snabblån finns, tyvärr.',
   loan_not_allowed: 'Du har fortfarande pengar kvar. Spela upp dem först.',
   bad_amount: 'Välj ett belopp först.',

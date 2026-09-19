@@ -239,6 +239,30 @@
   --color-marquee-bulb: var(--color-plate);
 }
 
+/*
+ * Plånko inside the Mr Green page: Mr Green's own arcade game, so it gets its own inset panel the
+ * way Rally75 does. Neon violet ground, hot magenta pegs. Same token set as the other two scopes
+ * (src/ui/theme.test.ts), and like them it never touches plate, cash or drift: the yellow slots and
+ * the green/red results mean what they mean everywhere else. Same rule as .theme-rally75: put it on
+ * an element that already exists (src/client/Plinko.tsx).
+ */
+.theme-plinko {
+  --color-night: #1c0a3d;
+  --color-night-deep: #0e0424;
+  --color-night-glow: #3a1275;
+  --color-tote: #2d1063;
+  --color-tote-hi: #b35cff;
+  --color-void: #6b5a92;
+  --color-ink: #fbf4ff;
+  --color-ink-dim: #bba6dd;
+  --color-sleaze: #ff4fd8;
+  --color-sleaze-shade: #a3178a;
+  --color-sleaze-ink: #ffffff;
+  --color-marquee: #ff4fd8;
+  --color-marquee-ink: #ffffff;
+  --color-marquee-bulb: var(--color-plate);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

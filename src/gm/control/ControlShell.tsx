@@ -2,7 +2,7 @@
 // app, because this is now a device Simon holds rather than an iPad on a stand. It never takes over
 // the screen for a race; the room watches /gm/display for that.
 import { useMemo, useState } from 'react'
-import { useActiveRace, useConnection, useKusks, useLeaderboard, usePurchases, useShopItems } from '../../lib/hooks'
+import { useActiveRace, useConnection, useKusks, useLeaderboard, usePlinkoDrops, usePurchases, useShopItems } from '../../lib/hooks'
 import type { PlayerRow } from '../../lib/types'
 import { GM_TABS } from '../../shared/content/gm'
 import { Button, ConnectionBadge, cx, Logo } from '../../ui'
@@ -26,6 +26,7 @@ export function ControlShell() {
   const { data: board, reload: reloadPlayers } = useLeaderboard()
   const { data: shopItems } = useShopItems()
   const { data: purchases } = usePurchases()
+  const { data: plinko } = usePlinkoDrops()
   const control = useRaceControl(kusks, reloadRace)
   const [tab, setTab] = useState<Tab>('race')
 
@@ -55,7 +56,7 @@ export function ControlShell() {
         {tab === 'race' && (
           <RaceTab race={race} players={players} control={control} canCreate={canCreate} onCreate={() => void createRace()} />
         )}
-        {tab === 'bets' && <BetsTab race={race} players={players} />}
+        {tab === 'bets' && <BetsTab race={race} players={players} plinko={plinko} />}
         {tab === 'players' && (
           <PlayersTab
             players={board?.players}

@@ -80,6 +80,16 @@ export const GM_BETS = {
   unknownPlayer: "Okänd spelare",
 } as const;
 
+export const GM_PLINKO = {
+  title: "Plånko i kväll",
+  empty: "Ingen har släppt en kula än.",
+  drops: "Kulor",
+  staked: "Insatt",
+  paid: "Utbetalt",
+  house: "Huset",
+  best: "Största träff",
+} as const;
+
 export const GM_PLAYERS = {
   title: "Spelare",
   count: (n: number) => (n === 1 ? "1 spelare" : `${n} spelare`),

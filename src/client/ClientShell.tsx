@@ -1,4 +1,4 @@
-// Signed-in guest: header, the five tabs, and the pop-ups that can appear from any tab (bonus
+// Signed-in guest: header, the tabs, and the pop-ups that can appear from any tab (bonus
 // reveal after sign-up, result reveal after a race, Snabblån when broke, pop-up offers), plus the
 // fake social proof.
 import { useMemo, useState } from 'react'
@@ -18,6 +18,7 @@ import { Leaderboard } from './Leaderboard'
 import { LoanOffer } from './LoanOffer'
 import { MyBets } from './MyBets'
 import { OfferPopup } from './OfferPopup'
+import { Plinko } from './Plinko'
 import { ResultReveal } from './ResultReveal'
 import { SocialStrip } from './SocialStrip'
 import { useCoupon } from './useCoupon'
@@ -25,9 +26,9 @@ import { useOffers } from './useOffers'
 import { useResultReveal } from './useResultReveal'
 import { useSocialProof } from './useSocialProof'
 
-type Tab = 'home' | 'bets' | 'bank' | 'butik' | 'board'
-const TABS: readonly Tab[] = ['home', 'bets', 'bank', 'butik', 'board']
-const TAB_ICON: Record<Tab, string> = { home: '★', bets: '▤', bank: '¤', butik: '◆', board: '♛' }
+type Tab = 'home' | 'plinko' | 'bets' | 'bank' | 'butik' | 'board'
+const TABS: readonly Tab[] = ['home', 'plinko', 'bets', 'bank', 'butik', 'board']
+const TAB_ICON: Record<Tab, string> = { home: '★', plinko: '●', bets: '▤', bank: '¤', butik: '◆', board: '♛' }
 
 export interface ClientShellProps {
   identity: Identity
@@ -50,6 +51,9 @@ export function ClientShell({ identity, player, forget, justJoined, cookiesAccep
   const [slipOpen, setSlipOpen] = useState(false)
   const [loanRequested, setLoanRequested] = useState(false)
   const [buying, setBuying] = useState(false)
+  // Plånko balls in the air: the header shows this instead of the live balance until they land.
+  const [plinkoHold, setPlinkoHold] = useState<number | undefined>()
+  const dropping = plinkoHold !== undefined
 
   const guest = useMemo<Guest>(
     () => ({ identity, player, bets, race, raceBets, raceError, shopItems, forget }),
@@ -65,19 +69,21 @@ export function ClientShell({ identity, player, forget, justJoined, cookiesAccep
   // blocks everything else itself: a pop-up offer over the reveal would bury the payout.
   const couponOpen = (!!coupon.pending || !!coupon.claimed) && !justJoined && !reveal.open && !confirming
   const blocked = justJoined || reveal.open || confirming || couponOpen
-  // Offers also wait for the cookie banner, a bet or a purchase in progress and Snabblån (broke).
-  const offers = useOffers(blocked || slipOpen || buying || broke || !cookiesAccepted)
+  // Offers also wait for the cookie banner, a bet, a purchase or a Plånko ball in progress and
+  // Snabblån (broke).
+  const offers = useOffers(blocked || slipOpen || buying || dropping || broke || !cookiesAccepted)
   useSocialProof({ race, raceBets, playerId: identity.playerId, players, paused: blocked || !cookiesAccepted })
 
   return (
     <GuestContext value={guest}>
       <div className="flex h-dvh flex-col">
         <BonusBar />
-        <Header player={player} broke={broke} onLoan={() => setLoanRequested(true)} />
+        <Header player={player} heldBalance={plinkoHold} broke={broke} onLoan={() => setLoanRequested(true)} />
         <SocialStrip />
         <ConnectionBadge status={connection} variant="banner" />
         <main className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain">
           {tab === 'home' && <Home onConfirmChange={setConfirming} onSlipChange={setSlipOpen} />}
+          {tab === 'plinko' && <Plinko onHold={setPlinkoHold} />}
           {tab === 'bets' && <MyBets />}
           {tab === 'bank' && (
             <Bank
@@ -125,7 +131,7 @@ export function ClientShell({ identity, player, forget, justJoined, cookiesAccep
       {reveal.open && race && reveal.data && <ResultReveal race={race} reveal={reveal.data} onClose={reveal.close} />}
       <LoanOffer
         broke={broke}
-        blocked={blocked || !!offers.current}
+        blocked={blocked || dropping || !!offers.current}
         requested={loanRequested}
         onRequestHandled={() => setLoanRequested(false)}
       />

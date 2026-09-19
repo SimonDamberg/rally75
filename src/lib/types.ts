@@ -104,6 +104,23 @@ export interface PurchaseRow {
   created_at: string;
 }
 
+/** One Plånko ball: drawn and paid by plinko_drop in one transaction. */
+export interface PlinkoDropRow {
+  id: string;
+  player_id: string;
+  stake: number;
+  /** 12-bit mask, bit i set = bounce right at row i. */
+  path: number;
+  slot: number;
+  /** Multiplier in tenths of the stake. */
+  m10: number;
+  /** Stake included; 0 is not possible, the lowest slot pays 0,3x. */
+  payout: number;
+  /** The player's balance right after this drop (what the header shows once the ball lands). */
+  balance_after: number;
+  created_at: string;
+}
+
 export interface ShopItemInputRow {
   /** null creates a new item. */
   id: string | null;

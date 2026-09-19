@@ -35,6 +35,12 @@ import {
   netWorth,
   WELCOME_BONUS,
 } from "../src/shared/game/economy";
+import {
+  PLINKO_MAX_STAKE,
+  PLINKO_ROWS,
+  plinkoPayout,
+  slotOf,
+} from "../src/shared/game/plinko";
 import type { KuskInput } from "../src/shared/game/types";
 
 if (!process.argv.includes("--reset")) {
@@ -258,6 +264,16 @@ await step("RLS: anon cannot write tables or read secrets", async () => {
     couponsBefore,
     "coupons unchanged",
   );
+  const drop = await db.from("plinko_drops").insert({
+    player_id: anna.playerId,
+    stake: 10,
+    path: 0,
+    slot: 0,
+    m10: 1000,
+    payout: 100000,
+    balance_after: 100000,
+  });
+  assert.ok(drop.error, "insert plinko_drops must fail");
   for (const table of [
     "player_secrets",
     "race_secrets",
@@ -947,6 +963,41 @@ await step("kuponger", async () => {
   await expectCode(api.redeemCoupon(vinnare, made.coupons[1].code), "coupon_not_found");
 });
 
+await step("plånko", async () => {
+  const kula = await newPlayer("Smoke Kula");
+  const other = await newPlayer("Smoke Annan");
+  await expectCode(api.plinkoDrop({ ...kula, token: other.token }, 10), "invalid_token");
+  await expectCode(api.plinkoDrop(kula, MIN_STAKE - 1), "stake_too_low");
+  await expectCode(api.plinkoDrop(kula, PLINKO_MAX_STAKE + 1), "stake_too_high");
+
+  let balance = await balanceOf(kula);
+  let staked = 0;
+  let paid = 0;
+  for (let i = 0; i < 50; i++) {
+    const stake = [10, 25, 50][i % 3];
+    if (balance < stake) break;
+    const row = await api.plinkoDrop(kula, stake);
+    assert.equal(row.player_id, kula.playerId);
+    assert.equal(row.stake, stake);
+    assert.ok(row.path >= 0 && row.path < 1 << PLINKO_ROWS, "path is 12 bits");
+    assert.equal(row.slot, slotOf(row.path), "slot is the number of rights");
+    assert.equal(row.payout, plinkoPayout(stake, row.slot), "SQL payout matches TS");
+    balance = balance - stake + row.payout;
+    assert.equal(row.balance_after, balance, "balance_after tracks the balance");
+    staked += stake;
+    paid += row.payout;
+  }
+  assert.equal(await balanceOf(kula), WELCOME_BONUS - staked + paid, "balance moved by stakes and payouts only");
+  const mine = await api.getPlayerPlinkoDrops(kula.playerId);
+  assert.equal(mine.reduce((sum, d) => sum + d.payout, 0), paid);
+  assert.ok((await api.getPlinkoDrops()).length >= mine.length);
+
+  // Broke: drain what is left with a stake the balance cannot cover.
+  const current = await balanceOf(kula);
+  await gm.adjustBalance(pw, kula.playerId, -current + 5);
+  await expectCode(api.plinkoDrop(kula, 10), "insufficient_balance");
+});
+
 await step("reset night", async () => {
   await gm.resetNight(pw);
   assert.equal(await api.getActiveRace(), null);
@@ -956,6 +1007,8 @@ await step("reset night", async () => {
   // The catalogue survives the night reset (like kuskar); receipts cascade off the players.
   assert.ok((await api.getShopItems()).length > 0);
   assert.deepEqual(await api.getPurchases(), []);
+  // Plånko drops cascade off the players too.
+  assert.deepEqual(await api.getPlinkoDrops(), []);
 });
 
 await db.removeAllChannels();

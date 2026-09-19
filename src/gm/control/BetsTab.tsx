@@ -1,18 +1,33 @@
 // Live bets on the control phone: money per horse, current odds, what the house pays if each horse
 // wins, and the feed underneath. Stacked in one column, since the iPad no longer runs this panel.
 import { useRaceBets } from '../../lib/hooks'
-import type { PlayerRow, RaceRow } from '../../lib/types'
+import type { PlayerRow, PlinkoDropRow, RaceRow } from '../../lib/types'
 import { GM_BETS } from '../../shared/content/gm'
 import { UI_LABELS } from '../../shared/content/ui'
 import { fmtOdds, fmtRm, playerLabel } from '../../shared/game/format'
 import { cx, OddsValue, SilkBadge, StatusBanner } from '../../ui'
 import { summarizeBook } from '../book'
+import { PlinkoCard } from './PlinkoCard'
 
 const FEED_MAX = 40
 
-export function BetsTab({ race, players }: { race: RaceRow | null | undefined; players: ReadonlyMap<string, PlayerRow> }) {
-  if (!race) return <p className="p-6 text-ink-dim">{GM_BETS.noRace}</p>
-  return <RaceBets race={race} players={players} />
+export function BetsTab({
+  race,
+  players,
+  plinko,
+}: {
+  race: RaceRow | null | undefined
+  players: ReadonlyMap<string, PlayerRow>
+  plinko: readonly PlinkoDropRow[] | undefined
+}) {
+  return (
+    <>
+      {race ? <RaceBets race={race} players={players} /> : <p className="p-6 text-ink-dim">{GM_BETS.noRace}</p>}
+      <div className="px-4 pb-4">
+        <PlinkoCard drops={plinko} />
+      </div>
+    </>
+  )
 }
 
 function RaceBets({ race, players }: { race: RaceRow; players: ReadonlyMap<string, PlayerRow> }) {

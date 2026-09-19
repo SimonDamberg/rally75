@@ -95,6 +95,10 @@ export const ATTRACT = {
   coupon: (label: string, tier: string, amount: string) =>
     `${label} löste in en ${tier} på ${amount}`,
   couponMany: (n: number) => `${n} kuponger inlösta. Utbetalningarna rullar!`,
+  /** Toasts on the display iPad when a Plånko ball lands on a big multiplier. */
+  plinko: (label: string, mult: string, amount: string) =>
+    `${label} träffade ${mult} i Plånko: ${amount}`,
+  plinkoMany: (n: number) => `${n} storvinster i Plånko. Kulorna regnar!`,
   /** A bet or a purchase whose player row has not landed on this device yet. */
   someone: "En anonym spelare",
   /** Who is on the spotlighted horse. */

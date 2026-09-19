@@ -9,14 +9,17 @@ import { cx, MrGreenLogo } from '../ui'
 
 export function Header({
   player,
+  heldBalance,
   broke,
   onLoan,
 }: {
   player: PlayerRow | undefined
+  /** Shown instead of the live balance while Plånko balls are still falling. */
+  heldBalance?: number
   broke: boolean
   onLoan: () => void
 }) {
-  const balance = player?.balance
+  const balance = heldBalance ?? player?.balance
   const [track, setTrack] = useState({ balance, dir: 0, flash: 0 })
   if (balance !== track.balance) {
     // Adjust while rendering when the balance changes (same pattern as OddsValue).

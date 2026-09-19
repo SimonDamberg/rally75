@@ -16,6 +16,7 @@ import {
   type Identity,
   type KuskRow,
   type PlayerRow,
+  type PlinkoDropRow,
   type PurchaseRow,
   type RaceRow,
   type ShopItemRow,
@@ -327,6 +328,33 @@ export function usePlayerPurchases(playerId: string | null): LiveResult<Purchase
     tables: ['purchases'],
     apply: (prev, change) => {
       const next = applyChange(prev, change, (row) => row as unknown as PurchaseRow, (p) => p.player_id === playerId)
+      return next === prev ? prev : next.slice().sort((a, b) => b.created_at.localeCompare(a.created_at))
+    },
+  })
+}
+
+/** Every Plånko drop tonight, newest first. The control phone's totals and the display toasts. */
+export function usePlinkoDrops(): LiveResult<PlinkoDropRow[]> {
+  return useLive({
+    key: 'plinko-drops',
+    load: () => getApi().getPlinkoDrops(),
+    tables: ['plinko_drops'],
+    apply: (prev, change) => {
+      const next = applyChange(prev, change, (row) => row as unknown as PlinkoDropRow)
+      return next === prev ? prev : next.slice().sort((a, b) => b.created_at.localeCompare(a.created_at))
+    },
+  })
+}
+
+/** One player's Plånko drops, newest first. */
+export function usePlayerPlinkoDrops(playerId: string | null): LiveResult<PlinkoDropRow[]> {
+  return useLive({
+    key: playerId && `player-plinko:${playerId}`,
+    load: () => getApi().getPlayerPlinkoDrops(playerId!),
+    // Unfiltered, like the purchases: a GM player delete arrives as an unfiltered DELETE.
+    tables: ['plinko_drops'],
+    apply: (prev, change) => {
+      const next = applyChange(prev, change, (row) => row as unknown as PlinkoDropRow, (d) => d.player_id === playerId)
       return next === prev ? prev : next.slice().sort((a, b) => b.created_at.localeCompare(a.created_at))
     },
   })

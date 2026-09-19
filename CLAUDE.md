@@ -94,7 +94,8 @@ supabase/migrations/ SQL migrations. (Stage 2)
   - Moved by brand: `night`, `night-deep`, `night-glow`, `tote`, `tote-hi`, `void`, `ink`,
     `ink-dim`, `sleaze`, `sleaze-shade`, `sleaze-ink`. **Never** `plate`, `cash` or `drift`: money,
     odds and alerts must mean the same colour in both brands. `src/ui/theme.test.ts` enforces that
-    the two scopes declare the same token names, so add a token to both or neither.
+    the scopes (Mr Green, `.theme-rally75`, `.theme-plinko`) declare the same token names, so add a
+    token to all of them or none.
   - Anything outside the React tree (the `body` gradient, `dialog::backdrop`) needs its own
     `[data-brand='mrgreen']` rule. `::backdrop` cannot read a custom property on older Safari, so it
     is written out longhand.
@@ -146,9 +147,9 @@ Two devices, one password gate, one lazy-loaded chunk (`src/gm/GmApp.tsx` routes
   `theme-mrgreen`: the legal footer is the site talking, not the product.
   Put the class on an element that already exists. A new wrapper div in the
   `ClientShell` > `main` > `RaceView` > `BetSlip` chain breaks the sticky slip's `flex-1`/`mt-auto`.
-- Game tabs are named after products (`Rally75`, and a Triss-parody skraplott next), so the shelf
-  reads as a shelf. The tab bar is `grid-flow-col auto-cols-fr`: adding a tab to `TABS` needs no
-  class edit, but check the labels at 390px, where six tabs leave about 62px each.
+- Game tabs are named after products (`Rally75`, `Plånko`), so the shelf reads as a shelf. The tab
+  bar is `grid-flow-col auto-cols-fr`: adding a tab to `TABS` needs no class edit, but check the
+  labels at 390px, where the six tabs leave about 62px each (checked for Plånko).
 - `ClientShell` fetches the player, the player's bets and the active race once and shares them via
   `useGuest()` (`src/client/guest.ts`). Guest RPCs go through `useGuestAction().run((api, identity) => ...)`:
   errors become toasts, `player_not_found`/`invalid_token` sign out.
@@ -158,6 +159,26 @@ Two devices, one password gate, one lazy-loaded chunk (`src/gm/GmApp.tsx` routes
 - Pure logic with tests: `slip.ts` (chips, stake checks, `marketOdds` from open bets) and
   `outcome.ts` (bet outcome, reveal kind, totals, history grouping).
 - Guest copy lives in `src/shared/content/client.ts`.
+
+## Plånko (Plinko)
+
+Mr Green's own arcade game, the second product tab (`src/client/Plinko.tsx` + `PlinkoBoard.tsx`).
+
+- **One RPC per ball.** `plinko_drop` draws a 12-bit path with `gen_random_bytes`, pays out and writes
+  the `plinko_drops` row in one transaction. No round state, nothing secret: the row is public read
+  and in the Realtime publication. The phone only animates a path it already knows.
+- The rules live in `src/shared/game/plinko.ts` and are mirrored in `*_plinko.sql`: 12 rows, the
+  multiplier table in integer tenths (`PLINKO_M10`, about 91 % back), `PLINKO_MAX_STAKE`, and the
+  payout `floor((stake * m10 + 5) / 10)`. `plinko.test.ts` checks the SQL by string. Change both sides.
+- **Never spoil the fall.** The server has paid before the ball appears, so: the header shows
+  `heldBalance` (`src/client/drop.ts`: the newest row's `balance_after` minus the payouts still in
+  the air) via `ClientShell`'s `plinkoHold`; the history only lists drops that were there when the
+  tab opened or have landed on this phone; and the iPad waits `PLINKO_FALL_MS` before a big-hit toast.
+- Not rank neutral (it is gambling, like a bet). Balls in flight block offers and Snabblån.
+- Own inset panel: `.theme-plinko` (neon violet, magenta pegs) on the tab's existing `<section>`.
+  GM surfaces stay blue: a read-only `PlinkoCard` on the control phone's Spel tab and
+  `usePlinkoToasts` on the iPad (10x and up).
+- Copy: `PLINKO` in `client.ts`, `GM_PLINKO` in `gm.ts`, the iPad lines in `ATTRACT`.
 
 ## Parody layer (Stage 6)
 

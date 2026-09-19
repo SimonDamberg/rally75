@@ -22,9 +22,11 @@ function tokensIn(selector: string): string[] {
 describe('brand theme scopes', () => {
   const mrgreen = tokensIn(":root[data-brand='mrgreen']")
   const rally75 = tokensIn('.theme-rally75')
+  const plinko = tokensIn('.theme-plinko')
 
-  it('declares the same tokens in both brands', () => {
+  it('declares the same tokens in both brands and in the Plånko panel', () => {
     expect(mrgreen).toEqual(rally75)
+    expect(plinko).toEqual(rally75)
   })
 
   it('remaps the surfaces, the neutrals and the sleaze accent', () => {
@@ -51,6 +53,7 @@ describe('brand theme scopes', () => {
     for (const token of ['--color-plate', '--color-cash', '--color-drift']) {
       expect(mrgreen).not.toContain(token)
       expect(rally75).not.toContain(token)
+      expect(plinko).not.toContain(token)
     }
   })
 

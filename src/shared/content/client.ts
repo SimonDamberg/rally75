@@ -5,6 +5,7 @@
 // under the Mr Green umbrella reads as a shelf.
 export const CLIENT_TABS = {
   home: 'Rally75',
+  plinko: 'Plånko',
   bets: 'Mina spel',
   bank: 'Bank',
   butik: 'Butik',
@@ -225,6 +226,26 @@ export const BUTIK = {
   mineEmpty: 'Du har inte unnat dig något än. Det märks.',
   mineTotal: 'Spenderat i kväll',
   smallPrint: 'Köp påverkar inte Toppen eller förlorarlistan. De syns bara på slösarlistan.',
+} as const
+
+export const PLINKO = {
+  title: 'Plånko',
+  tagline: 'Töm plånboken, en kula i taget.',
+  partner: 'Ett Mr Green-original',
+  stake: 'Insats per kula',
+  drop: (rm: string) => `Släpp kulan (${rm})`,
+  tooPoor: 'Saldot räcker inte',
+  tooHigh: (rm: string) => `Max ${rm} per kula`,
+  inFlight: (n: number) => (n === 1 ? '1 kula i luften' : `${n} kulor i luften`),
+  lastDrops: 'Senaste kulorna',
+  noDrops: 'Inga kulor än. Brädet väntar.',
+  night: 'Plånko i kväll',
+  staked: 'Insatt',
+  paid: 'Utbetalt',
+  net: 'Netto',
+  bigHit: (mult: string, rm: string) => `${mult}! ${rm} rakt ner i plånboken.`,
+  hit: (mult: string, rm: string) => `${mult}, ${rm} tillbaka.`,
+  smallPrint: 'Kulan har inget minne. Det har inte du heller. Återbetalning cirka 91 %, resten går till Simons pension.',
 } as const
 
 export const BOARD = {

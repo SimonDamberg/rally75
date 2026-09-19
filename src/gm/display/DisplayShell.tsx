@@ -6,6 +6,7 @@ import {
   useActiveRace,
   useCoupons,
   useLeaderboard,
+  usePlinkoDrops,
   usePurchases,
   useRaceBets,
 } from "../../lib/hooks";
@@ -19,6 +20,7 @@ import { Spotlight } from "./HorseSpotlight";
 import { useBetToasts } from "./useBetToasts";
 import { usePurchaseToasts } from "./usePurchaseToasts";
 import { useCouponToasts } from "./useCouponToasts";
+import { usePlinkoToasts } from "./usePlinkoToasts";
 import { useFallbackPublish } from "./useFallbackPublish";
 
 /** How long a finished race holds the screen before the attract loop takes over again. */
@@ -29,6 +31,7 @@ export function DisplayShell() {
   const { data: board } = useLeaderboard();
   const { data: purchases } = usePurchases();
   const { data: coupons } = useCoupons();
+  const { data: plinko } = usePlinkoDrops();
   const { data: bets } = useRaceBets(race?.id ?? null);
   const players = useMemo(
     () =>
@@ -43,6 +46,8 @@ export function DisplayShell() {
   usePurchaseToasts(purchases, players);
   // Kuponger from the physical games land here too, so the room sees dart money arrive.
   useCouponToasts(coupons, players);
+  // Big Plånko hits, once the ball has landed on the guest's phone.
+  usePlinkoToasts(plinko, players);
 
   // Hold the result, then fall back to attract. Keyed on the race so a new one resets the timer.
   const settledId =

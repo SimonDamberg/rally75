@@ -15,6 +15,7 @@ import {
   type KuskRow,
   type NewPlayer,
   type PlayerRow,
+  type PlinkoDropRow,
   type PurchaseRow,
   type RaceCardInput,
   type RaceRow,
@@ -137,6 +138,20 @@ export function createApi(db: SupabaseClient) {
       )
     },
 
+    /** One player's Plånko drops, newest first. */
+    async getPlayerPlinkoDrops(playerId: string): Promise<PlinkoDropRow[]> {
+      return query<PlinkoDropRow[]>(() =>
+        db.from('plinko_drops').select('*').eq('player_id', playerId).order('created_at', { ascending: false }),
+      )
+    },
+
+    /** Every Plånko drop tonight, newest first. Drives the GM totals and the display toasts. */
+    async getPlinkoDrops(limit = 1000): Promise<PlinkoDropRow[]> {
+      return query<PlinkoDropRow[]>(() =>
+        db.from('plinko_drops').select('*').order('created_at', { ascending: false }).limit(limit),
+      )
+    },
+
     /**
      * Every printed kupong, newest first. No codes: those are in coupon_secrets, which no browser
      * can read. Drives the display toasts and the counts on /gm/kuponger.
@@ -182,6 +197,14 @@ export function createApi(db: SupabaseClient) {
     /** Spends RM in the Butik. The server captures the price, so a stale catalogue cannot cheat. */
     buyItem(identity: Identity, itemId: string): Promise<PurchaseRow> {
       return rpc('buy_item', { p_player_id: identity.playerId, p_token: identity.token, p_item_id: itemId })
+    },
+
+    /**
+     * Drops one Plånko ball. The server draws the path and pays out before this resolves, so the
+     * balance has already moved by the time the phone starts animating.
+     */
+    plinkoDrop(identity: Identity, stake: number): Promise<PlinkoDropRow> {
+      return rpc('plinko_drop', { p_player_id: identity.playerId, p_token: identity.token, p_stake: Math.floor(stake) })
     },
 
     /**
