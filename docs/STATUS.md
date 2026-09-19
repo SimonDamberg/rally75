@@ -1242,3 +1242,14 @@ It credits its owner in four places:
 
 **Deviation:** relaxes the Two brands rule in CLAUDE.md, which has been rewritten to allow these four
 and nothing else. `/gm` and `/gm/kuponger` stay pure Rally75.
+
+### Follow-up: longer gags instead of slow motion (Simon's call, 2026-09-19)
+
+- An ultrarapid mode (the whole race slowing to a third around each gag) was tried and reverted
+  (`84cafad` reverts `297c48d`). Instead, every gag now lasts a fixed 7 ticks (2.1 s, up from 3 to 7
+  ticks) so the sticker and the line can be read.
+- Drag per tick was scaled down for the gags that keep moving (galopp, selfie, banana and so on), so
+  a gag costs about the same ground as before. The standing gags (sover, serverkrasch, fatbyte,
+  Eckerölinjen) still stand still.
+- 5000 seeds: comic gag in 99 % of races, and gag moments per race 2: 34 %, 3: 42 %, 4+: 15 %.
+  Results unchanged: favourite 38 %, late lead change 70 %, photo 24 %, wire to wire 9 %.

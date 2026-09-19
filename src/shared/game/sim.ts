@@ -84,39 +84,28 @@ const SECOND_COMIC_CHANCE = 0.7
 const THIRD_COMIC_CHANCE = 0.3
 const MAX_GAG_SLOTS = 4
 
-/** Extra gap per gag tick, in units. Above the leader's ~0.78/tick the horse moves backwards. */
+/**
+ * Extra gap per gag tick, in units. Above the leader's ~0.78/tick the horse stands still (or, for
+ * backwards, moves back). Set so a whole gag costs about what it did when gags were 3 to 7 ticks.
+ */
 const GAG_DRAG: Record<GagKind, number> = {
-  galopp: 0.6,
-  backwards: 1.35,
-  selfie: 0.5,
-  turbo: -1.1,
+  galopp: 0.4,
+  backwards: 1.1,
+  selfie: 0.3,
+  turbo: -0.7,
   nap: 1.1,
-  banana: 0.6,
-  snabblan: 0.45,
-  husvagn: -1.1,
-  kommitte: 0.5,
+  banana: 0.3,
+  snabblan: 0.35,
+  husvagn: -0.7,
+  kommitte: 0.4,
   serverkrasch: 1.6,
   fatbyte: 1.1,
   eckero: 1.1,
-  rallyhafte: 0.55,
-  hjalprebus: 0.7,
+  rallyhafte: 0.45,
+  hjalprebus: 0.45,
 }
-const GAG_TICKS: Record<GagKind, [number, number]> = {
-  galopp: [3, 6],
-  backwards: [3, 4],
-  selfie: [4, 5],
-  turbo: [4, 5],
-  nap: [5, 7],
-  banana: [3, 4],
-  snabblan: [5, 6],
-  husvagn: [4, 5],
-  kommitte: [5, 6],
-  serverkrasch: [4, 5],
-  fatbyte: [5, 7],
-  eckero: [5, 6],
-  rallyhafte: [5, 6],
-  hjalprebus: [4, 5],
-}
+/** Every gag lasts 7 ticks (2.1 s), long enough for the room to read the sticker and the line. */
+const GAG_TICKS = 7
 /** Ticks a gag's lost ground takes to melt away. A crashed server comes back all at once. */
 const GAG_RECOVERY: Partial<Record<GagKind, number>> = { serverkrasch: 1 }
 
@@ -269,9 +258,8 @@ function drawGags(temper: readonly number[], order: readonly number[], script: R
   const slots = () => new Set(gags.map((g) => g.tick)).size
   const free = (tick: number, len: number) =>
     tick + len + 2 <= GAG_LAST + 6 && gags.every((g) => Math.abs(g.tick - tick) >= COMMENT_GAP + 1)
-  const slot = (kind: GagKind, tries = 12): { tick: number; ticks: number } | null => {
-    const [lo, hi] = GAG_TICKS[kind]
-    const ticks = lo + r.int(hi - lo + 1)
+  const slot = (tries = 12): { tick: number; ticks: number } | null => {
+    const ticks = GAG_TICKS
     for (let t = 0; t < tries; t++) {
       const tick = GAG_FIRST + r.int(GAG_LAST - GAG_FIRST + 1)
       if (free(tick, ticks)) return { tick, ticks }
@@ -287,14 +275,14 @@ function drawGags(temper: readonly number[], order: readonly number[], script: R
     recover: GAG_RECOVERY[kind] ?? GAG_RECOVER,
   })
   const place = (i: number, kind: GagKind) => {
-    const at = slot(kind)
+    const at = slot()
     if (at) gags.push(gag(i, kind, at))
   }
   const placePair = () => {
     const losers = new Set(order.slice(1))
     const pairs: [number, number][] = []
     for (let a = 0; a + 1 < order.length; a++) if (losers.has(a) && losers.has(a + 1)) pairs.push([a, a + 1])
-    const at = pairs.length ? slot('kommitte') : null
+    const at = pairs.length ? slot() : null
     if (!at) return
     const [a, b] = r.pick(pairs)
     const p = progressAt(at.tick)
@@ -325,7 +313,7 @@ function drawGags(temper: readonly number[], order: readonly number[], script: R
   // A comeback winner may light a turbo for the surge, on the turn line ("här kommer ..."). Show
   // only: the script already gains the ground, and a real boost would melt away on the upplopp.
   if (script === 'comeback' && r.next() < 0.5) {
-    gags.push(gag(order[0], 'turbo', { tick: COMEBACK_TURBO_TICK, ticks: 5 }, 0))
+    gags.push(gag(order[0], 'turbo', { tick: COMEBACK_TURBO_TICK, ticks: GAG_TICKS }, 0))
   }
   return gags.sort((x, y) => x.tick - y.tick)
 }
