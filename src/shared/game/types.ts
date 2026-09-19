@@ -80,6 +80,30 @@ export interface RunnerFrame {
   left: number;
   /** Currently in a galopp. */
   broke: boolean;
+  /** A comic mishap in progress (galopp included), for the display's sprites. */
+  gag?: GagKind;
+}
+
+/** Slapstick events. galopp is the real one; the rest are Rally75's own contribution to trotting. */
+export type GagKind =
+  | "galopp"
+  | "backwards"
+  | "graze"
+  | "wave"
+  | "selfie"
+  | "seagull"
+  | "turbo";
+
+/** The race's storyline, drawn after the result. */
+export type RaceScript = "wire" | "comeback" | "collapse" | "duel" | "pack";
+
+export interface RaceGag {
+  n: number;
+  kind: GagKind;
+  /** First tick of the gag. */
+  tick: number;
+  /** Number of ticks it lasts. */
+  ticks: number;
 }
 
 export interface RaceFrame {
@@ -89,6 +113,8 @@ export interface RaceFrame {
   meters: number;
   /** Start number of the leader, null before the start. */
   leader: number | null;
+  /** The upplopp: time runs at half speed from here, and the display stages it. */
+  stretch: boolean;
   /** Same order as the input horses. */
   runners: RunnerFrame[];
   /** Commentary line that appears on this tick, if any. */
@@ -111,4 +137,6 @@ export interface RaceTimeline {
   finishComment: RaceComment;
   /** Set in ~10 % of races; the GM then picks a ruling. */
   inquiry: { text: string } | null;
+  script: RaceScript;
+  gags: RaceGag[];
 }

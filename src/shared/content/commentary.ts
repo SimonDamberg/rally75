@@ -1,6 +1,8 @@
-// Race commentary and inquiry copy. Ported verbatim from the prototype's step(), finishRace(),
-// runInquiry() and showResult(). Without audio the commentary strip is the only narrator.
+// Race commentary and inquiry copy. The start, galopp, lead change, photo and inquiry lines are the
+// prototype's; the storyline lines (per RaceScript) and the gag lines came with the scripted sim.
+// Without audio the commentary strip is the only narrator.
 import type { Rng } from '../game/rng'
+import type { GagKind } from '../game/types'
 import { INQUIRY_ACCUSATIONS } from './race'
 
 export interface NamedRunner {
@@ -8,20 +10,55 @@ export interface NamedRunner {
   jockey: string
 }
 
+type Line = (h: NamedRunner) => string
+type Pair = (a: NamedRunner, b: NamedRunner) => string
+
 export const COMMENTARY = {
   start: (raceNo: number) => `Och de är iväg i lopp ${raceNo}!`,
   galopp: (h: NamedRunner) => `${h.name} gör en galopp! Katastrof för ${h.jockey}!`,
 
-  /** Fixed milestones. `order` is sorted leader first. */
-  milestones: {
-    12: (o: readonly NamedRunner[]) => `${o[0].name} tar ledningen, ${o[1].name} sitter i ryggen.`,
-    26: (o: readonly NamedRunner[]) => `Halvvägs. ${o[0].name} leder och ${o[o.length - 1].name} är redan bortkörd.`,
-    40: (o: readonly NamedRunner[]) => `${o[1].name} kommer på utsidan! ${o[0].jockey} försvarar sig.`,
-    52: (o: readonly NamedRunner[]) => `Upploppet! ${o[0].name} och ${o[1].name} sida vid sida!`,
-    60: () => `Hundra meter kvar och detta blir jämnt!`,
-  } as Record<number, (o: readonly NamedRunner[]) => string>,
-  /** Milestones shown in the hype (gold) style. */
-  hypeMilestones: [52, 60] as readonly number[],
+  /** Early, once the field has sorted itself out. `a` leads, `b` is second. */
+  early: [
+    (a, b) => `${a.name} tar ledningen, ${b.name} sitter i ryggen.`,
+    (a, b) => `${a.jockey} kör ut ${a.name} i täten. ${b.name} hänger på.`,
+    (a, b) => `${a.name} först ut ur första kurvan, ${b.name} tvåa.`,
+  ] as readonly Pair[],
+  /** Halfway. `a` leads, `b` is last. */
+  halfway: [
+    (a, b) => `Halvvägs. ${a.name} leder och ${b.name} är redan bortkörd.`,
+    (a, b) => `Halva loppet kvar. ${a.name} i täten, ${b.name} sist och ser ut att fundera på livet.`,
+  ] as readonly Pair[],
+  /** Halfway, when the favourite is last. */
+  favouriteLast: [
+    (h) => `Favoriten ${h.name} ligger sist! Oroliga miner på läktaren.`,
+    (h) => `Var är favoriten? ${h.name} ligger sist! Någon borde ringa ${h.jockey}.`,
+  ] as readonly Line[],
+
+  /** Mid-race line per storyline. `a` and `b` depend on the script (see sim.ts). */
+  mid: {
+    wire: [(a) => `${a.name} styr loppet som ett tåg.`, (a) => `${a.jockey} sitter still i sulkyn. ${a.name} sköter resten.`],
+    comeback: [(a) => `Och ${a.name}? Långt bak i fältet. Det ser mörkt ut.`, (a) => `${a.jockey} ligger sist med ${a.name} och verkar njuta av utsikten.`],
+    collapse: [(a) => `${a.name} drar ifrån! Är det redan över?`, (a) => `${a.name} leder med flera längder. ${a.jockey} vinkar nästan redan.`],
+    duel: [(a, b) => `${a.name} och ${b.name} har börjat mäta varandra.`, (a, b) => `${a.jockey} och ${b.jockey} tittar på varandra. Det här är personligt.`],
+    pack: [() => `Hela fältet i en klump! Ingen vill släppa!`, () => `Fyra hästar, en klunga. Domarna behöver glasögon.`],
+  } as Record<string, readonly Pair[]>,
+  /** The turn for home, per storyline. */
+  turn: {
+    wire: [(a, b) => `${b.name} försöker, men ${a.name} svarar!`, (a, b) => `${b.name} attackerar! ${a.jockey} har svar på allt.`],
+    comeback: [(a) => `HÄR KOMMER ${a.name.toUpperCase()} FRÅN INGENSTANS!`, (a) => `${a.jockey} har hittat en extra växel! ${a.name} flyger!`],
+    collapse: [(a) => `Men vad händer? ${a.name} börjar ta slut!`, (a) => `${a.name} har tagit slut! ${a.jockey} ser plötsligt väldigt ensam ut.`],
+    duel: [(a, b) => `${a.name} och ${b.name} går ifrån resten!`, (a, b) => `Det är ${a.name} mot ${b.name} nu. Resten kan gå hem.`],
+    pack: [() => `Sista kurvan och fortfarande alla på en rad!`, () => `Ingen släpper! Det här blir kaos på upploppet!`],
+  } as Record<string, readonly Pair[]>,
+
+  /** Stretch start. `a` leads, `b` second. */
+  stretch: [
+    (a, b) => `UPPLOPPET! ${a.name} och ${b.name} sida vid sida!`,
+    (a, b) => `In på upploppet! ${a.name} leder, ${b.name} laddar!`,
+  ] as readonly Pair[],
+  /** The last hundred metres. `close` when the top two are within a nose. */
+  final: (a: NamedRunner, b: NamedRunner, close: boolean) =>
+    close ? `NOS MOT NOS! ${a.name.toUpperCase()} ELLER ${b.name.toUpperCase()}!` : `HUNDRA METER KVAR! ${a.name.toUpperCase()} ÄR NÄRA!`,
 
   leadChange: [
     (l: NamedRunner) => `${l.name} går förbi och tar över ledningen!`,
@@ -32,7 +69,48 @@ export const COMMENTARY = {
 
   photo: `MÅLFOTO! Det går inte att se med blotta ögat!`,
   win: (h: NamedRunner, raceNo: number) => `${h.name} vinner lopp ${raceNo}!`,
+  skrall: (h: NamedRunner, raceNo: number) => `SKRÄLL! ${h.name} vinner lopp ${raceNo}! Ingen såg det komma.`,
 } as const
+
+/** What the commentator shouts when a gag starts. Galopp keeps its original line first. */
+export const GAG_LINES: Record<GagKind, readonly Line[]> = {
+  galopp: [COMMENTARY.galopp, (h) => `Galopp för ${h.name}! ${h.jockey} håller i sig för livet!`],
+  backwards: [
+    (h) => `${h.name} har vänt och springer åt fel håll! ${h.jockey} skriker!`,
+    (h) => `FEL HÅLL! ${h.name} verkar vilja hem till stallet!`,
+  ],
+  graze: [
+    (h) => `${h.name} har stannat för att beta! Gräset är tydligen grönare här.`,
+    (h) => `${h.name} tar en mellanmålspaus. ${h.jockey} ser inte glad ut.`,
+  ],
+  wave: [
+    (h) => `${h.jockey} vinkar till publiken mitt i loppet! Proffsigt.`,
+    (h) => `${h.jockey} har släppt tömmarna för att vinka till mamma.`,
+  ],
+  selfie: [
+    (h) => `Tar ${h.jockey} en selfie? ${h.jockey} tar en selfie.`,
+    (h) => `${h.jockey} fotar sig själv i full fart. Det här hamnar på Instagram.`,
+  ],
+  seagull: [
+    (h) => `MÅSATTACK! En fiskmås har gett sig på ${h.jockey}!`,
+    (h) => `En mås har landat på ${h.name}! Det här står inte i reglementet.`,
+  ],
+  turbo: [
+    (h) => `TURBO! Någon har fyllt ${h.name} med energidryck!`,
+    (h) => `${h.name} har hittat en turboknapp! Är det ens lagligt?`,
+  ],
+}
+
+/** Finish line when the winner had a gag on the way. */
+export const GAG_WIN: Partial<Record<GagKind, (h: NamedRunner) => string>> = {
+  galopp: (h) => `${h.name} galopperade och vann ändå!`,
+  backwards: (h) => `${h.name} sprang åt fel håll och vann ändå! Vad är det här för lopp?`,
+  graze: (h) => `${h.name} betade gräs och vann ändå!`,
+  wave: (h) => `${h.jockey} vinkade till publiken och vann ändå!`,
+  selfie: (h) => `${h.jockey} tog en selfie och vann ändå! Bilden säljs i Butiken.`,
+  seagull: (h) => `${h.name} överlevde måsattacken och vann!`,
+  turbo: (h) => `${h.name} vinner på ren turbo! Dopingprov bokat.`,
+}
 
 export const INQUIRY_TITLE = 'Bandomarna utreder'
 

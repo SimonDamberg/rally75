@@ -28,7 +28,7 @@ import { useFallbackPublish } from "./useFallbackPublish";
 const RESULT_MS = 45_000;
 /**
  * Re-read the race this often on top of Realtime. The iPad idles all night and its socket can die
- * silently; a race (~20 s) is shorter than the heartbeat takes to notice, so a missed start push
+ * silently; a race (~30 s) is shorter than the heartbeat takes to notice, so a missed start push
  * would otherwise skip the whole race. RaceScreen replays from started_at, so late is still in step.
  */
 const RACE_POLL_MS = 3000;
@@ -73,7 +73,8 @@ export function DisplayShell() {
     return () => clearTimeout(id);
   }, [settledId]);
 
-  if (race?.status === "running") return <RaceScreen race={race} />;
+  if (race?.status === "running")
+    return <RaceScreen race={race} bets={bets} players={players} />;
 
   if (race && settledId && dismissed !== settledId) {
     return <ResultDisplay race={race} bets={bets} players={players} />;

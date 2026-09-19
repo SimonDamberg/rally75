@@ -8,6 +8,19 @@ export const VIRTUAL_POOL = 700
 export const TAKEOUT = 0.87
 export const MIN_ODDS = 1.15
 export const MAX_ODDS = 80
+/** How sharply strength turns into win chance. Shared by the morning line and the race sim. */
+export const STRENGTH_POWER = 3.2
+
+/**
+ * True win chance per horse, aligned with `stats`. The morning line is built from these (with a
+ * margin and noise), and simulateRace draws the finish order from them, so the odds tell the truth
+ * on average and the house keeps its edge.
+ */
+export function winWeights(stats: readonly { strength: number }[]): number[] {
+  const w = stats.map((h) => h.strength ** STRENGTH_POWER)
+  const tot = w.reduce((a, b) => a + b, 0)
+  return w.map((x) => x / tot)
+}
 
 /**
  * Current (unrounded) odds per horse. `pools[i]` is the real money on `horses[i]`.

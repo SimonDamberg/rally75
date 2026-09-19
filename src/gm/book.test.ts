@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { bettorsOn, settle, summarizeBook } from './book'
+import { bettorsOn, laneBackers, settle, summarizeBook } from './book'
 import { computeOdds, payoutFor, roundOdds } from '../shared/game/odds'
 
 const horses = [
@@ -100,5 +100,40 @@ describe('bettorsOn', () => {
     const bets = [own('anna', 1, 50), own('bo', 1, 120), own('anna', 1, 100), own('cia', 2, 75)]
     const total = bettorsOn(bets, 1).reduce((s, b) => s + b.stake, 0)
     expect(total).toBe(summarizeBook(horses, bets.map((b) => ({ ...b, odds: 2, payout: null }))).horses[0].pool)
+  })
+})
+
+describe('laneBackers', () => {
+  const at = '2026-09-19T20:00:00Z'
+  const bet = (player_id: string, horse_n: number, stake: number, status: 'open' | 'void' = 'open') => ({
+    player_id,
+    horse_n,
+    stake,
+    status,
+    created_at: at,
+  })
+  const players = new Map([
+    ['a', { name: 'Kalle', tag: 12, badge: '' }],
+    ['b', { name: 'Lisa', tag: 3, badge: '👑' }],
+  ])
+
+  it('sums the pool, labels the biggest backers and counts the rest', () => {
+    const bets = [bet('a', 1, 100), bet('b', 1, 250), bet('c', 1, 10), bet('a', 1, 50), bet('d', 1, 5), bet('b', 2, 40, 'void')]
+    const [one, two] = laneBackers([{ n: 1 }, { n: 2 }], bets, players, 'Okänd', 2)
+    expect(one).toEqual({
+      n: 1,
+      pool: 415,
+      top: [
+        { label: '👑 Lisa #3', stake: 250 },
+        { label: 'Kalle #12', stake: 150 },
+      ],
+      more: 2,
+    })
+    expect(two).toEqual({ n: 2, pool: 0, top: [], more: 0 })
+  })
+
+  it('falls back for players it does not know yet', () => {
+    const [one] = laneBackers([{ n: 1 }], [bet('zz', 1, 20)], players, 'Okänd')
+    expect(one.top).toEqual([{ label: 'Okänd', stake: 20 }])
   })
 })

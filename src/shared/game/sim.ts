@@ -1,23 +1,91 @@
-// Deterministic race simulation, ported from the prototype's step()/finishRace().
-// The whole timeline is computed up front from the seed, so the GM iPad can replay a race
-// after a reload and "Snabbspola" simply jumps to the last frame.
-import { createRng } from './rng'
-import type { HorsePublic, HorseStats, RaceComment, RaceFrame, RaceTimeline } from './types'
-import { COMMENTARY, inquiryText } from '../content/commentary'
+// Deterministic race simulation. The whole timeline is computed up front from the seed, so both GM
+// devices replay the same race from races.started_at and "Snabbspola" just jumps to the last frame.
+//
+// The result comes first: the finish order is drawn from the same win chances the morning line is
+// built from (winWeights), so the odds tell the truth and upsets happen as often as they should.
+// Then a storyline (script) is drawn, and every horse's gap to the leader is keyframed to tell it:
+// front-runners that collapse, comebacks from last, duels to a photo. Gags (galopp, running the
+// wrong way, a seagull) bend a horse's curve for a few ticks and the script takes it back after.
+import { createRng, type Rng } from './rng'
+import { winWeights } from './odds'
+import type {
+  GagKind,
+  HorsePublic,
+  HorseStats,
+  RaceComment,
+  RaceFrame,
+  RaceGag,
+  RaceScript,
+  RaceTimeline,
+} from './types'
+import { COMMENTARY, GAG_LINES, GAG_WIN, inquiryText, type NamedRunner } from '../content/commentary'
 
-export const TICKS = 68
+/** 100 ticks of 300 ms: 30 s from the start to the line. */
+export const TICKS = 100
 export const TICK_MS = 300
+/** The upplopp starts here and covers the last STRETCH_FROM of the distance at half speed. */
+export const STRETCH_TICK = 76
+const STRETCH_FROM = 0.85
 export const PHOTO_MARGIN = 1.6
 export const INQUIRY_RATE = 0.1
+/** A winner at these morning-line odds or longer is a skräll. */
+export const SKRALL_ODDS = 4
 /** Screen gap per unit of distance, in percent. Gap-based so a photo finish looks close. */
 const GAP_SCALE = 2.2
 const START_LEFT = 6
 const TRACK_SPAN = 85
 const FINISH_LEFT = 91
 const MIN_LEFT = 4
+/** Units the leader covers over the whole race. */
+const RACE_UNITS = 70
+/** Largest gap a horse may lose per unit of progress, so nobody ever has to run backwards. */
+const MAX_FADE = 40
+/** Keyframes (progress) for the scripted gaps. */
+const KEYS = [0, 0.12, 0.3, 0.5, 0.7, 0.85, 1] as const
+/** Commentary lines stay on screen at least this many ticks (read at 2 m). */
+const COMMENT_GAP = 7
+/** Gags start in this tick window, so they are over (and recovered) before the upplopp. */
+const GAG_FIRST = 12
+const GAG_LAST = 50
+const GAG_RECOVER = 14
+/** The turn for home: the storyline's big line. */
+const TURN_TICK = 66
+const COMEBACK_TURBO_TICK = TURN_TICK - 1
+
+export const SCRIPT_WEIGHTS: Record<RaceScript, number> = {
+  wire: 0.14,
+  comeback: 0.24,
+  collapse: 0.24,
+  duel: 0.18,
+  pack: 0.2,
+}
+export const COMIC_GAGS: readonly GagKind[] = ['backwards', 'graze', 'wave', 'selfie', 'seagull', 'turbo']
+/** Chance of a comic gag in a race, and of a second one on top. Galopp comes on top, from temper. */
+const COMIC_CHANCE = 0.62
+const SECOND_COMIC_CHANCE = 0.22
+
+/** Extra gap per gag tick, in units. Above the leader's ~0.78/tick the horse moves backwards. */
+const GAG_DRAG: Record<GagKind, number> = {
+  galopp: 0.6,
+  backwards: 1.35,
+  graze: 0.8,
+  wave: 0.35,
+  selfie: 0.5,
+  seagull: 0.45,
+  turbo: -1.1,
+}
+const GAG_TICKS: Record<GagKind, [number, number]> = {
+  galopp: [3, 6],
+  backwards: [3, 4],
+  graze: [4, 6],
+  wave: [4, 6],
+  selfie: [4, 5],
+  seagull: [5, 7],
+  turbo: [4, 5],
+}
 
 export interface SimInput {
-  horses: readonly Pick<HorsePublic, 'n' | 'name' | 'jockey'>[]
+  horses: readonly Pick<HorsePublic, 'n' | 'name' | 'jockey' | 'baseOdds'>[]
   stats: readonly HorseStats[]
   seed: number
   raceNo: number
@@ -25,97 +93,316 @@ export interface SimInput {
   meters?: number
 }
 
-interface Runner {
-  n: number
-  name: string
-  jockey: string
-  strength: number
-  stamina: number
-  temper: number
-  pos: number
-  broke: boolean
-  brokeTicks: number
+/** Progress (0..1) at a tick: even up to the upplopp, then half speed. */
+export function progressAt(tick: number): number {
+  if (tick <= STRETCH_TICK) return (STRETCH_FROM * tick) / STRETCH_TICK
+  return STRETCH_FROM + ((1 - STRETCH_FROM) * (tick - STRETCH_TICK)) / (TICKS - STRETCH_TICK)
+}
+
+const smooth = (x: number) => x * x * (3 - 2 * x)
+
+/** Finish order by successive weighted draws (Plackett-Luce): each place goes to one of the rest. */
+function drawOrder(weights: readonly number[], r: Rng): number[] {
+  const left = weights.map((w, i) => ({ i, w }))
+  const out: number[] = []
+  while (left.length) {
+    const tot = left.reduce((s, x) => s + x.w, 0)
+    let x = r.next() * tot
+    let k = 0
+    while (k < left.length - 1 && x >= left[k].w) x -= left[k++].w
+    out.push(left[k].i)
+    left.splice(k, 1)
+  }
+  return out
+}
+
+function pickScript(r: Rng): RaceScript {
+  let x = r.next()
+  for (const [s, w] of Object.entries(SCRIPT_WEIGHTS) as [RaceScript, number][]) {
+    if ((x -= w) < 0) return s
+  }
+  return 'pack'
+}
+
+interface Plan {
+  /** Gap to the reference line per horse index, one value per KEYS entry. */
+  gaps: number[][]
+  /** Horses the commentary talks about: a is the script's main character. */
+  a: number
+  b: number
+  margin: number
+}
+
+/**
+ * Keyframed gaps for one storyline. `order` is horse indices, winner first; `fav` the favourite.
+ * Every script ends on the drawn order: final gaps rise strictly down the order.
+ */
+function planScript(script: RaceScript, order: readonly number[], fav: number, r: Rng): Plan {
+  const n = order.length
+  const [w, second] = order
+  const others = order.slice(1)
+  const margin =
+    script === 'duel' ? r.float(0.1, 1.4) : script === 'pack' ? r.float(0.8, 3.2) : r.float(1.8, 4.5)
+  const tight = script === 'pack'
+  const final = new Array<number>(n).fill(0)
+  let acc = margin
+  final[second] = acc
+  for (const i of order.slice(2)) final[i] = acc += tight ? r.float(0.5, 2) : r.float(1, 4)
+
+  const gaps = order.map(() => KEYS.map(() => 0))
+  const set = (i: number, vals: readonly number[]) => vals.forEach((v, k) => (gaps[i][k + 1] = v))
+  const early = () => r.float(0, 2)
+  let a = w
+  let b = second
+
+  switch (script) {
+    case 'wire': {
+      // The winner leads everywhere; the runner-up closes to a neck at the turn.
+      set(w, [0, 0, 0, 0, 0, 0])
+      for (const i of others) set(i, [early() + 0.5, r.float(1, 4), r.float(2, 6), r.float(2, 6), 0, final[i]])
+      gaps[second][5] = 0.7
+      for (const i of order.slice(2)) gaps[i][5] = r.float(3, 7)
+      break
+    }
+    case 'comeback': {
+      // The winner is last until the turn, then comes flying. Someone else leads meanwhile.
+      const lead = others[r.int(others.length)]
+      set(w, [2, 5, r.float(6.5, 8), r.float(6, 7.5), 1.2, 0])
+      for (const i of others) set(i, [early(), r.float(0.5, 3.5), r.float(1, 4.5), r.float(1, 4.5), r.float(0.5, 3), final[i]])
+      set(lead, [0, 0, 0, 0, 0, final[lead]])
+      b = lead
+      break
+    }
+    case 'collapse': {
+      // A front-runner (the favourite when it loses) leads clearly and dies on the way home.
+      const faller = fav !== w ? fav : second
+      set(w, [early(), r.float(3, 5), r.float(3, 5), r.float(2.5, 4), r.float(0.8, 1.5), 0])
+      for (const i of others) set(i, [early(), r.float(3, 6), r.float(3.5, 7), r.float(3, 6), r.float(1.5, 4), final[i]])
+      set(faller, [0, 0, 0, 0, 0.3, final[faller]])
+      a = faller
+      b = w
+      break
+    }
+    case 'duel': {
+      // Two horses level from the turn, swapping the lead to the line; the rest fall away.
+      set(w, [early(), r.float(0, 2), r.float(0, 1.5), 0, 0.4, 0])
+      set(second, [early(), r.float(0, 2), r.float(0, 1.5), 0.3, 0, margin])
+      for (const i of order.slice(2)) set(i, [early(), r.float(1, 3), r.float(1.5, 4), r.float(2.5, 5), r.float(3, 6), final[i]])
+      break
+    }
+    case 'pack': {
+      // Everyone within a length until the upplopp, then the winner squeezes out.
+      for (const i of order) set(i, [early(), r.float(0, 1.2), r.float(0, 1.2), r.float(0, 1), r.float(0, 1), final[i]])
+      break
+    }
+  }
+
+  // Nobody may lose ground faster than they can trot: walk back from the line and lift earlier
+  // keyframes where a fade would be too steep.
+  for (const g of gaps) {
+    for (let k = KEYS.length - 2; k >= 1; k--) {
+      g[k] = Math.max(g[k], g[k + 1] - MAX_FADE * (KEYS[k + 1] - KEYS[k]) * 0.85)
+    }
+  }
+  return { gaps, a, b, margin }
+}
+
+function gapAt(g: readonly number[], p: number): number {
+  let k = 0
+  while (k < KEYS.length - 2 && p > KEYS[k + 1]) k++
+  const t = (p - KEYS[k]) / (KEYS[k + 1] - KEYS[k])
+  return g[k] + (g[k + 1] - g[k]) * smooth(Math.min(1, Math.max(0, t)))
+}
+
+/** Galopp from temper, plus comic gags, spaced so each gets its own commentary line. */
+/** A gag as the sim needs it: horse index, and how much ground it costs per tick. */
+interface PlacedGag extends RaceGag {
+  i: number
+  drag: number
+}
+
+function drawGags(temper: readonly number[], order: readonly number[], script: RaceScript, r: Rng): PlacedGag[] {
+  const gags: PlacedGag[] = []
+  const free = (tick: number, len: number) =>
+    tick + len + 2 <= GAG_LAST + 6 && gags.every((g) => Math.abs(g.tick - tick) >= COMMENT_GAP + 1)
+  const place = (i: number, kind: GagKind, tries = 12) => {
+    const [lo, hi] = GAG_TICKS[kind]
+    const len = lo + r.int(hi - lo + 1)
+    for (let t = 0; t < tries; t++) {
+      const tick = GAG_FIRST + r.int(GAG_LAST - GAG_FIRST + 1)
+      if (free(tick, len)) {
+        gags.push({ i, n: -1, kind, tick, ticks: len, drag: GAG_DRAG[kind] })
+        return
+      }
+    }
+  }
+
+  // Galopp, about as often as the old tick-by-tick model: a hot temper breaks more.
+  temper.forEach((t, i) => {
+    if (r.next() < 1 - (1 - t * 0.045) ** 45) place(i, 'galopp')
+  })
+  const comic = r.next() < COMIC_CHANCE ? (r.next() < SECOND_COMIC_CHANCE ? 2 : 1) : 0
+  for (let c = 0; c < comic && gags.length < 3; c++) {
+    const kind = r.pick(COMIC_GAGS.filter((k) => gags.every((g) => g.kind !== k)))
+    // Mostly a loser; the winner may take a harmless one, which is funnier.
+    const pool = r.next() < 0.25 && kind !== 'turbo' ? order : order.slice(1)
+    place(pool[r.int(pool.length)], kind)
+  }
+  // A comeback winner may light a turbo for the surge, on the turn line ("här kommer ..."). Show
+  // only: the script already gains the ground, and a real boost would melt away on the upplopp.
+  if (script === 'comeback' && r.next() < 0.5) {
+    gags.push({ i: order[0], n: -1, kind: 'turbo', tick: COMEBACK_TURBO_TICK, ticks: 5, drag: 0 })
+  }
+  return gags.sort((x, y) => x.tick - y.tick)
+}
+
+/** Extra gap from a gag at tick t: builds up during the gag, then melts away (the recovery). */
+function gagGap(g: PlacedGag, t: number): number {
+  if (t <= g.tick) return 0
+  const peak = g.drag * g.ticks
+  const end = g.tick + g.ticks
+  if (t <= end) return (peak * (t - g.tick)) / g.ticks
+  return peak * (1 - smooth(Math.min(1, (t - end) / GAG_RECOVER)))
 }
 
 export function simulateRace({ horses, stats, seed, raceNo, meters = 2140 }: SimInput): RaceTimeline {
   const r = createRng(seed)
-  const runners: Runner[] = horses.map((h) => {
+  const ordered = horses.map((h) => {
     const s = stats.find((x) => x.n === h.n)
     if (!s) throw new Error(`Saknar statistik för häst ${h.n}`)
-    return { ...h, strength: s.strength, stamina: s.stamina, temper: s.temper, pos: 0, broke: false, brokeTicks: 0 }
+    return s
   })
+  const n = horses.length
+  const order = drawOrder(winWeights(ordered), r)
+  const fav = horses.reduce((best, h, i) => (h.baseOdds < horses[best].baseOdds ? i : best), 0)
+  const script = pickScript(r)
+  const plan = planScript(script, order, fav, r)
+  const rawGags = drawGags(
+    ordered.map((s) => s.temper),
+    order,
+    script,
+    r,
+  )
+  // Two slow sines per horse, fading out at both ends, so nobody moves like a train on rails.
+  const wobble = horses.map(() => ({
+    f1: r.float(1.5, 3),
+    p1: r.next(),
+    f2: r.float(4, 7),
+    p2: r.next(),
+    amp: r.float(0.35, 0.7),
+  }))
 
-  const frames: RaceFrame[] = [
-    {
-      tick: 0,
-      progress: 0,
-      meters: 0,
-      leader: null,
-      runners: runners.map((h) => ({ n: h.n, pos: 0, left: START_LEFT, broke: false })),
-      comment: { text: COMMENTARY.start(raceNo), hype: true },
-    },
-  ]
-
-  let lastCommentTick = 0
-  let lastLeader: Runner | null = null
-  let order: Runner[] = runners
-
-  for (let tick = 1; tick <= TICKS; tick++) {
-    const progress = tick / TICKS
-    let comment: RaceComment | undefined
-    const say = (text: string, hype: boolean) => {
-      comment = { text, hype }
-      lastCommentTick = tick
+  // Positions, tick by tick
+  const pos: number[][] = []
+  for (let t = 0; t <= TICKS; t++) {
+    const p = progressAt(t)
+    const taper = 4 * p * (1 - p)
+    pos.push(
+      horses.map((_, i) => {
+        const wb = wobble[i]
+        const wig = wb.amp * taper * (Math.sin(2 * Math.PI * (wb.f1 * p + wb.p1)) + 0.5 * Math.sin(2 * Math.PI * (wb.f2 * p + wb.p2)))
+        const gag = rawGags.filter((g) => g.i === i).reduce((s, g) => s + gagGap(g, t), 0)
+        return RACE_UNITS * p - gapAt(plan.gaps[i], p) + wig - gag
+      }),
+    )
+  }
+  const gagAt = (i: number, t: number) => rawGags.find((g) => g.i === i && t > g.tick && t <= g.tick + g.ticks)
+  // Only a horse running the wrong way moves backwards.
+  for (let t = 1; t <= TICKS; t++) {
+    for (let i = 0; i < n; i++) {
+      if (gagAt(i, t)?.kind !== 'backwards') pos[t][i] = Math.max(pos[t][i], pos[t - 1][i])
     }
+  }
+  // The line is exact: the drawn order with the drawn margins, whatever the wobble did.
+  const top = Math.max(...pos[TICKS - 1]) + (RACE_UNITS * (1 - progressAt(TICKS - 1))) / 2
+  for (let i = 0; i < n; i++) pos[TICKS][i] = top - gapAt(plan.gaps[i], 1)
+  for (let i = 0; i < n; i++) pos[TICKS][i] = Math.max(pos[TICKS][i], pos[TICKS - 1][i])
+  const finishIdx = [...order]
 
-    for (const h of runners) {
-      if (h.brokeTicks > 0) {
-        h.brokeTicks--
-        if (h.brokeTicks === 0) h.broke = false
-      } else if (r.next() < h.temper * 0.045) {
-        h.broke = true
-        h.brokeTicks = 3 + r.int(4)
-        if (tick < TICKS - 6) say(COMMENTARY.galopp(h), true)
-      }
-      const stam = 1 - Math.max(0, progress - 0.55) * (1.25 - h.stamina) * 0.9
-      const speed = h.strength * stam * r.float(0.72, 1.3) * (h.broke ? 0.25 : 1)
-      h.pos += speed
-    }
-
-    // Commentary at milestones, plus whenever the lead changes hands
-    order = runners.slice().sort((a, b) => b.pos - a.pos)
-    const leader = order[0]
-    const milestone = COMMENTARY.milestones[tick]
-    if (milestone) {
-      say(milestone(order), COMMENTARY.hypeMilestones.includes(tick))
-    } else if (lastLeader && leader !== lastLeader && tick > 6 && tick - lastCommentTick >= 7) {
-      say(r.pick(COMMENTARY.leadChange)(leader, lastLeader), true)
-    }
-    lastLeader = leader
-
-    // The leader drives the field forward, the rest are placed by actual gap in lengths
-    const maxPos = leader.pos
+  // Frames, without commentary yet
+  const frames: RaceFrame[] = []
+  const leaders: number[] = []
+  for (let t = 0; t <= TICKS; t++) {
+    const progress = progressAt(t)
+    const row = pos[t]
+    const leadI = row.reduce((best, x, i) => (x > row[best] ? i : best), 0)
+    leaders.push(leadI)
+    const maxPos = row[leadI]
     const leadLeft = START_LEFT + progress * TRACK_SPAN
     frames.push({
-      tick,
+      tick: t,
       progress,
       meters: Math.round(progress * meters),
-      leader: leader.n,
-      runners: runners.map((h) => ({
-        n: h.n,
-        pos: h.pos,
-        left: Math.max(MIN_LEFT, leadLeft - (maxPos - h.pos) * GAP_SCALE),
-        broke: h.broke,
-      })),
-      ...(comment ? { comment } : {}),
+      leader: t === 0 ? null : horses[leadI].n,
+      stretch: t >= STRETCH_TICK,
+      runners: horses.map((h, i) => {
+        const gag = t > 0 ? gagAt(i, t) : undefined
+        return {
+          n: h.n,
+          pos: row[i],
+          left: t === 0 ? START_LEFT : Math.max(MIN_LEFT, leadLeft - (maxPos - row[i]) * GAP_SCALE),
+          broke: gag?.kind === 'galopp',
+          ...(gag ? { gag: gag.kind } : {}),
+        }
+      }),
     })
   }
 
-  const winner = order[0]
-  const margin = winner.pos - order[1].pos
+  // Commentary: candidates with priorities, then greedily kept so lines never crowd each other.
+  const H = (i: number): NamedRunner => horses[i]
+  const orderAt = (t: number) => horses.map((_, i) => i).sort((x, y) => pos[t][y] - pos[t][x])
+  const cands: { tick: number; prio: number; comment: RaceComment }[] = []
+  const add = (tick: number, prio: number, text: string, hype: boolean) => cands.push({ tick, prio, comment: { text, hype } })
+
+  add(0, 9, COMMENTARY.start(raceNo), true)
+  for (const g of rawGags) {
+    if (g.tick !== COMEBACK_TURBO_TICK) add(g.tick + 1, 6, r.pick(GAG_LINES[g.kind])(H(g.i)), true)
+  }
+  {
+    const o = orderAt(20)
+    add(20, 3, r.pick(COMMENTARY.early)(H(o[0]), H(o[1])), false)
+  }
+  {
+    const o = orderAt(38)
+    if (o[n - 1] === fav && order[0] !== fav) add(38, 4, r.pick(COMMENTARY.favouriteLast)(H(fav)), true)
+    else add(38, 3, r.pick(COMMENTARY.halfway)(H(o[0]), H(o[n - 1])), false)
+  }
+  add(54, 4, r.pick(COMMENTARY.mid[script])(H(plan.a), H(plan.b)), false)
+  add(TURN_TICK, 7, r.pick(COMMENTARY.turn[script])(H(plan.a), H(plan.b)), true)
+  {
+    const o = orderAt(STRETCH_TICK)
+    add(STRETCH_TICK, 8, r.pick(COMMENTARY.stretch)(H(o[0]), H(o[1])), true)
+  }
+  {
+    const t = 90
+    const o = orderAt(t)
+    add(t, 8, COMMENTARY.final(H(o[0]), H(o[1]), pos[t][o[0]] - pos[t][o[1]] < 1.2), true)
+  }
+  for (let t = 8; t < STRETCH_TICK; t++) {
+    if (leaders[t] !== leaders[t - 1]) add(t, 1, r.pick(COMMENTARY.leadChange)(H(leaders[t]), H(leaders[t - 1])), true)
+  }
+  const kept: typeof cands = []
+  for (const c of [...cands].sort((x, y) => y.prio - x.prio || x.tick - y.tick)) {
+    if (kept.every((k) => Math.abs(k.tick - c.tick) >= COMMENT_GAP)) kept.push(c)
+  }
+  for (const c of kept) frames[c.tick].comment = c.comment
+
+  const winner = horses[finishIdx[0]]
+  const margin = pos[TICKS][finishIdx[0]] - pos[TICKS][finishIdx[1]]
   const photo = margin < PHOTO_MARGIN
   const finalLeft: Record<number, number> = {}
-  for (const h of runners) finalLeft[h.n] = Math.max(MIN_LEFT, FINISH_LEFT - (winner.pos - h.pos) * GAP_SCALE)
+  horses.forEach((h, i) => {
+    finalLeft[h.n] = Math.max(MIN_LEFT, FINISH_LEFT - (pos[TICKS][finishIdx[0]] - pos[TICKS][i]) * GAP_SCALE)
+  })
+  const winnerGag = rawGags.find((g) => g.i === finishIdx[0])
+  const gagWin = winnerGag && GAG_WIN[winnerGag.kind]
+  const finishText = photo
+    ? COMMENTARY.photo
+    : gagWin
+      ? gagWin(winner)
+      : winner.baseOdds >= SKRALL_ODDS
+        ? COMMENTARY.skrall(winner, raceNo)
+        : COMMENTARY.win(winner, raceNo)
 
   const inquiry = r.next() < INQUIRY_RATE ? { text: inquiryText(winner, r) } : null
 
@@ -123,12 +410,14 @@ export function simulateRace({ horses, stats, seed, raceNo, meters = 2140 }: Sim
     seed,
     tickMs: TICK_MS,
     frames,
-    finishOrder: order.map((h) => h.n),
+    finishOrder: finishIdx.map((i) => horses[i].n),
     margin,
     photo,
     finalLeft,
-    finishComment: { text: photo ? COMMENTARY.photo : COMMENTARY.win(winner, raceNo), hype: true },
+    finishComment: { text: finishText, hype: true },
     inquiry,
+    script,
+    gags: rawGags.map(({ i, kind, tick, ticks }) => ({ n: horses[i].n, kind, tick, ticks })),
   }
 }
 

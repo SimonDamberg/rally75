@@ -20,6 +20,7 @@ import {
 } from "../content/names";
 import { KUSK_NOTER, STORY_MALLAR } from "../content/stories";
 import { BANOR, DISTANSER, KOMMENTARER, SILKS, TIPS } from "../content/race";
+import { winWeights } from "./odds";
 
 export const FIELD_SIZE = 4;
 /** One slot in every field goes to a nobody from FORNAMN + EFTERNAMN. */
@@ -141,9 +142,9 @@ export function buildField(
   }
 
   // Morning line from strength, with noise so the favourite does not always win
-  const tot = stats.reduce((s, h) => s + h.strength ** 3.2, 0);
+  const weights = winWeights(stats);
   horses.forEach((h, i) => {
-    const p = stats[i].strength ** 3.2 / tot;
+    const p = weights[i];
     h.baseOdds = round(
       Math.min(58, Math.max(1.45, (1 / p) * 0.86 * r.float(0.88, 1.16))),
       2,

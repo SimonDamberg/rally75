@@ -1,5 +1,6 @@
 // Pure bet book maths for the GM live bets panel and the result summary.
 import { computeOdds, payoutFor, poolsFromBets, roundOdds } from '../shared/game/odds'
+import { badgedLabel } from '../shared/game/format'
 import type { BetStatus, HorsePublic } from '../shared/game/types'
 
 interface BookBet {
@@ -83,6 +84,41 @@ export function bettorsOn(bets: readonly OwnedBet[], horseN: number): Bettor[] {
   }
   // Map preserves insertion order, so a stable sort leaves equal stakes in first-bet order.
   return [...byPlayer.values()].sort((a, b) => b.stake - a.stake)
+}
+
+export interface LaneBackers {
+  n: number
+  /** RM riding on the horse. */
+  pool: number
+  /** The biggest backers, labelled for the big screen. */
+  top: { label: string; stake: number }[]
+  /** Backers beyond `top`. */
+  more: number
+}
+
+/**
+ * Who has money on each lane of the race screen, so the room knows who to cheer for (and at).
+ * Players missing from `players` (just joined, not loaded yet) get `unknown` as their label.
+ */
+export function laneBackers(
+  field: readonly Pick<HorsePublic, 'n'>[],
+  bets: readonly OwnedBet[],
+  players: ReadonlyMap<string, { name: string; tag: number; badge: string }>,
+  unknown: string,
+  shown = 3,
+): LaneBackers[] {
+  return field.map(({ n }) => {
+    const all = bettorsOn(bets, n)
+    return {
+      n,
+      pool: all.reduce((s, b) => s + b.stake, 0),
+      top: all.slice(0, shown).map((b) => {
+        const p = players.get(b.player_id)
+        return { label: p ? badgedLabel(p) : unknown, stake: b.stake }
+      }),
+      more: Math.max(0, all.length - shown),
+    }
+  })
 }
 
 export interface Settlement {

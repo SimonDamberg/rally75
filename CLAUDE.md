@@ -143,6 +143,15 @@ Two devices, one password gate, one lazy-loaded chunk (`src/gm/GmApp.tsx` routes
 - No inquiry: the control phone publishes automatically after the finish pause, and the display
   publishes as a fallback ~12 s later only if the phone never did (`useFallbackPublish.ts`).
   Inquiry: only the phone rules; the iPad just shows the drama.
+- **Races are scripted, not emergent** (`src/shared/game/sim.ts`). The finish order is drawn first
+  from `winWeights` (`odds.ts`, the same strength curve the morning line uses, so the odds tell the
+  truth and the house keeps its edge), then a storyline (`RaceScript`) is keyframed to end on it, and
+  gags (`GagKind`, galopp plus slapstick) bend a horse's curve mid-race. 100 ticks of 300 ms; the
+  upplopp (`STRETCH_TICK`) runs at half speed. `sim.test.ts` asserts the win rates, the house edge and
+  the excitement targets; keep them green when tuning. Commentary pools and gag lines are in
+  `commentary.ts`.
+- The display's race is `RaceScreen` (clock, secrets, bets) around the presentational `RaceTrack`.
+  Tune it in the dev-only race lab at `/styleguide/race` (`?seed=&t=` opens a frame, `&panel=0`).
 - GM copy lives in `src/shared/content/gm.ts`; display copy in `ATTRACT` (`src/shared/content/ui.ts`).
 
 ## Client app (Stage 5)

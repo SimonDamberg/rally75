@@ -1109,3 +1109,78 @@ friends (random kuskar were already off, `RANDOM_KUSKAR_PER_FIELD = 0`).
 **Manual steps for Simon**
 
 1. `npx supabase db push` (removes Bengt from the hosted `kusks` table). Then deploy.
+
+## Scripted races: fair odds, drama and slapstick on the display (done, 2026-09-19)
+
+Simon asked how the result is decided and whether the race on `/gm/display` could be more exciting
+and funnier. His calls: the winner is drawn to match the odds, full slapstick, about 30 s per race,
+and lanes show who has money on each horse.
+
+**Before:** every tick each horse added `strength * noise` to its distance, and the biggest total won.
+The stronger horse gained on every tick, so over 3000 seeds the favourite won **84 %** at average odds
+2.26 (a flat favourite bet returned 1.86 RM per RM, so the house bled). The leader at 60 % won 90 % of
+the time, 58 % of races were wire to wire, and only 10 % had a late lead change.
+
+**Done**
+
+- `simulateRace` draws the result first: Plackett-Luce over `winWeights(stats)` (new in `odds.ts`,
+  also used by `buildField` for the morning line, which is unchanged). Then it draws a storyline
+  (`wire`, `comeback`, `collapse`, `duel`, `pack`) and keyframes each horse's gap to the leader so
+  the race tells it and ends on the drawn order. A smooth seeded wobble goes on top. Position never
+  drops except during the `backwards` gag.
+- Gags: galopp (from temper, as before) plus `backwards`, `graze`, `wave`, `selfie`, `seagull` and
+  `turbo`. They happen between ticks 12 and 55, recover before the upplopp, and each gets its own
+  commentary line. `RunnerFrame.gag`, `RaceTimeline.script` and `RaceTimeline.gags` are new;
+  `broke` is kept for galopp.
+- 100 ticks of 300 ms (30 s). From `STRETCH_TICK` (76) the last 15 % runs at half speed, a slow-motion
+  upplopp done without touching `raceClock`. `RaceFrame.stretch` flags it.
+- Commentary is built from state and script: storyline lines, "favoriten ligger sist", the turn, the
+  upplopp, "NOS MOT NOS!", skräll (winner at morning line 4.0 or longer), and "... och vann ändå"
+  when the winner had a gag. Lines are ranked by priority and kept at least 7 ticks apart.
+- Finish pause raised to 3.0 s (4.2 s on a photo) so the room gets the stamp and the coins.
+- Display (`RaceScreen` = data, new `RaceTrack` = drawing, `GagSprite`):
+  - scrolling turf, trotting badges and dust
+  - a live placing chip with ▲/▼
+  - gag props and stickers
+  - lane backers ("250 RM: Kalle #12, ...", via `laneBackers` in `book.ts`) and "X RM står på spel"
+  - an upplopp banner with zoom and vignette
+  - a photo finish with flash, grayscale, scan line and a delayed VINNARE stamp
+  - winner stamp plus coin rain, and a SKRÄLL banner
+- Dev-only race lab at `/styleguide/race`: any seed, scrub, and buttons for "next seed with this
+  script or gag".
+
+**Measured (5000 seeds, favourite first)**
+
+| | before | now |
+|---|---|---|
+| Win rate by odds rank | 84 / 14 / 2 / 0 % | 38 / 29 / 19 / 13 % (win chance 39 / 28 / 20 / 13) |
+| Flat bet return per RM | 1.86 on the favourite | 0.84 to 0.91 on every rank |
+| Lead change in the last quarter | 10 % | 71 % |
+| Wire to wire | 58 % | 11 % |
+| Photo finish | 14 % | 24 % |
+| Races with a gag (galopp included) | 65 % galopp | 84 % |
+
+**Verified:** build, tests (228) and `npx eslint . --ignore-pattern '.claude/**'` all pass. I
+screenshotted every gag, the upplopp, a photo and a skräll in the race lab at 1180x820. Then I ran a
+full race on the local stack: 4 guest bets, the display showed the backers, a mid-race reload resumed
+in step with the phone, Snabbspola from the phone, an inquiry (dismissed from the phone), and the
+winner shown on the display was the one settled and paid.
+
+**Deviations:** none from META_PLAN's Decisions. The sim is no longer the prototype's model, so
+`simulateRace`'s description in META_PLAN ("gap-based screen positions, MÅLFOTO under 1.6, 10 %
+inquiry") still holds, but the winner is now drawn rather than emergent.
+
+**Open issues**
+
+- The house result changes a lot: favourites win about 40 % instead of 84 %. That is the point, but
+  guests who learned "always the favourite" will lose more.
+- Lane text (name and backers) sits under the horses for the first few seconds, as the names did
+  before.
+- Races created before this deploy replay with the new engine (same seed and stats, a new story and
+  possibly a new winner). Harmless between races.
+
+**Manual steps for Simon**
+
+1. Deploy **between races**, then reload both GM devices. If the phone and the iPad run different
+   builds during a race, they can show different races. No migration.
+

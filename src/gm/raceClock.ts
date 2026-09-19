@@ -2,9 +2,12 @@
 // screen is a function of the time since the start: a reload or Snabbspola just moves the start.
 import type { RaceTimeline } from '../shared/game/types'
 
-/** Hold on the finish before the result goes out (prototype: 1.9 s, 2.6 s for a photo). */
-export const FINISH_PAUSE_MS = 1900
-export const PHOTO_PAUSE_MS = 2600
+/**
+ * Hold on the finish before the result goes out: long enough for the display's winner stamp and
+ * coin rain, and for a photo finish, the scan line sweeping to the winner's nose.
+ */
+export const FINISH_PAUSE_MS = 3000
+export const PHOTO_PAUSE_MS = 4200
 
 /** running: horses moving. finishing: finish line crossed, pause. done: publish or rule. */
 export type RacePhase = 'running' | 'finishing' | 'done'

@@ -40,6 +40,24 @@ export const GM_RACE = {
   skip: "Snabbspola",
   publish: "Publicera resultat",
   clock: (m: string) => `${m} m`,
+  // Display race screen staging.
+  stretchBanner: "Upploppet!",
+  photoStamp: "Målfoto",
+  winnerStamp: "Vinnare",
+  skrall: "Skräll!",
+  atStake: (rm: string) => `${rm} står på spel`,
+  noBackers: "Ingen har pengar här. Än.",
+  backers: (pool: string) => `${pool}:`,
+  moreBackers: (n: number) => `+${n}`,
+  gag: {
+    galopp: "Galopp!",
+    backwards: "Fel håll!",
+    graze: "Betar!",
+    wave: "Vinkar!",
+    selfie: "Selfie!",
+    seagull: "Måsattack!",
+    turbo: "Turbo!",
+  },
   pot: "Total pott",
   bets: (n: number) => (n === 1 ? "1 spel" : `${n} spel`),
   resultTitle: (raceNo: number) => `Lopp ${raceNo}, resultat`,
@@ -241,4 +259,23 @@ export const GM_COUPONS = {
   undo: "Ångra",
   undone: (rm: string) => `${rm} draget tillbaka. Kupongen går att lösa in igen.`,
   someone: "Raderad spelare",
+} as const;
+
+/** Dev-only race lab at /styleguide/race, for tuning the race screen without a backend. */
+export const GM_RACE_LAB = {
+  seed: "Seed",
+  random: "Slumpa",
+  replay: "Spela igen",
+  pause: "Paus",
+  play: "Spela",
+  script: "Upplägg",
+  gag: "Gag",
+  inquiry: "Utredning",
+  scripts: {
+    wire: "Start-mål",
+    comeback: "Från sist",
+    collapse: "Tar slut",
+    duel: "Duell",
+    pack: "Klunga",
+  },
 } as const;

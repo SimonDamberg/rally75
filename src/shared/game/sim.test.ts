@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { createRng } from './rng'
 import { buildField, FIELD_SIZE } from './field'
-import { commentAt, demoteWinner, INQUIRY_RATE, PHOTO_MARGIN, simulateRace, TICKS } from './sim'
+import { COMIC_GAGS, commentAt, demoteWinner, INQUIRY_RATE, PHOTO_MARGIN, SCRIPT_WEIGHTS, simulateRace, STRETCH_TICK, TICKS } from './sim'
+import { winWeights } from './odds'
 import { NAMED_KUSKAR } from '../content/kuskar'
 
 function race(seed: number) {
@@ -48,17 +49,96 @@ describe('simulateRace', () => {
       const second = last.find((x) => x.n === finishOrder[1])!
       expect(timeline.margin).toBeCloseTo(top.pos - second.pos, 12)
       expect(timeline.photo).toBe(timeline.margin < PHOTO_MARGIN)
-      expect(timeline.finishComment.text).toBe(
-        timeline.photo ? 'MÅLFOTO! Det går inte att se med blotta ögat!' : `${horses.find((h) => h.n === finishOrder[0])!.name} vinner lopp 3!`,
-      )
       expect(timeline.finalLeft[finishOrder[0]]).toBe(91)
 
       for (const f of frames.slice(1)) {
         const leader = f.runners.find((x) => x.n === f.leader)!
         expect(leader.pos).toBe(Math.max(...f.runners.map((x) => x.pos)))
         expect(leader.left).toBeCloseTo(6 + f.progress * 85, 9)
+        expect(f.stretch).toBe(f.tick >= STRETCH_TICK)
         for (const x of f.runners) expect(x.left).toBeGreaterThanOrEqual(4)
       }
+      for (let t = 1; t <= TICKS; t++) {
+        expect(frames[t].meters).toBeGreaterThanOrEqual(frames[t - 1].meters)
+        frames[t].runners.forEach((x, i) => {
+          // Only a horse running the wrong way ever loses ground.
+          if (x.gag !== 'backwards') expect(x.pos).toBeGreaterThanOrEqual(frames[t - 1].runners[i].pos)
+          expect(x.broke).toBe(x.gag === 'galopp')
+        })
+      }
+    }
+  })
+
+  it('runs the upplopp in slow motion', () => {
+    const { frames } = race(5).timeline
+    const early = frames[10].meters - frames[9].meters
+    const late = frames[90].meters - frames[89].meters
+    expect(late).toBeLessThan(early * 0.7)
+  })
+
+  it('draws the winner from the true win chances, so the house keeps its edge', () => {
+    const N = 5000
+    const wins = [0, 0, 0, 0]
+    const expected = [0, 0, 0, 0]
+    const paid = [0, 0, 0, 0]
+    for (let seed = 1; seed <= N; seed++) {
+      const { horses, stats } = buildField(FIELD_SIZE, NAMED_KUSKAR, createRng(seed))
+      const t = simulateRace({ horses, stats, seed: seed * 7 + 1, raceNo: 1 })
+      const w = winWeights(stats)
+      const ranked = horses.map((h, i) => ({ h, i })).sort((a, b) => a.h.baseOdds - b.h.baseOdds)
+      ranked.forEach(({ h, i }, rank) => {
+        expected[rank] += w[i]
+        if (t.finishOrder[0] === h.n) {
+          wins[rank]++
+          paid[rank] += h.baseOdds
+        }
+      })
+    }
+    for (let rank = 0; rank < 4; rank++) {
+      expect(Math.abs(wins[rank] - expected[rank]) / N).toBeLessThan(0.03)
+      // A flat 1 RM bet on the favourite (or anyone else) loses money over time.
+      expect(paid[rank] / N).toBeLessThan(1)
+    }
+    // The favourite no longer wins everything (it won 84 % with the old sim).
+    expect(wins[0] / N).toBeLessThan(0.5)
+  })
+
+  it('is exciting: late lead changes, photos, few processions, every script and gag', () => {
+    const N = 3000
+    let late = 0
+    let photos = 0
+    let wire = 0
+    let lateGags = 0
+    let repeats = 0
+    const scripts = new Set<string>()
+    const gags = new Set<string>()
+    for (let seed = 1; seed <= N; seed++) {
+      const { timeline: t } = race(seed)
+      if (t.photo) photos++
+      scripts.add(t.script)
+      for (const g of t.gags) {
+        gags.add(g.kind)
+        if (g.tick + g.ticks >= STRETCH_TICK) lateGags++
+      }
+      if (t.frames.slice(TICKS * 0.75).some((f, k, arr) => k > 0 && f.leader !== arr[k - 1].leader)) late++
+      if (t.frames.slice(6).every((f) => f.leader === t.finishOrder[0])) wire++
+      const lines = t.frames.flatMap((f) => (f.comment ? [f.comment.text] : []))
+      lines.forEach((l, i) => i > 0 && l === lines[i - 1] && repeats++)
+    }
+    expect(late / N).toBeGreaterThan(0.35)
+    expect(photos / N).toBeGreaterThan(0.15)
+    expect(photos / N).toBeLessThan(0.3)
+    expect(wire / N).toBeLessThan(0.3)
+    expect(lateGags).toBe(0)
+    expect(repeats).toBe(0)
+    expect([...scripts].sort()).toEqual(Object.keys(SCRIPT_WEIGHTS).sort())
+    expect([...gags].sort()).toEqual(['galopp', ...COMIC_GAGS].sort())
+  })
+
+  it('keeps commentary lines apart so they can be read', () => {
+    for (let seed = 1; seed <= 300; seed++) {
+      const ticks = race(seed).timeline.frames.filter((f) => f.comment).map((f) => f.tick)
+      ticks.forEach((t, i) => i > 0 && expect(t - ticks[i - 1]).toBeGreaterThanOrEqual(7))
     }
   })
 
@@ -77,18 +157,6 @@ describe('simulateRace', () => {
     expect(count / N).toBeLessThan(INQUIRY_RATE + 0.03)
   })
 
-  it('has galopps, lead changes and photo finishes across many races', () => {
-    let galopps = 0
-    let photos = 0
-    for (let seed = 1; seed <= 300; seed++) {
-      const { timeline } = race(seed)
-      if (timeline.photo) photos++
-      if (timeline.frames.some((f) => f.runners.some((x) => x.broke))) galopps++
-    }
-    expect(galopps).toBeGreaterThan(0)
-    expect(photos).toBeGreaterThan(0)
-  })
-
   it('commentAt returns the latest line at or before a tick', () => {
     const { timeline } = race(9)
     expect(commentAt(timeline, 0).text).toBe('Och de är iväg i lopp 3!')
@@ -96,7 +164,8 @@ describe('simulateRace', () => {
     const last = withComment[withComment.length - 1]
     expect(commentAt(timeline, TICKS)).toEqual(last.comment)
     expect(commentAt(timeline, 999)).toEqual(last.comment)
-    expect(commentAt(timeline, 12).text).toBe(timeline.frames[12].comment!.text)
+    expect(commentAt(timeline, last.tick).text).toBe(last.comment!.text)
+    expect(commentAt(timeline, STRETCH_TICK)).toEqual(timeline.frames[STRETCH_TICK].comment)
   })
 
   it('throws when stats are missing for a horse', () => {
