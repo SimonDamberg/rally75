@@ -42,8 +42,6 @@ export const GM_RACE = {
   clock: (m: string) => `${m} m`,
   // Display race screen staging.
   stretchBanner: "Upploppet!",
-  /** Header pill while a gag plays in slow motion. */
-  slowmo: "Ultrarapid",
   photoStamp: "Målfoto",
   winnerStamp: "Vinnare",
   skrall: "Skräll!",

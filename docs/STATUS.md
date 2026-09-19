@@ -1242,19 +1242,3 @@ It credits its owner in four places:
 
 **Deviation:** relaxes the Two brands rule in CLAUDE.md, which has been rewritten to allow these four
 and nothing else. `/gm` and `/gm/kuponger` stay pure Rally75.
-
-### Follow-up: ultrarapid for gags (Simon's call, 2026-09-19)
-
-Gags went by too fast to read. The engine is unchanged; the finished timeline is time-stretched
-instead:
-
-- Every base tick from just before a gag to its end is played as `SLOWMO` (3) frames, and the whole
-  field runs at a third of the speed. The frames are interpolated, so movement stays smooth.
-- `frame.slowmo` drives a "ULTRARAPID" pill in the header, and slows the turf, the trot and the dust.
-- Tick length is unchanged, so `raceClock`, Snabbspola and both devices need nothing: a slowed race
-  is just more frames.
-- A gag now stays on screen for a median of 4.5 s (up to 6.3 s). The exception is the comeback turbo,
-  which rides the turn line and is not slowed.
-- Races run 32 to 47 s (median 39 s, before this 30 s). `RaceGag.tick`/`ticks` are now in frames,
-  like the rest of the timeline.
-- A Serverkrasch still snaps back in one frame: its last tick is not slowed.

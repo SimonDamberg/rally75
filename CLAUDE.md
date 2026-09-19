@@ -148,11 +148,8 @@ Two devices, one password gate, one lazy-loaded chunk (`src/gm/GmApp.tsx` routes
 - **Races are scripted, not emergent** (`src/shared/game/sim.ts`). The finish order is drawn first
   from `winWeights` (`odds.ts`, the same strength curve the morning line uses, so the odds tell the
   truth and the house keeps its edge), then a storyline (`RaceScript`) is keyframed to end on it, and
-  gags (`GagKind`, galopp plus slapstick) bend a horse's curve mid-race. 100 base ticks of 300 ms;
-  the upplopp (`STRETCH_TICK`) runs at half speed, and every tick around a gag is played as `SLOWMO`
-  frames (ultrarapid, `frame.slowmo`) so the room can read it. **Frames are not ticks**: the frame
-  count varies per race (about 33 to 47 s), so use `frames.length` and the frame flags, never
-  `TICKS`/`STRETCH_TICK`, as frame indices. `sim.test.ts` asserts the win rates, the house edge and
+  gags (`GagKind`, galopp plus slapstick) bend a horse's curve mid-race. 100 ticks of 300 ms; the
+  upplopp (`STRETCH_TICK`) runs at half speed. `sim.test.ts` asserts the win rates, the house edge and
   the excitement targets; keep them green when tuning. Commentary pools and gag lines are in
   `commentary.ts`.
 - The display's race is `RaceScreen` (clock, secrets, bets) around the presentational `RaceTrack`.

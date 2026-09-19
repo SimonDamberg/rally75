@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { createRng } from './rng'
 import { buildField, FIELD_SIZE } from './field'
-import { BOOSTS, COMIC_GAGS, commentAt, demoteWinner, INQUIRY_RATE, PHOTO_MARGIN, SCRIPT_WEIGHTS, progressAt, simulateRace, SLOWMO, STRETCH_TICK, TICKS } from './sim'
+import { BOOSTS, COMIC_GAGS, commentAt, demoteWinner, INQUIRY_RATE, PHOTO_MARGIN, SCRIPT_WEIGHTS, simulateRace, STRETCH_TICK, TICKS } from './sim'
 import { winWeights } from './odds'
 import { NAMED_KUSKAR } from '../content/kuskar'
 
@@ -36,16 +36,12 @@ describe('simulateRace', () => {
     for (let seed = 1; seed <= 300; seed++) {
       const { horses, timeline } = race(seed)
       const { frames, finishOrder } = timeline
-      const end = frames.length - 1
-      // One frame per tick, plus SLOWMO - 1 extra for every tick played in ultrarapid.
-      const slowFrames = frames.filter((f) => f.slowmo).length
-      expect(end).toBe(TICKS + (slowFrames * (SLOWMO - 1)) / SLOWMO)
-      frames.forEach((f, k) => expect(f.tick).toBe(k))
+      expect(frames).toHaveLength(TICKS + 1)
       expect(frames[0].comment?.text).toBe('Och de är iväg i lopp 3!')
-      expect(frames[end].meters).toBe(2140)
+      expect(frames[TICKS].meters).toBe(2140)
       expect([...finishOrder].sort()).toEqual(horses.map((h) => h.n))
 
-      const last = frames[end].runners
+      const last = frames[TICKS].runners
       const byPos = [...last].sort((a, b) => b.pos - a.pos).map((x) => x.n)
       expect(finishOrder).toEqual(byPos)
 
@@ -59,12 +55,10 @@ describe('simulateRace', () => {
         const leader = f.runners.find((x) => x.n === f.leader)!
         expect(leader.pos).toBe(Math.max(...f.runners.map((x) => x.pos)))
         expect(leader.left).toBeCloseTo(6 + f.progress * 85, 9)
-        expect(f.stretch).toBe(f.progress >= progressAt(STRETCH_TICK) - 1e-12)
-        // The upplopp has its own slow motion; ultrarapid is only for the gags before it.
-        expect(f.stretch && f.slowmo).toBe(false)
+        expect(f.stretch).toBe(f.tick >= STRETCH_TICK)
         for (const x of f.runners) expect(x.left).toBeGreaterThanOrEqual(4)
       }
-      for (let t = 1; t <= end; t++) {
+      for (let t = 1; t <= TICKS; t++) {
         expect(frames[t].meters).toBeGreaterThanOrEqual(frames[t - 1].meters)
         frames[t].runners.forEach((x, i) => {
           // Only a horse running the wrong way ever loses ground.
@@ -77,10 +71,9 @@ describe('simulateRace', () => {
 
   it('runs the upplopp in slow motion', () => {
     const { frames } = race(5).timeline
-    const step = (k: number) => frames[k].meters - frames[k - 1].meters
-    const normal = frames.findIndex((f, k) => k > 1 && !f.slowmo && !f.stretch && !frames[k - 1].slowmo)
-    const late = frames.length - 10
-    expect(step(late)).toBeLessThan(step(normal) * 0.7)
+    const early = frames[10].meters - frames[9].meters
+    const late = frames[90].meters - frames[89].meters
+    expect(late).toBeLessThan(early * 0.7)
   })
 
   it('draws the winner from the true win chances, so the house keeps its edge', () => {
@@ -110,19 +103,6 @@ describe('simulateRace', () => {
     expect(wins[0] / N).toBeLessThan(0.5)
   })
 
-  it('plays every gag in ultrarapid, and keeps its line on screen for a while', () => {
-    for (let seed = 1; seed <= 300; seed++) {
-      const { frames, gags } = race(seed).timeline
-      for (const g of gags) {
-        if (g.kind === 'turbo' && frames[g.tick].progress > progressAt(60)) continue // the comeback surge
-        const slow = frames.slice(g.tick + 1, g.tick + g.ticks + 1)
-        expect(slow.every((f) => f.slowmo)).toBe(true)
-        // At least 3 base ticks of gag, three frames each: 2.7 s or more.
-        expect(g.ticks).toBeGreaterThanOrEqual(3 * SLOWMO)
-      }
-    }
-  })
-
   it('is exciting: late lead changes, photos, few processions, every script and gag', () => {
     const N = 3000
     let late = 0
@@ -138,10 +118,10 @@ describe('simulateRace', () => {
       scripts.add(t.script)
       for (const g of t.gags) {
         gags.add(g.kind)
-        if (t.frames[g.tick + g.ticks].stretch) lateGags++
+        if (g.tick + g.ticks >= STRETCH_TICK) lateGags++
       }
-      if (t.frames.some((f, k, arr) => k > 0 && f.progress >= progressAt(75) && f.leader !== arr[k - 1].leader)) late++
-      if (t.frames.filter((f) => f.progress >= progressAt(6)).every((f) => f.leader === t.finishOrder[0])) wire++
+      if (t.frames.slice(TICKS * 0.75).some((f, k, arr) => k > 0 && f.leader !== arr[k - 1].leader)) late++
+      if (t.frames.slice(6).every((f) => f.leader === t.finishOrder[0])) wire++
       const lines = t.frames.flatMap((f) => (f.comment ? [f.comment.text] : []))
       lines.forEach((l, i) => i > 0 && l === lines[i - 1] && repeats++)
     }
@@ -162,8 +142,7 @@ describe('simulateRace', () => {
       const { horses, timeline: t } = race(seed)
       const lane = (n: number) => horses.findIndex((h) => h.n === n)
       for (const g of t.gags) {
-        const comebackSurge = g.kind === 'turbo' && t.frames[g.tick].progress > progressAt(60)
-        if (BOOSTS.includes(g.kind) && !comebackSurge) expect(g.n).not.toBe(t.finishOrder[0])
+        if (BOOSTS.includes(g.kind) && g.tick !== 65) expect(g.n).not.toBe(t.finishOrder[0])
         if (g.kind === 'kommitte') {
           pairs++
           expect(g.partner).toBeDefined()
@@ -217,11 +196,10 @@ describe('simulateRace', () => {
     expect(commentAt(timeline, 0).text).toBe('Och de är iväg i lopp 3!')
     const withComment = timeline.frames.filter((f) => f.comment)
     const last = withComment[withComment.length - 1]
-    expect(commentAt(timeline, timeline.frames.length - 1)).toEqual(last.comment)
+    expect(commentAt(timeline, TICKS)).toEqual(last.comment)
     expect(commentAt(timeline, 999)).toEqual(last.comment)
     expect(commentAt(timeline, last.tick).text).toBe(last.comment!.text)
-    const stretch = timeline.frames.findIndex((f) => f.stretch)
-    expect(commentAt(timeline, stretch)).toEqual(timeline.frames[stretch].comment)
+    expect(commentAt(timeline, STRETCH_TICK)).toEqual(timeline.frames[STRETCH_TICK].comment)
   })
 
   it('throws when stats are missing for a horse', () => {
