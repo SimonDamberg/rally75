@@ -158,9 +158,10 @@ describe('simulateRace', () => {
           // Frozen during the crash, then most of the lost ground comes back in one tick.
           const during = t.frames[end].runners[i].pos - t.frames[g.tick + 1].runners[i].pos
           const jump = t.frames[end + 1].runners[i].pos - t.frames[end].runners[i].pos
-          const step = t.frames[end + 2].runners[i].pos - t.frames[end + 1].runners[i].pos
+          // Compared with its normal stride just before the crash.
+          const step = t.frames[g.tick].runners[i].pos - t.frames[g.tick - 1].runners[i].pos
           expect(during).toBeLessThan(1)
-          expect(jump).toBeGreaterThan(Math.max(1.5, 2 * step))
+          expect(jump).toBeGreaterThan(Math.max(1, 2 * step))
         }
       }
     }

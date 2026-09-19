@@ -76,9 +76,13 @@ export const COMIC_GAGS: readonly GagKind[] = [
 ]
 /** Gags that speed a horse up: never handed to the winner, where they would look like the cause. */
 export const BOOSTS: readonly GagKind[] = ['turbo', 'husvagn']
-/** Chance of a comic gag in a race, and of a second one on top. Galopp comes on top, from temper. */
-const COMIC_CHANCE = 0.7
-const SECOND_COMIC_CHANCE = 0.3
+/**
+ * Every race gets a comic gag; these are the chances of a second and a third on top. Galopp comes
+ * on top of that, from temper, within MAX_GAG_SLOTS moments in all.
+ */
+const SECOND_COMIC_CHANCE = 0.7
+const THIRD_COMIC_CHANCE = 0.3
+const MAX_GAG_SLOTS = 4
 
 /** Extra gap per gag tick, in units. Above the leader's ~0.78/tick the horse moves backwards. */
 const GAG_DRAG: Record<GagKind, number> = {
@@ -307,8 +311,8 @@ function drawGags(temper: readonly number[], order: readonly number[], script: R
   temper.forEach((t, i) => {
     if (r.next() < 1 - (1 - t * 0.045) ** 45) place(i, 'galopp')
   })
-  const comic = r.next() < COMIC_CHANCE ? (r.next() < SECOND_COMIC_CHANCE ? 2 : 1) : 0
-  for (let c = 0; c < comic && slots() < 3; c++) {
+  const comic = 1 + (r.next() < SECOND_COMIC_CHANCE ? 1 : 0) + (r.next() < THIRD_COMIC_CHANCE ? 1 : 0)
+  for (let c = 0; c < comic && slots() < MAX_GAG_SLOTS; c++) {
     const kind = r.pick(COMIC_GAGS.filter((k) => gags.every((g) => g.kind !== k)))
     if (kind === 'kommitte') {
       placePair()

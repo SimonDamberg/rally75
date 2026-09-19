@@ -1216,3 +1216,11 @@ Galopp is unchanged.
   unchanged.
 
 **Manual steps for Simon:** as before, deploy between races and reload both GM devices.
+
+### Follow-up: more gags (Simon's call, 2026-09-19)
+
+- Every race now gets at least one comic gag, 70 % get a second and 30 % a third, with up to four gag
+  moments per race counting galopp.
+- 5000 seeds: comic gag in 99.7 % of races, and gag moments per race 1: 9 %, 2: 34 %, 3: 39 %,
+  4+: 18 %. Results unchanged: favourite 38 %, late lead change 71 %, photo 24 %, wire to wire 9 %.
+- Gag lines outrank the early and halfway lines, so on busy races the commentary is mostly gags.
