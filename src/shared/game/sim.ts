@@ -42,6 +42,13 @@ const RACE_UNITS = 70
 const MAX_FADE = 40
 /** Keyframes (progress) for the scripted gaps. */
 const KEYS = [0, 0.12, 0.3, 0.5, 0.7, 0.85, 1] as const
+/** The keyframe where the upplopp starts (progress 0.85). */
+const UPPLOPP_KEY = 5
+/**
+ * Share of its final gap a beaten horse has already lost when the field turns into the upplopp: the
+ * finish is a fight between the front two, not a queue of four.
+ */
+const BEATEN_AT_UPPLOPP = [0.65, 1] as const
 /** Commentary lines stay on screen at least this many ticks (read at 2 m). */
 const COMMENT_GAP = 7
 /** Gags start in this tick window, so they are over (and recovered) before the upplopp. */
@@ -58,8 +65,11 @@ const COMEBACK_TURBO_TICK = TURN_TICK - 1
  */
 const STRETCH_GAG_CHANCE = 0.4
 export const STRETCH_GAG_TICK = 82
-/** The field moves at half speed in the upplopp, so a gag there drags half as hard. */
-const STRETCH_DRAG = 0.5
+/**
+ * The field moves at half speed in the upplopp, so a gag there needs less drag to stop a horse. Not
+ * half, though: this is the gag that decides the race, and it should cost real ground.
+ */
+const STRETCH_DRAG = 0.8
 const STRETCH_RECOVER = 10
 
 export const SCRIPT_WEIGHTS: Record<RaceScript, number> = {
@@ -96,23 +106,24 @@ const MAX_GAG_SLOTS = 4
 
 /**
  * Extra gap per gag tick, in units. Above the leader's ~0.78/tick the horse stands still (or, for
- * backwards, moves back). Set so a whole gag costs about what it did when gags were 3 to 7 ticks.
+ * backwards, moves back), and the harder the drag, the longer it stays stuck while the gap melts
+ * away again. A gag has to hurt: the room should see the ground go.
  */
 const GAG_DRAG: Record<GagKind, number> = {
-  galopp: 0.4,
-  backwards: 1.1,
-  selfie: 0.3,
-  turbo: -0.7,
-  nap: 1.1,
-  banana: 0.3,
-  snabblan: 0.35,
-  husvagn: -0.7,
-  kommitte: 0.4,
-  serverkrasch: 1.6,
-  fatbyte: 1.1,
-  eckero: 1.1,
-  rallyhafte: 0.45,
-  hjalprebus: 0.45,
+  galopp: 0.7,
+  backwards: 1.5,
+  selfie: 0.55,
+  turbo: -0.8,
+  nap: 1.6,
+  banana: 0.55,
+  snabblan: 0.6,
+  husvagn: -0.8,
+  kommitte: 0.7,
+  serverkrasch: 2,
+  fatbyte: 1.5,
+  eckero: 1.5,
+  rallyhafte: 0.75,
+  hjalprebus: 0.75,
 }
 /** Every gag lasts 7 ticks (2.1 s), long enough for the room to read the sticker and the line. */
 const GAG_TICKS = 7
@@ -232,6 +243,15 @@ function planScript(script: RaceScript, order: readonly number[], fav: number, r
     }
   }
 
+  // Beaten horses are already beaten at the turn for home: the upplopp belongs to the front two, and
+  // the last one home has daylight to it. Scaled by the final gap, so a clear win looks clear. Not in
+  // a pack race, which is the one storyline where the whole field really does come home together.
+  if (!tight) {
+    for (const i of order.slice(2)) {
+      gaps[i][UPPLOPP_KEY] = Math.max(gaps[i][UPPLOPP_KEY], final[i] * r.float(...BEATEN_AT_UPPLOPP))
+    }
+  }
+
   // Nobody may lose ground faster than they can trot: walk back from the line and lift earlier
   // keyframes where a fade would be too steep.
   for (const g of gaps) {
@@ -266,13 +286,22 @@ interface PlacedGag extends RaceGag {
 function drawGags(temper: readonly number[], order: readonly number[], script: RaceScript, gaps: readonly number[][], r: Rng): PlacedGag[] {
   const gags: PlacedGag[] = []
   const slots = () => new Set(gags.map((g) => g.tick)).size
-  const free = (tick: number, len: number) =>
-    tick + len + 2 <= GAG_LAST + 6 && gags.every((g) => Math.abs(g.tick - tick) >= COMMENT_GAP + 1)
-  const slot = (tries = 12): { tick: number; ticks: number } | null => {
+  // A horse takes one gag at a time: the ground lost to the last one has to be won back first, or
+  // the two recoveries fight each other and neither reads.
+  const alone = (who: readonly number[], tick: number, len: number) =>
+    gags.every(
+      (g) =>
+        !who.includes(g.i) || tick >= g.tick + g.ticks + g.recover || tick + len + GAG_RECOVER <= g.tick,
+    )
+  const free = (tick: number, len: number, who: readonly number[]) =>
+    tick + len + 2 <= GAG_LAST + 6 &&
+    gags.every((g) => Math.abs(g.tick - tick) >= COMMENT_GAP + 1) &&
+    alone(who, tick, len)
+  const slot = (who: readonly number[], tries = 12): { tick: number; ticks: number } | null => {
     const ticks = GAG_TICKS
     for (let t = 0; t < tries; t++) {
       const tick = GAG_FIRST + r.int(GAG_LAST - GAG_FIRST + 1)
-      if (free(tick, ticks)) return { tick, ticks }
+      if (free(tick, ticks, who)) return { tick, ticks }
     }
     return null
   }
@@ -285,16 +314,17 @@ function drawGags(temper: readonly number[], order: readonly number[], script: R
     recover: GAG_RECOVERY[kind] ?? GAG_RECOVER,
   })
   const place = (i: number, kind: GagKind) => {
-    const at = slot()
+    const at = slot([i])
     if (at) gags.push(gag(i, kind, at))
   }
   const placePair = () => {
     const losers = new Set(order.slice(1))
     const pairs: [number, number][] = []
     for (let a = 0; a + 1 < order.length; a++) if (losers.has(a) && losers.has(a + 1)) pairs.push([a, a + 1])
-    const at = pairs.length ? slot() : null
-    if (!at) return
+    if (!pairs.length) return
     const [a, b] = r.pick(pairs)
+    const at = slot([a, b])
+    if (!at) return
     const p = progressAt(at.tick)
     // Positive when a is ahead of b on the plan: a drags that much extra to come back level.
     const lead = gapAt(gaps[b], p) - gapAt(gaps[a], p)
