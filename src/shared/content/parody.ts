@@ -157,5 +157,141 @@ export const STODLINJE = {
     debt: "Skuld? Vår vän tar emot samtal dygnet runt:",
     loss: "Hästen hade en dålig dag. Det kan du också ha:",
     kyc: "Frågor om verifieringen? Vår kundtjänst är (typ) en människa:",
+    landing: "Öppen dygnet runt, bemannad av en vän i kostym:",
   },
+} as const;
+
+// Landing page ----------------------------------------------------------------------------------
+// What a phone with no account sees first: an overhyped casino homepage in front of the sign-up.
+// Every button leads to the same place (the KYC form), which is the joke.
+
+export interface LandingProduct {
+  id: "rally" | "plinko" | "butik";
+  kicker: string;
+  title: string;
+  text: string;
+  /** Label + value pairs, like a real casino's game tile. */
+  stats: readonly (readonly [string, string])[];
+}
+
+export interface LandingReview {
+  text: string;
+  who: string;
+}
+
+export interface LandingFaq {
+  q: string;
+  a: string;
+}
+
+export const LANDING = {
+  login: "Logga in",
+  kupong: {
+    title: "Du har en kupong som väntar",
+    text: "Skapa ett konto så betalar vi ut den direkt. Det enda vi någonsin betalar ut direkt.",
+  },
+  hero: {
+    kicker: "Sveriges mest licensierade nätcasino*",
+    /** Follows the bonus amount, which is rendered from WELCOME_BONUS. */
+    headline: "i välkomstbonus",
+    sub: "Helt gratis. Utan insättning, utan krav, utan eftertanke.",
+    cta: "Hämta bonusen",
+    footnote: "*I Atlantis.",
+  },
+  ticker: "Senaste vinsterna",
+  shelf: {
+    title: "Våra spel",
+    sub: "Handplockade för att du ska stanna.",
+    cta: "Spela",
+  },
+  products: [
+    {
+      id: "rally",
+      kicker: "Officiell travpartner",
+      title: "Rally75",
+      text: "Riktiga hästar, påhittade chanser. Loppen körs live på storbildsskärmen och du spelar från soffan.",
+      stats: [
+        ["Återbetalning", "Ibland"],
+        ["Hästar", "4 per lopp"],
+      ],
+    },
+    {
+      id: "plinko",
+      kicker: "Ett Mr Green-original",
+      title: "Plånko",
+      text: "Töm plånboken, en kula i taget. Fysik har aldrig varit så dyrt.",
+      stats: [
+        ["Max vinst", "100x"],
+        ["Min vinst", "Tröst"],
+      ],
+    },
+    {
+      id: "butik",
+      kicker: "Svarta marknaden",
+      title: "Butiken",
+      text: "Byt dina RallyMynt mot riktiga saker i baren. Kvitto ingår, ånger ingår inte.",
+      stats: [
+        ["Öppet", "Tills det tar slut"],
+        ["Returrätt", "Nej"],
+      ],
+    },
+  ] as readonly LandingProduct[],
+  steps: {
+    title: "Så enkelt är det",
+    items: [
+      ["Ange ett namn", "Vilket som helst. Vi kontrollerar ingenting."],
+      // No-break space, as fmtRm writes it; a test ties this to WELCOME_BONUS.
+      ["Få 1\u00a0000\u00a0RM", "Insatt direkt, utan en enda fråga om varför."],
+      ["Förlora dem i lugn och ro", "Eller snabbt. Vi dömer ingen."],
+    ] as readonly (readonly [string, string])[],
+  },
+  reviews: {
+    title: "Vad våra spelare säger",
+    items: [
+      { text: "Jag har aldrig varit så nära en vinst. Två gånger i kväll!", who: "Kerstin, Tierp" },
+      { text: "Köpte en shot i Butiken för hela min förmögenhet. Den var god.", who: "Bosse, Östhammar" },
+      { text: "Snabblånet ändrade mitt liv. Jag vet bara inte åt vilket håll än.", who: "Agneta, Nynäshamn" },
+      { text: "Kundtjänst svarade direkt. Han var utklädd, men han lyssnade.", who: "Gun, Sala" },
+    ] as readonly LandingReview[],
+  },
+  /** Trust seals: [label, value]. */
+  badges: [
+    ["Licens", "Atlantis"],
+    ["Ålder", "13+"],
+    ["Spelpaus", "Nej"],
+    ["Krypterat", "Typ"],
+    ["Certifierat", "Av oss"],
+  ] as readonly (readonly [string, string])[],
+  faq: {
+    title: "Vanliga frågor",
+    items: [
+      {
+        q: "Är det här lagligt?",
+        a: "Vi har en licens från Atlantis och en jurist som heter Lena. Båda är lika verkliga.",
+      },
+      {
+        q: "Kan jag ta ut mina vinster?",
+        a: "Ja, i Butiken. Allt annat behandlas inom 3 till 5 arbetsliv.",
+      },
+      {
+        q: "Vad händer om jag förlorar allt?",
+        a: "Då erbjuder vi ett Snabblån med en ränta som gör oss mycket glada. Vill du hellre prata med någon finns vår stödlinje.",
+      },
+      {
+        q: "Varför har ni redan kryssat i åldersrutan?",
+        a: "För att spara tid åt dig. Vi tänker alltid på dig först, och på dina pengar strax därefter.",
+      },
+      {
+        q: "Hur lång tid tar det att komma igång?",
+        a: "Under en minut. Att sluta tar längre tid.",
+      },
+    ] as readonly LandingFaq[],
+  },
+  final: {
+    title: "Bonusen väntar inte för evigt",
+    text: "Den väntar ungefär en minut. Sen förlänger vi den. Men ändå.",
+    cta: "Ja, ge mig pengarna",
+  },
+  finePrint:
+    "Välkomstbonusen betalas ut i RallyMynt, som saknar värde utanför det här rummet och i viss mån även i det. Bonusen omfattas av ett omsättningskrav på 40x, som vi har valt att inte kontrollera. Mr Green förbehåller sig rätten att ändra odds, regler, öppettider och personlighet utan förvarning. Recensionerna är äkta i den meningen att någon har skrivit dem. Siffran under Utbetalt i kväll är avrundad uppåt, ibland kraftigt. Genom att scrolla hit har du godkänt samtliga villkor, även de vi inte har skrivit än.",
 } as const;

@@ -3,11 +3,12 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import { usePlayer } from '../lib/hooks'
-import { loadCookiesAccepted, saveCookiesAccepted, savePendingCode } from '../lib/identity'
+import { loadCookiesAccepted, loadPendingCode, saveCookiesAccepted, savePendingCode } from '../lib/identity'
 import { normalizeCode } from '../shared/game/coupon'
 import { Toaster } from '../ui'
 import { ClientShell } from './ClientShell'
 import { CookieBanner } from './CookieBanner'
+import { Landing } from './Landing'
 import { Onboarding } from './Onboarding'
 
 export default function ClientApp() {
@@ -19,6 +20,8 @@ export default function ClientApp() {
   const [justJoined, setJustJoined] = useState(false)
   // Pop-up offers and fake toasts wait until the cookie banner is out of the way.
   const [cookiesAccepted, setCookiesAccepted] = useState(loadCookiesAccepted)
+  // A phone with no account sees the landing page first; any of its buttons starts onboarding.
+  const [started, setStarted] = useState(false)
 
   // A scanned kupong: park the code and get the URL out of the way at once. The shell picks it up
   // from storage, which is what lets the scan survive onboarding on a phone with no account. It also
@@ -46,6 +49,15 @@ export default function ClientApp() {
           justJoined={justJoined}
           cookiesAccepted={cookiesAccepted}
           onBonusSeen={() => setJustJoined(false)}
+        />
+      ) : !started ? (
+        <Landing
+          // The URL code counts too: the effect above parks it only after this first render.
+          hasKupong={Boolean(code) || loadPendingCode() !== null}
+          onStart={() => {
+            setStarted(true)
+            window.scrollTo(0, 0)
+          }}
         />
       ) : (
         <Onboarding

@@ -4,7 +4,9 @@ import { join } from 'node:path'
 import { createRng } from '../game/rng'
 import { KUSK_NOTER, STORY_MALLAR } from './stories'
 import { COMMENTARY, disqualifiedLine, inquiryText } from './commentary'
-import { STODLINJE } from './parody'
+import { LANDING, STODLINJE } from './parody'
+import { WELCOME_BONUS } from '../game/economy'
+import { fmtRm } from '../game/format'
 
 const EM_DASH = '\u2014'
 const SRC = join(import.meta.dirname, '..', '..')
@@ -49,5 +51,26 @@ describe('no em dash', () => {
       expect(line).not.toContain('undefined')
       expect(line).not.toContain('NaN')
     }
+  })
+})
+
+describe('landing page copy', () => {
+  const strings = (v: unknown): string[] =>
+    typeof v === 'string' ? [v] : v && typeof v === 'object' ? Object.values(v).flatMap(strings) : []
+
+  it('fills every section', () => {
+    expect(LANDING.products.map((p) => p.id)).toEqual(['rally', 'plinko', 'butik'])
+    expect(LANDING.steps.items.length).toBeGreaterThan(0)
+    expect(LANDING.reviews.items.length).toBeGreaterThan(0)
+    expect(LANDING.badges.length).toBeGreaterThan(0)
+    expect(LANDING.faq.items.length).toBeGreaterThan(0)
+  })
+
+  it('talks RallyMynt, never kronor', () => {
+    for (const s of strings(LANDING)) expect(s).not.toMatch(/\b(kr|kronor)\b/i)
+  })
+
+  it('states the real welcome bonus', () => {
+    expect(LANDING.steps.items.map(([t]) => t)).toContain(`Få ${fmtRm(WELCOME_BONUS)}`)
   })
 })

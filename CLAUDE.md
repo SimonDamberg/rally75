@@ -138,7 +138,8 @@ Two devices, one password gate, one lazy-loaded chunk (`src/gm/GmApp.tsx` routes
 
 ## Client app (Stage 5)
 
-- `src/client/ClientApp.tsx`: no identity shows `Onboarding` (fake connect, KYC), otherwise
+- `src/client/ClientApp.tsx`: no identity shows `Landing` (a parody casino homepage; every button
+  leads on), then `Onboarding` (fake connect, KYC), otherwise
   `ClientShell` (header, tabs Rally75 / Mina spel / Bank / Butik / Topplista). `CookieBanner` floats over both.
 - The client is **Mr Green green**; the trotting surfaces are a **blue Rally75 inset panel**. The rule:
   anything showing a horse, a silk, odds or a race number carries `theme-rally75`. Today that is the
@@ -189,7 +190,7 @@ Mr Green's own arcade game, the second product tab (`src/client/Plinko.tsx` + `P
 - Social proof: `useSocialProof` (fake win toasts, real bet toasts from `raceBets` in `useGuest()`),
   `SocialStrip` (viewer count, "Utbetalt i kväll"). Pure helpers in `src/client/proof.ts` and
   `src/shared/game/hype.ts`. "Utbetalt i kväll" is `nightPaidDisplay(now, useNightPaid())` on both apps.
-- New parody copy goes in `parody.ts` (`OFFERS`, `OFFER_UI`, `PROOF`, `SMALL_PRINT`).
+- New parody copy goes in `parody.ts` (`OFFERS`, `OFFER_UI`, `PROOF`, `SMALL_PRINT`, `LANDING`).
 - Stödlinje: a `tel:` link to a friend in costume. Number and lead lines are `STODLINJE` in
   `parody.ts`; render with `StodlinjeLink`/`StodlinjeNote` from `src/ui`. Placed in `SmallPrint`
   (every tab), the Snabblån modal, Bank (when in debt), the loss reveal and the KYC form.

@@ -997,3 +997,54 @@ site the way the Rally75 panel is.
 
 **Manual step for Simon:** `npx supabase db push` for `20260919000013_loan_threshold.sql`. Until then the
 client offers the loan between 10 and 49 RM but the server still refuses it.
+
+## Landing page for new guests (done, 2026-09-19)
+
+Simon wanted a landing page in front of the sign-up, so a scanned QR code no longer drops a guest
+straight into the fake connect sequence. His choices: an **overhyped casino homepage** parody,
+shown **only to phones with no account**, and a **kupong banner** on it when the guest arrived by
+scanning a ticket.
+
+**Done**
+
+- `src/client/Landing.tsx`: gold marquee, sticky header (lockup + "Logga in", which like every other
+  button just starts onboarding), `SocialStrip`, the kupong banner, a jackpot-sign hero (the
+  `WELCOME_BONUS` rolls up inside chasing bulbs, with the offers' restarting countdown under the CTA),
+  a ticker of invented wins (`fakeWinText`), the product shelf (Rally75 in its blue
+  `theme-rally75` inset, Plånko in `theme-plinko`, Butiken on the green), three steps, swipeable fake
+  reviews, CSS-drawn trust seals, a `<details>` FAQ with the Stödlinje, a final CTA, `SmallPrint` and an
+  extra paragraph of fine print.
+- `ClientApp`: a `started` flag in memory. No identity and not started shows `Landing`; its buttons
+  set the flag and scroll to the top, and the connect + KYC flow runs unchanged. A reload goes back
+  to the landing, which is fine. `hasKupong` is `code || loadPendingCode()`, because the effect that
+  parks a scanned code runs after the first render.
+- Copy: `LANDING` in `parody.ts`, plus `STODLINJE.lead.landing`. Nothing new in `src/ui`.
+- Tests: `content.test.ts` checks every landing section has content, no "kr"/"kronor", and the step
+  "Få 1 000 RM" equals `fmtRm(WELCOME_BONUS)` (with the no-break spaces), so the copy cannot drift
+  from the economy.
+
+**Verified**
+
+- `npm run build`, `npm test` (220) and `npm run lint` pass.
+- Headless Chromium against a production build (`vite preview`, hosted backend, read only, no player
+  created) at 390x844: no horizontal overflow, no console errors, real "Utbetalt i kväll", the ticker
+  and countdown tick, a CTA leads to the connect screen at the top of the page. `/k/TESTCODE1` cleans
+  to `/` and shows the kupong banner. `/gm` still has no `data-brand`. Desktop at 1280 is a centred
+  column.
+
+**Deviations from META_PLAN**
+
+- None from the Decisions table. The plan's styleguide entry was skipped: `/styleguide` imports no
+  `src/client` component, and the page is easy to see by clearing site data.
+
+**Open issues**
+
+- On desktop the `SocialStrip` spans the full width while the page is a centred `max-w-md` column.
+  Phones are the target, so it was left.
+- The cookie banner still covers the lower half of the first screen until accepted, as it does over
+  onboarding.
+
+**Manual steps for Simon**
+
+1. Open the guest URL in a private window (or clear site data) on a real phone to see the page.
+   Nothing to push: no migration.
