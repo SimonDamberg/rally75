@@ -38,12 +38,18 @@ interface LiveOptions<T> {
   tables: readonly string[]
   /** Merge a change into the current data. Omit to refetch on every change. */
   apply?: (prev: T, change: RowChange) => T
+  /**
+   * Also refetch every pollMs while the tab is visible. A safety net for a socket that died
+   * without telling anyone: the heartbeat only notices after a while, and a push missed in that
+   * gap is gone for good (Realtime has no replay).
+   */
+  pollMs?: number
 }
 
 const RETRY_MS = [1000, 2000, 4000, 8000, 10000]
 const REFETCH_DEBOUNCE_MS = 150
 
-function useLive<T>({ key, load, tables, apply }: LiveOptions<T>): LiveResult<T> {
+function useLive<T>({ key, load, tables, apply, pollMs }: LiveOptions<T>): LiveResult<T> {
   const [state, setState] = useState<{ key: string | null; data: T | undefined; error: RallyError | null }>({
     key,
     data: undefined,
@@ -65,18 +71,22 @@ function useLive<T>({ key, load, tables, apply }: LiveOptions<T>): LiveResult<T>
     // Latest data this subscription fetched or merged. Changes are merged here, outside the state
     // updater: React may run updaters during render, where effect events must not be called.
     let current: T | undefined
+    // Fetches can overlap (a slow one, then a change or a poll). Only the newest may land, or a
+    // stale "closed" could overwrite a fresh "running".
+    let seq = 0
 
     const fetchNow = async () => {
       clearTimeout(timer)
+      const mine = ++seq
       try {
         const data = await doLoad()
-        if (cancelled) return
+        if (cancelled || mine !== seq) return
         attempt = 0
         connectionStore.reportFetch(true)
         current = data
         setState({ key, data, error: null })
       } catch (err) {
-        if (cancelled) return
+        if (cancelled || mine !== seq) return
         const error = toRallyError(err)
         if (error.code === 'network') connectionStore.reportFetch(false)
         setState((s) => ({ key, data: s.key === key ? s.data : undefined, error }))
@@ -133,14 +143,20 @@ function useLive<T>({ key, load, tables, apply }: LiveOptions<T>): LiveResult<T>
       if (document.visibilityState === 'visible') scheduleFetch()
     }
     document.addEventListener('visibilitychange', onVisible)
+    const poll = pollMs
+      ? setInterval(() => {
+          if (document.visibilityState === 'visible') scheduleFetch()
+        }, pollMs)
+      : undefined
 
     return () => {
       cancelled = true
       clearTimeout(timer)
+      clearInterval(poll)
       document.removeEventListener('visibilitychange', onVisible)
       removeChannel()
     }
-  }, [key, tablesKey, hasApply, reloadTick])
+  }, [key, tablesKey, hasApply, pollMs, reloadTick])
 
   const reload = useCallback(() => setReloadTick((t) => t + 1), [])
   const current = state.key === key
@@ -153,12 +169,16 @@ export function useConnection(): ConnectionStatus {
   return useSyncExternalStore(connectionStore.subscribe, connectionStore.getSnapshot, () => 'connecting')
 }
 
-/** The race in game_state.active_race_id; null when there is none. */
-export function useActiveRace(): LiveResult<RaceRow | null> {
+/**
+ * The race in game_state.active_race_id; null when there is none. The display iPad passes pollMs:
+ * a start is one row change, and if that push is lost the iPad would sit out the whole race.
+ */
+export function useActiveRace(options: { pollMs?: number } = {}): LiveResult<RaceRow | null> {
   return useLive({
     key: 'active-race',
     load: () => getApi().getActiveRace(),
     tables: ['game_state', 'races'],
+    pollMs: options.pollMs,
   })
 }
 

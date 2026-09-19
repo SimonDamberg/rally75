@@ -1048,3 +1048,29 @@ scanning a ticket.
 
 1. Open the guest URL in a private window (or clear site data) on a real phone to see the page.
    Nothing to push: no migration.
+
+## Display iPad missed the race start (done, 2026-09-19)
+
+**Bug (playtest):** after "Starta loppet" the iPad on `/gm/display` stayed on the closed field board
+through the whole race and then went straight to the result.
+
+**Cause:** the RPC was fine; the iPad missed the Realtime push. A start is one `races` UPDATE, and the
+display only refetched on a push, a (re)subscribe or a visibility change. An idle iPad's WebSocket can
+die quietly, and realtime-js only notices after a missed heartbeat (every 25 s by default, so up to
+about 50 s). A race is about 20 s, so the reconnect came after the finish and the refetch found it
+`finished`. The connection badge stayed "online" all along. A smaller hole: overlapping refetches in
+`useLive` could land out of order.
+
+**Done**
+
+- `useLive` drops any fetch result that is not the newest one.
+- `useLive` takes `pollMs`; `/gm/display` polls the active race every 3 s while visible. A late start
+  is still in step, because `RaceScreen` replays against `started_at`. Guests and the control phone
+  do not poll.
+- Realtime heartbeat lowered to 10 s in `createSupabase`, so dead sockets reconnect (and refetch
+  everything) sooner, on every device.
+
+**Manual steps for Simon**
+
+1. Deploy. No migration. To test: on the display tab, block `realtime/v1/websocket` in DevTools and
+   reload, then start a race from `/gm`. The display should go live within about 3 s.

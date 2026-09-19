@@ -8,6 +8,9 @@ export function createSupabase(
 ): SupabaseClient {
   return createClient(url, key, {
     ...options,
+    // Default is 25 s. A socket that died quietly is only noticed a heartbeat or two later, and
+    // every reconnect refetches everything, so find out sooner. A race is only ~20 s long.
+    realtime: { heartbeatIntervalMs: 10_000, ...options.realtime },
     // Guests are identified by {playerId, token}, not Supabase Auth.
     auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
   })
