@@ -982,3 +982,18 @@ site the way the Rally75 panel is.
 **Manual steps for Simon**
 
 1. `npx supabase db push` to apply this migration (with the four still-unpushed ones) to hosted.
+
+## Snabblån under 50 RM, Plånko title fix (done, 2026-09-19)
+
+- Plånko pays odd amounts, so guests were stranded on 23 or 41 RM: not broke enough for a Snabblån,
+  too poor to play. New `LOAN_THRESHOLD` (50) in `economy.ts`, mirrored in
+  `20260919000013_loan_threshold.sql` (`take_loan` refuses at 50 and up) and checked by
+  `economy.test.ts`. The shell's `broke` (header button, the automatic pop-up, the Bank button) uses it,
+  and the Bank's locked text names the amount. Smoke asserts 50 is refused and 49 gets the loan.
+- The italic PLÅNKO title lost its last O on Safari: a `drop-shadow` filter clips paint outside the
+  element box, and the synthesized italic leans past it. `pr-3` gives the slant room.
+- Verified: build, 217 tests, lint, smoke (local, all steps), and a headless run where a guest on
+  40 RM got the pop-up, the header button and a 540 RM balance after the loan.
+
+**Manual step for Simon:** `npx supabase db push` for `20260919000013_loan_threshold.sql`. Until then the
+client offers the loan between 10 and 49 RM but the server still refuses it.

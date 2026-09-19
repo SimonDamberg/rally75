@@ -98,7 +98,7 @@ export function Plinko({ onHold }: PlinkoProps) {
     <div className="flex flex-1 flex-col">
       <section className="theme-plinko m-3 flex flex-col gap-3 rounded-2xl bg-night p-3 shadow-[0_0.25rem_1.5rem_rgb(0_0_0/0.35)] ring-1 ring-tote-hi/30">
         <div className="flex items-baseline justify-between gap-2 border-b border-white/10 pb-2">
-          <h1 className="font-display text-3xl leading-none font-black tracking-wide text-sleaze uppercase italic drop-shadow-[0_0_0.6rem_var(--color-sleaze)]">
+          <h1 className="font-display pr-3 text-3xl leading-none font-black tracking-wide text-sleaze uppercase italic drop-shadow-[0_0_0.6rem_var(--color-sleaze)]">
             {PLINKO.title}
           </h1>
           <span className="font-display text-[0.6rem] font-bold tracking-[0.2em] text-ink-dim uppercase">

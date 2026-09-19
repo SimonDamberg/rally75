@@ -8,6 +8,7 @@ import {
   COUPON_TIERS,
   LOAN_AMOUNT,
   LOAN_DEBT,
+  LOAN_THRESHOLD,
   MAX_NAME_LENGTH,
   MIN_STAKE,
   netWorth,
@@ -29,6 +30,18 @@ describe('economy constants', () => {
     expect(sql).toContain(`balance >= ${MIN_STAKE}`)
     expect(sql).toContain(`balance = balance + ${LOAN_AMOUNT}, debt = debt + ${LOAN_DEBT}`)
     expect(sql).toContain(`char_length(v) > ${MAX_NAME_LENGTH}`)
+  })
+
+  it('match the SQL mirror for the Snabblån threshold', () => {
+    const file = readdirSync(MIGRATIONS)
+      .filter((f) => f.endsWith('_loan_threshold.sql'))
+      .sort()
+      .at(-1)!
+    const sql = readFileSync(join(MIGRATIONS, file), 'utf8')
+    expect(sql).toContain(`LOAN_THRESHOLD ${LOAN_THRESHOLD}.`)
+    expect(sql).toContain(`balance >= ${LOAN_THRESHOLD} then`)
+    expect(sql).toContain(`balance = balance + ${LOAN_AMOUNT}, debt = debt + ${LOAN_DEBT}`)
+    expect(LOAN_THRESHOLD).toBeGreaterThanOrEqual(MIN_STAKE)
   })
 
   /**

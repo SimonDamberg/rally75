@@ -31,6 +31,7 @@ import {
   COUPON_TIERS,
   LOAN_AMOUNT,
   LOAN_DEBT,
+  LOAN_THRESHOLD,
   MIN_STAKE,
   netWorth,
   WELCOME_BONUS,
@@ -632,6 +633,14 @@ await step("paddock race is replaced by gm_create_race", async () => {
 
 await step("Snabblån and balance adjustments", async () => {
   await expectCode(api.takeLoan(cia), "loan_not_allowed");
+  // Exactly LOAN_THRESHOLD is still too rich for a loan.
+  await gm.adjustBalance(pw, cia.playerId, LOAN_THRESHOLD - (await balanceOf(cia)));
+  await expectCode(api.takeLoan(cia), "loan_not_allowed");
+  // One below it is broke enough (a fresh player, so Cia's numbers stay as later steps expect).
+  const nastan = await newPlayer("Smoke Nästan");
+  await gm.adjustBalance(pw, nastan.playerId, LOAN_THRESHOLD - 1 - WELCOME_BONUS);
+  const nearly = await api.takeLoan(nastan);
+  assert.equal(nearly.balance, LOAN_THRESHOLD - 1 + LOAN_AMOUNT);
   const balance = await balanceOf(cia);
   await expectCode(
     gm.adjustBalance(pw, cia.playerId, -balance - 1),

@@ -164,7 +164,8 @@ export const BANK = {
   debtFreeText: 'Inga lån, inga krav, ingen spänning. Det går att lösa.',
   noMoney: 'Saldot är slut. Svårt att betala av med tomma händer.',
   loan: 'Ta ett snabblån',
-  loanLocked: 'Snabblån öppnas när saldot är slut. Vi hjälper bara den som verkligen behöver.',
+  loanLocked: (rm: string) =>
+    `Snabblån öppnas när saldot är under ${rm}. Vi hjälper bara den som verkligen behöver.`,
   smallPrint: 'Avbetalning påverkar inte topplistan. Skulden försvinner bara från din rad.',
   couponTitle: 'Lös in en kupong',
   couponText: 'Vann du något i baren? Skriv av koden från kupongen, eller skanna QR-koden.',

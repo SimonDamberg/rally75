@@ -6,7 +6,7 @@ import { BANK } from '../shared/content/client'
 import { STODLINJE } from '../shared/content/parody'
 import { UI_LABELS } from '../shared/content/ui'
 import { normalizeCode } from '../shared/game/coupon'
-import { nightNet } from '../shared/game/economy'
+import { LOAN_THRESHOLD, nightNet } from '../shared/game/economy'
 import { fmtRm } from '../shared/game/format'
 import { Button, cx, SmallPrint, StodlinjeNote, toast } from '../ui'
 import { useGuest, useGuestAction } from './guest'
@@ -159,7 +159,7 @@ export function Bank({
         <Button variant="sleaze" block disabled={!broke} onClick={onLoan}>
           {BANK.loan}
         </Button>
-        {!broke && <p className="text-center text-xs text-ink-dim">{BANK.loanLocked}</p>}
+        {!broke && <p className="text-center text-xs text-ink-dim">{BANK.loanLocked(fmtRm(LOAN_THRESHOLD))}</p>}
       </section>
 
       <p className="px-1 text-xs text-ink-dim">{BANK.smallPrint}</p>

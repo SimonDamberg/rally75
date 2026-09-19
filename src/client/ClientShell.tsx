@@ -5,7 +5,7 @@ import { useMemo, useState } from 'react'
 import { useActiveRace, useConnection, useLeaderboard, usePlayerBets, useRaceBets, useShopItems } from '../lib/hooks'
 import type { Identity, PlayerRow } from '../lib/types'
 import { CLIENT_TABS } from '../shared/content/client'
-import { MIN_STAKE } from '../shared/game/economy'
+import { LOAN_THRESHOLD } from '../shared/game/economy'
 import { BonusBar, ConnectionBadge, cx } from '../ui'
 import { Bank } from './Bank'
 import { BonusReveal } from './BonusReveal'
@@ -64,7 +64,7 @@ export function ClientShell({ identity, player, forget, justJoined, cookiesAccep
   const reveal = useResultReveal(race, bets, player)
   const coupon = useCoupon(guest)
   // Broke with nothing still riding: winnings from open bets may be on the way.
-  const broke = !!player && player.balance < MIN_STAKE && !!bets && !bets.some((b) => b.status === 'open')
+  const broke = !!player && player.balance < LOAN_THRESHOLD && !!bets && !bets.some((b) => b.status === 'open')
   // A scanned kupong waits its turn behind the welcome bonus, a result and the bet confirm, then
   // blocks everything else itself: a pop-up offer over the reveal would bury the payout.
   const couponOpen = (!!coupon.pending || !!coupon.claimed) && !justJoined && !reveal.open && !confirming

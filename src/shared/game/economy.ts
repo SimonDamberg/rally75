@@ -4,6 +4,12 @@
 export const WELCOME_BONUS = 1000
 /** Smallest accepted stake. A player below this is broke and may take a Snabblån. */
 export const MIN_STAKE = 10
+/**
+ * Below this balance a player is broke and may take a Snabblån. Higher than MIN_STAKE because Plånko
+ * pays odd amounts and leaves guests on 23 RM, which is technically money and practically nothing.
+ * Mirrored in *_loan_threshold.sql.
+ */
+export const LOAN_THRESHOLD = 50
 /** RM paid out by one Snabblån. */
 export const LOAN_AMOUNT = 500
 /** Debt added by one Snabblån (the absurd interest is the joke). */
