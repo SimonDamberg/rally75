@@ -88,6 +88,9 @@ export const GM_RACE = {
   // Control phone, while the race runs on the iPad.
   liveTitle: "Loppet pågår",
   leader: "Leder",
+  /** The held start: the display counts the field down, so the phone says why nothing moves. */
+  phaseCountdown: (n: number) => `Startar om ${n}`,
+  phaseGo: "Och de är iväg",
   phaseRunning: "Loppet rullar",
   phaseFinishing: "I mål, väntar",
   phaseDone: "Publicerar resultat",

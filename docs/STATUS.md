@@ -1271,3 +1271,22 @@ and nothing else. `/gm` and `/gm/kuponger` stay pure Rally75.
   now shows the same rotating `Spotlight` as `betting`. The rotation is clocked from `betting_at`, so
   it carries on without a jump; only the header changes from "Spelet är öppet" to "Spelet är stängt".
 - `FieldBoard.tsx` and the `ATTRACT.closedSub` line are deleted.
+
+### Follow-up: red "stängt" and a held start (Simon's call, 2026-09-19)
+
+- The display's closed header now reads "Spelet är **stängt**" with the last word in `drift` red,
+  with "Loppet startar strax" under it (`ATTRACT.closedTitleLead` / `closedTitleWord` / `closedSub`,
+  the name reused for a new line). The spotlight rotation itself is unchanged.
+- The start is held: `gm_set_status` stamps `started_at` three seconds into the future
+  (`20260919000016_start_countdown.sql`, mirrored by `START_COUNTDOWN_MS` in `src/gm/raceClock.ts`
+  with a test on the SQL string). The countdown is therefore the negative side of the same server
+  clock the race replays against, not a local delay, so both devices count to the same zero and
+  tick 0 is still the first stride.
+- The display shows `StartCountdown` (3, 2, 1 in plate over a dimmed track, then KÖR on cash green
+  for 0.8 s) as an overlay child of `RaceTrack`; the control phone's phase line says "Startar om 3"
+  and "Och de är iväg" so Simon knows why the field is standing still.
+- Auto-publish, the display's fallback publish and Snabbspola all measure from `started_at`, so they
+  shift with it and needed no change. Smoke passes against the local stack.
+
+**Manual step for Simon:** `npx supabase db push` before the party, otherwise the hosted database
+still starts races without the countdown (the screens handle that fine, they just cut straight in).

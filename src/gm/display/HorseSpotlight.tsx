@@ -54,13 +54,26 @@ export function Spotlight({
 
   return (
     <div className="flex min-h-0 min-w-0 flex-col gap-[1.5vh] overflow-hidden">
-      <div className="flex items-baseline justify-between gap-4">
-        <h2 className="font-display text-[min(2.5rem,3.6vw)] leading-none font-black tracking-wide text-plate uppercase">
-          {race.status === "closed"
-            ? ATTRACT.closedTitle
-            : ATTRACT.spotlightTitle}
-        </h2>
-        <span className="font-display text-[min(1.5rem,2.2vw)] font-bold text-ink-dim uppercase">
+      <div className="flex items-end justify-between gap-4">
+        <div className="flex min-w-0 flex-col gap-[0.4vh]">
+          <h2 className="font-display text-[min(2.5rem,3.6vw)] leading-none font-black tracking-wide text-plate uppercase">
+            {race.status === "closed" ? (
+              <>
+                {ATTRACT.closedTitleLead}{" "}
+                {/* The one word the room needs from across the bar. */}
+                <span className="text-drift">{ATTRACT.closedTitleWord}</span>
+              </>
+            ) : (
+              ATTRACT.spotlightTitle
+            )}
+          </h2>
+          {race.status === "closed" && (
+            <p className="font-display text-[min(1.5rem,2.2vw)] leading-none font-bold tracking-[0.08em] text-drift uppercase">
+              {ATTRACT.closedSub}
+            </p>
+          )}
+        </div>
+        <span className="shrink-0 font-display text-[min(1.5rem,2.2vw)] font-bold text-ink-dim uppercase">
           {ATTRACT.spotlightOf(i + 1, count)}
         </span>
       </div>

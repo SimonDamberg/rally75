@@ -9,10 +9,11 @@ import { GM_RACE } from '../../shared/content/gm'
 import { ATTRACT } from '../../shared/content/ui'
 import { ConnectionBadge } from '../../ui'
 import { laneBackers } from '../book'
-import { raceView } from '../raceClock'
+import { countdownAt, raceView } from '../raceClock'
 import { useRaceTimeline } from '../useRaceTimeline'
 import { InquiryDrama } from './InquiryDrama'
 import { RaceTrack } from './RaceTrack'
+import { StartCountdown } from './StartCountdown'
 
 const CLOCK_MS = 100
 
@@ -39,8 +40,11 @@ export function RaceScreen({
     return () => clearInterval(id)
   }, [settled])
 
-  const view = timeline ? raceView(now - start, timeline) : null
+  const elapsed = now - start
+  const view = timeline ? raceView(elapsed, timeline) : null
   const phase = settled ? 'done' : (view?.phase ?? 'running')
+  // started_at sits a few seconds ahead of the first frame, so a running race opens on the count.
+  const countdown = settled ? null : countdownAt(elapsed)
   const backers = useMemo(() => laneBackers(race.field, bets ?? [], players, ATTRACT.someone), [race.field, bets, players])
 
   return (
@@ -54,6 +58,8 @@ export function RaceScreen({
       loadingText={error ? error.message : GM_RACE.loading}
       banner={<ConnectionBadge status={connection} variant="banner" size="tv" />}
     >
+      {/* The field is held at the gate until the count reaches zero. */}
+      <StartCountdown value={countdown} />
       {/* Drama only: the ruling buttons live on the control phone. */}
       {phase === 'done' && !settled && timeline?.inquiry && <InquiryDrama text={timeline.inquiry.text} />}
     </RaceTrack>

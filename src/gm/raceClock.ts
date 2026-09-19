@@ -9,6 +9,25 @@ import type { RaceTimeline } from '../shared/game/types'
 export const FINISH_PAUSE_MS = 3000
 export const PHOTO_PAUSE_MS = 4200
 
+/**
+ * The held start. `gm_set_status` stamps `started_at` this far into the future, so every device
+ * sits at tick 0 while the display counts the field down. Mirrored in
+ * `supabase/migrations/20260919000016_start_countdown.sql`; change both together.
+ */
+export const START_COUNTDOWN_MS = 3000
+/** How long KÖR stays up once the field is away. */
+export const GO_MS = 800
+
+/** A number to count, 'go' for KÖR, or null once the race owns the screen by itself. */
+export type Countdown = number | 'go' | null
+
+/** 3, 2, 1 before the first frame, then KÖR over the first strides. */
+export function countdownAt(elapsedMs: number): Countdown {
+  if (elapsedMs >= GO_MS) return null
+  if (elapsedMs >= 0) return 'go'
+  return Math.min(START_COUNTDOWN_MS / 1000, Math.ceil(-elapsedMs / 1000))
+}
+
 /** running: horses moving. finishing: finish line crossed, pause. done: publish or rule. */
 export type RacePhase = 'running' | 'finishing' | 'done'
 

@@ -140,6 +140,9 @@ Two devices, one password gate, one lazy-loaded chunk (`src/gm/GmApp.tsx` routes
   replay `simulateRace` against it and correct for their own clock drift with `useServerClock()`
   (`src/lib/clock.ts` + the `server_now()` RPC). Snabbspola is the `gm_skip_race` RPC, which moves
   `started_at` back so the skip reaches the iPad over Realtime. Never store a race start locally.
+  `gm_set_status` stamps `started_at` `START_COUNTDOWN_MS` (`raceClock.ts`, mirrored in SQL) into the
+  future, so the negative side of the clock is the display's 3, 2, 1, KÖR (`StartCountdown`) and
+  tick 0 is the first stride.
 - Realtime has no replay, so the display also re-reads the active race every 3 s
   (`useActiveRace({ pollMs })`): an idle iPad's socket can die quietly for longer than a race lasts.
 - No inquiry: the control phone publishes automatically after the finish pause, and the display

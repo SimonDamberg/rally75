@@ -86,7 +86,13 @@ export const ATTRACT = {
   fieldTitle: "Nästa Lopp",
   spotlightTitle: "Spelet är öppet",
   spotlightOf: (i: number, n: number) => `Häst ${i} av ${n}`,
-  closedTitle: "Spelet är stängt",
+  /** Betting closed: the last word is red, so the room reads it across the room. */
+  closedTitleLead: "Spelet är",
+  closedTitleWord: "stängt",
+  closedSub: "Loppet startar strax",
+  /** The held start on the display iPad: 3, 2, 1 and then away. */
+  countdownGo: "KÖR",
+  countdownLabel: (n: number) => `Start om ${n}`,
   /** Toasts on the display iPad when money lands on a horse. */
   bet: (label: string, amount: string, horse: string) =>
     `${label} satsade ${amount} på ${horse}`,

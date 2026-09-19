@@ -10,7 +10,7 @@ import { fmtInt } from '../../shared/game/format'
 import { commentAt } from '../../shared/game/sim'
 import type { Ruling } from '../../shared/game/types'
 import { Button, cx, HorseBadge } from '../../ui'
-import { raceView, runMs } from '../raceClock'
+import { countdownAt, raceView, runMs } from '../raceClock'
 import type { RaceControl } from '../useRaceControl'
 import { useRaceTimeline } from '../useRaceTimeline'
 import { InquiryRulings } from './InquiryRulings'
@@ -37,7 +37,10 @@ export function RunningRace({ race, control }: { race: RaceRow; control: RaceCon
     return () => clearInterval(id)
   }, [])
 
-  const view = timeline ? raceView(now - start, timeline) : null
+  const elapsed = now - start
+  // started_at is stamped a few seconds ahead so the display can count the field down.
+  const countdown = countdownAt(elapsed)
+  const view = timeline ? raceView(elapsed, timeline) : null
   const phase = view?.phase
   const frame = timeline && view ? timeline.frames[view.tick] : null
   const comment = timeline && view ? (phase === 'running' ? commentAt(timeline, view.tick) : timeline.finishComment) : null
@@ -71,7 +74,13 @@ export function RunningRace({ race, control }: { race: RaceRow; control: RaceCon
       </div>
 
       <p className="text-xs font-bold tracking-[0.14em] text-ink-dim uppercase">
-        {phase ? PHASE_LABEL[phase] : GM_RACE.loading}
+        {countdown !== null
+          ? countdown === 'go'
+            ? GM_RACE.phaseGo
+            : GM_RACE.phaseCountdown(countdown)
+          : phase
+            ? PHASE_LABEL[phase]
+            : GM_RACE.loading}
       </p>
 
       {leader && (
