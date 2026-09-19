@@ -13,6 +13,7 @@ import { cx, HorseBadge } from '../../ui'
 import type { LaneBackers } from '../book'
 import type { RacePhase } from '../raceClock'
 import { GagProps, GagSticker } from './GagSprite'
+import { MrGreenBug } from './MrGreenBug'
 
 const START_LEFT = 6
 const FINISH_LEFT = 91
@@ -95,11 +96,14 @@ export function RaceTrack({ raceNo, field, timeline, tick, phase, backers, loadi
           </span>
         )}
         {frame && <span className="font-display text-tv-md font-black text-ink tabular-nums">{GM_RACE.clock(fmtInt(frame.meters))}</span>}
-        {stake > 0 && (
-          <span className="ml-auto rounded-full bg-black/40 px-5 py-1.5 font-display text-tv-sm font-black text-plate tabular-nums ring-2 ring-plate/60">
-            {GM_RACE.atStake(fmtRm(stake))}
-          </span>
-        )}
+        <div className="ml-auto flex items-center gap-6">
+          {stake > 0 && (
+            <span className="rounded-full bg-black/40 px-5 py-1.5 font-display text-tv-sm font-black text-plate tabular-nums ring-2 ring-plate/60">
+              {GM_RACE.atStake(fmtRm(stake))}
+            </span>
+          )}
+          <MrGreenBug />
+        </div>
       </header>
 
       <div

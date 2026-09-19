@@ -12,6 +12,7 @@ import {
   BonusBar,
   ConnectionBadge,
   Logo,
+  MrGreenLogo,
   NightPaidNumber,
   QrCode,
 } from "../../ui";
@@ -91,7 +92,13 @@ export function AttractMain() {
   return (
     <div className="flex min-w-0 flex-col gap-4">
       <div className="flex items-end justify-between gap-6">
-        <Logo size="lg" />
+        <div className="flex flex-col gap-3">
+          <Logo size="lg" />
+          <p className="flex items-center gap-3 font-display text-2xl font-black tracking-[0.12em] text-ink-dim uppercase">
+            <MrGreenLogo variant="mark" size="sm" />
+            {ATTRACT.partOf}
+          </p>
+        </div>
         <NightPaid />
       </div>
       <Jackpot />
@@ -110,7 +117,7 @@ export function Attract({ children }: { children?: ReactNode }) {
 
   return (
     <div className="relative flex h-dvh flex-col overflow-hidden">
-      <BonusBar />
+      <BonusBar className="theme-mrgreen" text={ATTRACT.marquee} />
       <ConnectionBadge status={connection} variant="banner" size="tv" />
 
       <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)_auto] items-center gap-10 overflow-hidden px-12 py-[1vh]">
@@ -128,6 +135,10 @@ export function Attract({ children }: { children?: ReactNode }) {
           </div>
           <p className="mt-2 font-display text-tv-md font-black text-plate uppercase">
             {ATTRACT.scan}
+          </p>
+          <p className="-mt-2 flex items-center gap-3 font-display text-2xl font-black tracking-[0.08em] text-ink uppercase">
+            <MrGreenLogo variant="mark" size="md" />
+            {ATTRACT.playAt}
           </p>
           <p className="rounded-full bg-sleaze px-5 py-1.5 font-display text-tv-sm font-black text-white uppercase">
             {ATTRACT.bonus(fmtRmLong(WELCOME_BONUS))}

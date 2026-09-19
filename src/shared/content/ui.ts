@@ -68,6 +68,10 @@ export const ATTRACT = {
   jackpotLabel: "Dagens jackpott",
   nightPaid: "Utbetalt idag",
   jackpotSmallPrint: "* Betalas enbart ut till Rallykå i utbyte mot tidsavdrag",
+  /** The umbrella brand on the iPad: the marquee, the line under Rally75 and the QR. */
+  marquee: `Rally75 • En del av ${BRAND.full} • Välkomstbonus 500 % • 13+ • Spela inte lagom`,
+  partOf: `En del av ${BRAND.full}`,
+  playAt: `på ${BRAND.full}`,
   scan: "Skanna och spela",
   bonus: (amount: string) => `${amount} i välkomstbonus`,
   qrLabel: (url: string) => `QR-kod till ${url}`,

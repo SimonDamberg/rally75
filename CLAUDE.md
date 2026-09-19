@@ -19,8 +19,10 @@ Supabase is the shared backend.
   casino: deep felt green, cream wordmark, the frog in the suit. **Rally75** is the trotting product
   inside it, and the brand of every GM surface. Never use ATG's real name or logo.
   Mr Green art belongs on the guest app, the guest icons and the printed kupong, and **nowhere on
-  `/gm`, `/gm/display` or `/gm/kuponger`**, which stay tote blue. (This replaces the earlier rule that
-  kept the Mr Green mark on paper only; Simon's call, see `docs/STATUS.md`.)
+  `/gm` or `/gm/kuponger`**, which stay tote blue. `/gm/display` stays Rally75 blue too (never
+  `data-brand`), but credits its owner in exactly four places: the marquee (`BonusBar` with
+  `theme-mrgreen`), "En del av Mr Green Nätcasino" under the Rally75 logo, the frog by the join QR,
+  and `MrGreenBug` in the corner of the race and result screens. (Simon's calls, see `docs/STATUS.md`.)
 - Balance is authoritative in the DB and changes **only** through server-side RPCs.
 - Network is required; show clear "Ingen anslutning" states with auto-retry, no offline mode.
 

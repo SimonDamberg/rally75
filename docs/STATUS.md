@@ -1216,3 +1216,21 @@ Galopp is unchanged.
   unchanged.
 
 **Manual steps for Simon:** as before, deploy between races and reload both GM devices.
+
+## The display credits Mr Green (done, 2026-09-19)
+
+Simon's call: the iPad should show that Rally75 is part of Mr Green Nätcasino, since guests play
+on the Mr Green site on their phones. The display stays Rally75 blue and never gets `data-brand`.
+It credits its owner in four places:
+
+- **Marquee:** the top `BonusBar` carries `theme-mrgreen`, so it is the guest app's gold band with
+  green lettering and bulbs. The text is `ATTRACT.marquee`.
+- **Credit line:** "En del av Mr Green Nätcasino" with the frog under the Rally75 logo
+  (`AttractMain`).
+- **QR:** the frog and "på Mr Green Nätcasino" under "Skanna och spela". It stays up in every view
+  except the race itself.
+- **Corner logo:** `MrGreenBug` (the frog at 80 % opacity) at the right of the `RaceTrack` header and
+  top right of `ResultDisplay`. `DisplayShell` preloads the art with the kusk faces.
+
+**Deviation:** relaxes the Two brands rule in CLAUDE.md, which has been rewritten to allow these four
+and nothing else. `/gm` and `/gm/kuponger` stay pure Rally75.

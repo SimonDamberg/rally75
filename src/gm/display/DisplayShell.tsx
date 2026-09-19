@@ -46,9 +46,11 @@ export function DisplayShell() {
     [board?.players],
   );
 
-  // Warm the cache with every kusk face, so the first race's lanes do not pop in on the big screen.
+  // Warm the cache with every kusk face and the Mr Green corner logo, so the first race's lanes do
+  // not pop in on the big screen.
   useEffect(() => {
-    for (const src of Object.values(KUSK_PHOTOS)) new Image().src = src;
+    for (const src of [...Object.values(KUSK_PHOTOS), "/mrgreen-logo.jpg"])
+      new Image().src = src;
   }, []);
 
   // Safety net if the control phone dies between the finish and the publish.

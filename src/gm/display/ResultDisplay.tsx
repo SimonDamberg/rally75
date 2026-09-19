@@ -2,6 +2,7 @@
 // without the actions: the display never advances the night, it only reports it.
 import type { BetRow, PlayerRow, RaceRow } from '../../lib/types'
 import { ResultPanel } from '../ResultPanel'
+import { MrGreenBug } from './MrGreenBug'
 
 export function ResultDisplay({
   race,
@@ -13,7 +14,8 @@ export function ResultDisplay({
   players: ReadonlyMap<string, PlayerRow>
 }) {
   return (
-    <div className="flex h-dvh animate-pop-in flex-col justify-center overflow-y-auto bg-night-deep px-10 py-8">
+    <div className="relative flex h-dvh animate-pop-in flex-col justify-center overflow-y-auto bg-night-deep px-10 py-8">
+      <MrGreenBug className="absolute top-6 right-8" />
       <ResultPanel race={race} bets={bets} players={players} size="tv" />
     </div>
   )
