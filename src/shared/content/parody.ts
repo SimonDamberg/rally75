@@ -82,7 +82,7 @@ export const OFFERS: readonly OfferCopy[] = [
     id: "cashback",
     kicker: "Tröstpaket",
     title: "100 % cashback",
-    text: "Förlorar du ikväll får du allt tillbaka*. Det lovar vi med handen på plånboken.",
+    text: "Förlorar du idag får du allt tillbaka*. Det lovar vi med handen på plånboken.",
     cta: "Aktivera cashback",
     accepted: "Cashback aktiverad. Utbetalas i form av tröst.",
     smallPrint: "*Återbetalas som en klapp på axeln från närmaste vuxen.",
@@ -191,12 +191,12 @@ export const LANDING = {
     text: "Skapa ett konto så betalar vi ut den direkt. Det enda vi någonsin betalar ut direkt.",
   },
   hero: {
-    kicker: "Sveriges mest licensierade nätcasino*",
+    kicker: "Trav, skrap och andra sätt att bli av med pengar.",
     /** Follows the bonus amount, which is rendered from WELCOME_BONUS. */
     headline: "i välkomstbonus",
     sub: "Helt gratis. Utan insättning, utan krav, utan eftertanke.",
     cta: "Hämta bonusen",
-    footnote: "*I Atlantis.",
+    footnote: "Störst i Atlantis",
   },
   ticker: "Senaste vinsterna",
   shelf: {
@@ -209,7 +209,7 @@ export const LANDING = {
       id: "rally",
       kicker: "Officiell travpartner",
       title: "Rally75",
-      text: "Riktiga hästar, påhittade chanser. Loppen körs live på storbildsskärmen och du spelar från soffan.",
+      text: "Riktiga hästar, påhittade chanser. Loppen körs live på storbildsskärmen och du spelar från telefonen.",
       stats: [
         ["Återbetalning", "Ibland"],
         ["Hästar", "4 per lopp"],
@@ -217,7 +217,7 @@ export const LANDING = {
     },
     {
       id: "plinko",
-      kicker: "Ett Mr Green-original",
+      kicker: "Droppa kulor som om det vore hjälprebusar",
       title: "Plånko",
       text: "Töm plånboken, en kula i taget. Fysik har aldrig varit så dyrt.",
       stats: [
@@ -229,7 +229,7 @@ export const LANDING = {
       id: "butik",
       kicker: "Svarta marknaden",
       title: "Butiken",
-      text: "Byt dina RallyMynt mot riktiga saker i baren. Kvitto ingår, ånger ingår inte.",
+      text: "Byt dina RallyMynt mot riktiga vinster. Kvitto ingår, ånger ingår inte.",
       stats: [
         ["Öppet", "Tills det tar slut"],
         ["Returrätt", "Nej"],
@@ -248,10 +248,22 @@ export const LANDING = {
   reviews: {
     title: "Vad våra spelare säger",
     items: [
-      { text: "Jag har aldrig varit så nära en vinst. Två gånger i kväll!", who: "Kerstin, Tierp" },
-      { text: "Köpte en shot i Butiken för hela min förmögenhet. Den var god.", who: "Bosse, Östhammar" },
-      { text: "Snabblånet ändrade mitt liv. Jag vet bara inte åt vilket håll än.", who: "Agneta, Nynäshamn" },
-      { text: "Kundtjänst svarade direkt. Han var utklädd, men han lyssnade.", who: "Gun, Sala" },
+      {
+        text: "Jag har aldrig varit så nära en vinst. Två gånger idag!",
+        who: "Kerstin, Tierp",
+      },
+      {
+        text: "Köpte en shot i Butiken för hela min förmögenhet. Den var god.",
+        who: "Bosse, Östhammar",
+      },
+      {
+        text: "Snabblånet ändrade mitt liv. Jag vet bara inte åt vilket håll än.",
+        who: "Agneta, Nynäshamn",
+      },
+      {
+        text: "Kundtjänst svarade direkt. Han var utklädd, men han lyssnade.",
+        who: "Gun, Sala",
+      },
     ] as readonly LandingReview[],
   },
   /** Trust seals: [label, value]. */
@@ -293,5 +305,5 @@ export const LANDING = {
     cta: "Ja, ge mig pengarna",
   },
   finePrint:
-    "Välkomstbonusen betalas ut i RallyMynt, som saknar värde utanför det här rummet och i viss mån även i det. Bonusen omfattas av ett omsättningskrav på 40x, som vi har valt att inte kontrollera. Mr Green förbehåller sig rätten att ändra odds, regler, öppettider och personlighet utan förvarning. Recensionerna är äkta i den meningen att någon har skrivit dem. Siffran under Utbetalt i kväll är avrundad uppåt, ibland kraftigt. Genom att scrolla hit har du godkänt samtliga villkor, även de vi inte har skrivit än.",
+    "Välkomstbonusen betalas ut i RallyMynt, som saknar värde utanför det här Rebusrallyt och i viss mån även i det. Bonusen omfattas av ett omsättningskrav på 40x, som vi har valt att inte kontrollera. Mr Green förbehåller sig rätten att ändra odds, regler, öppettider och personlighet utan förvarning. Recensionerna är äkta i den meningen att någon har skrivit dem. Siffran under Utbetalt idag är avrundad uppåt, ibland kraftigt. Genom att scrolla hit har du godkänt samtliga villkor, även de vi inte har skrivit än.",
 } as const;
