@@ -60,6 +60,12 @@ export const COMMENTARY = {
   final: (a: NamedRunner, b: NamedRunner, close: boolean) =>
     close ? `NOS MOT NOS! ${a.name.toUpperCase()} ELLER ${b.name.toUpperCase()}!` : `HUNDRA METER KVAR! ${a.name.toUpperCase()} ÄR NÄRA!`,
 
+  /** Last 100 m, when the leader stalled in the upplopp and is coming back to win. */
+  backAgain: [
+    (h: NamedRunner) => `${h.name.toUpperCase()} ÄR TILLBAKA! VILKEN ÅTERKOMST!`,
+    (h: NamedRunner) => `${h.jockey.toUpperCase()} ÄR TILLBAKA I SULKYN! ${h.name.toUpperCase()} FLYGER!`,
+  ] as readonly Line[],
+
   leadChange: [
     (l: NamedRunner) => `${l.name} går förbi och tar över ledningen!`,
     (l: NamedRunner) => `${l.jockey} tar kommandot med ${l.name}!`,

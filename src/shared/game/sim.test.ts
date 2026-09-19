@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { createRng } from './rng'
 import { buildField, FIELD_SIZE } from './field'
-import { BOOSTS, COMIC_GAGS, commentAt, demoteWinner, INQUIRY_RATE, PHOTO_MARGIN, SCRIPT_WEIGHTS, simulateRace, STRETCH_TICK, TICKS } from './sim'
+import { BOOSTS, COMIC_GAGS, commentAt, demoteWinner, INQUIRY_RATE, PHOTO_MARGIN, SCRIPT_WEIGHTS, simulateRace, STRETCH_GAG_TICK, STRETCH_TICK, TICKS } from './sim'
 import { winWeights } from './odds'
 import { NAMED_KUSKAR } from '../content/kuskar'
 
@@ -118,7 +118,13 @@ describe('simulateRace', () => {
       scripts.add(t.script)
       for (const g of t.gags) {
         gags.add(g.kind)
-        if (g.tick + g.ticks >= STRETCH_TICK) lateGags++
+        // Only the upplopp gag reaches the upplopp, and it is always on the winner or the runner-up.
+        if (g.tick + g.ticks >= STRETCH_TICK) {
+          lateGags++
+          expect(g.tick).toBe(STRETCH_GAG_TICK)
+          expect(t.finishOrder.slice(0, 2)).toContain(g.n)
+          expect(g.kind).not.toBe('kommitte')
+        }
       }
       if (t.frames.slice(TICKS * 0.75).some((f, k, arr) => k > 0 && f.leader !== arr[k - 1].leader)) late++
       if (t.frames.slice(6).every((f) => f.leader === t.finishOrder[0])) wire++
@@ -129,7 +135,9 @@ describe('simulateRace', () => {
     expect(photos / N).toBeGreaterThan(0.15)
     expect(photos / N).toBeLessThan(0.3)
     expect(wire / N).toBeLessThan(0.3)
-    expect(lateGags).toBe(0)
+    // About 40 % of races get an upplopp gag.
+    expect(lateGags / N).toBeGreaterThan(0.33)
+    expect(lateGags / N).toBeLessThan(0.47)
     expect(repeats).toBe(0)
     expect([...scripts].sort()).toEqual(Object.keys(SCRIPT_WEIGHTS).sort())
     expect([...gags].sort()).toEqual(['galopp', ...COMIC_GAGS].sort())

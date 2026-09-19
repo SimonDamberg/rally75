@@ -51,6 +51,16 @@ const GAG_RECOVER = 14
 /** The turn for home: the storyline's big line. */
 const TURN_TICK = 66
 const COMEBACK_TURBO_TICK = TURN_TICK - 1
+/**
+ * The upplopp gag: in this share of races the winner or the runner-up gets a gag on the way home.
+ * It starts 6 ticks after the UPPLOPPET line, so its own line fits between that one and the last-100 m
+ * line at tick 90, and the horse wins its ground back before the finish.
+ */
+const STRETCH_GAG_CHANCE = 0.4
+export const STRETCH_GAG_TICK = 82
+/** The field moves at half speed in the upplopp, so a gag there drags half as hard. */
+const STRETCH_DRAG = 0.5
+const STRETCH_RECOVER = 10
 
 export const SCRIPT_WEIGHTS: Record<RaceScript, number> = {
   wire: 0.14,
@@ -315,6 +325,17 @@ function drawGags(temper: readonly number[], order: readonly number[], script: R
   if (script === 'comeback' && r.next() < 0.5) {
     gags.push(gag(order[0], 'turbo', { tick: COMEBACK_TURBO_TICK, ticks: GAG_TICKS }, 0))
   }
+  // The upplopp gag, on the winner (who stalls, gets passed and still wins) or the runner-up (who
+  // stalls right when it matters). Never a boost on the winner, and never the two-horse kommitte.
+  if (r.next() < STRETCH_GAG_CHANCE) {
+    const i = order[r.int(2)]
+    const kinds = COMIC_GAGS.filter((k) => k !== 'kommitte' && !(i === order[0] && BOOSTS.includes(k)))
+    const kind = r.pick(kinds)
+    gags.push({
+      ...gag(i, kind, { tick: STRETCH_GAG_TICK, ticks: GAG_TICKS }, GAG_DRAG[kind] * STRETCH_DRAG),
+      recover: GAG_RECOVERY[kind] ?? STRETCH_RECOVER,
+    })
+  }
   return gags.sort((x, y) => x.tick - y.tick)
 }
 
@@ -444,7 +465,15 @@ export function simulateRace({ horses, stats, seed, raceNo, meters = 2140 }: Sim
   {
     const t = 90
     const o = orderAt(t)
-    add(t, 8, COMMENTARY.final(H(o[0]), H(o[1]), pos[t][o[0]] - pos[t][o[1]] < 1.2), true)
+    const stalled = rawGags.some((g) => g.tick === STRETCH_GAG_TICK && g.i === finishIdx[0])
+    add(
+      t,
+      8,
+      stalled
+        ? r.pick(COMMENTARY.backAgain)(H(finishIdx[0]))
+        : COMMENTARY.final(H(o[0]), H(o[1]), pos[t][o[0]] - pos[t][o[1]] < 1.2),
+      true,
+    )
   }
   for (let t = 8; t < STRETCH_TICK; t++) {
     if (leaders[t] !== leaders[t - 1]) add(t, 1, r.pick(COMMENTARY.leadChange)(H(leaders[t]), H(leaders[t - 1])), true)
@@ -462,7 +491,8 @@ export function simulateRace({ horses, stats, seed, raceNo, meters = 2140 }: Sim
   horses.forEach((h, i) => {
     finalLeft[h.n] = Math.max(MIN_LEFT, FINISH_LEFT - (pos[TICKS][finishIdx[0]] - pos[TICKS][i]) * GAP_SCALE)
   })
-  const winnerGag = rawGags.find((g) => g.i === finishIdx[0])
+  // The latest one: an upplopp gag makes the better finish line.
+  const winnerGag = rawGags.filter((g) => g.i === finishIdx[0]).at(-1)
   const gagWin = winnerGag && GAG_WIN[winnerGag.kind]
   const finishText = photo
     ? COMMENTARY.photo

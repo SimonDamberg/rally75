@@ -43,6 +43,7 @@ describe('no em dash', () => {
       ...COMMENTARY.favouriteLast.map((l) => l(runner)),
       ...[...Object.values(COMMENTARY.mid), ...Object.values(COMMENTARY.turn)].flat().map((l) => l(runner, runner)),
       COMMENTARY.final(runner, runner, true),
+      ...COMMENTARY.backAgain.map((l) => l(runner)),
       COMMENTARY.final(runner, runner, false),
       COMMENTARY.skrall(runner, 1),
       ...Object.values(GAG_LINES).flat().map((l) => l(runner)),

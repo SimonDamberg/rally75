@@ -1253,3 +1253,14 @@ and nothing else. `/gm` and `/gm/kuponger` stay pure Rally75.
   Eckerölinjen) still stand still.
 - 5000 seeds: comic gag in 99 % of races, and gag moments per race 2: 34 %, 3: 42 %, 4+: 15 %.
   Results unchanged: favourite 38 %, late lead change 70 %, photo 24 %, wire to wire 9 %.
+
+### Follow-up: a gag in the upplopp (Simon's call, 2026-09-19)
+
+- In 40 % of races the winner or the runner-up (50/50) gets a gag on the way home: it starts at
+  `STRETCH_GAG_TICK` (82, six ticks after the UPPLOPPET line), lasts the usual 2.1 s, drags half as
+  hard (the field is at half speed), and the ground comes back over 10 ticks, before the line.
+- A stalled winner gets passed about half the time and storms back; the last-100 m line becomes
+  "X ÄR TILLBAKA!" and the finish line uses the upplopp gag ("... och vann ändå!"). A stalled
+  runner-up is why it loses; a turbo on the runner-up can send it into the lead before it fades.
+- Never kommitte, never a boost on the winner. The result is untouched (the order is still drawn
+  first). Late lead changes rose from 70 % to 75 %; photos and win rates are unchanged.
