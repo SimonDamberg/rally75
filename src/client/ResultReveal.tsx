@@ -4,7 +4,7 @@ import { HOME, REVEAL } from '../shared/content/client'
 import { STODLINJE } from '../shared/content/parody'
 import { UI_LABELS } from '../shared/content/ui'
 import { fmtRm } from '../shared/game/format'
-import { Button, cx, Modal, SilkBadge, StodlinjeNote, type ModalTone } from '../ui'
+import { Button, cx, Modal, HorseBadge, StodlinjeNote, type ModalTone } from '../ui'
 import { CoinBurst } from './CoinBurst'
 import { CountUp } from './CountUp'
 import { isBigWin, type Reveal, type RevealKind } from './outcome'
@@ -62,7 +62,7 @@ export function ResultReveal({ race, reveal, onClose }: { race: RaceRow; reveal:
         {(reveal.kind === 'loss' || reveal.kind === 'kept') && <StodlinjeNote lead={STODLINJE.lead.loss} />}
         {winner && (
           <div className="flex items-center gap-3 rounded-xl bg-tote/60 p-3 ring-2 ring-plate ring-inset">
-            <SilkBadge n={winner.n} silk={winner.silk} size="md" lead />
+            <HorseBadge horse={winner} size="md" lead />
             <span className="flex min-w-0 flex-col">
               <span className="text-[0.65rem] font-bold tracking-[0.16em] text-plate uppercase">{REVEAL.winner}</span>
               <span className="text-lg leading-tight font-extrabold [font-stretch:82%]">{winner.name}</span>

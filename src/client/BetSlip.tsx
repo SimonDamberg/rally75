@@ -7,7 +7,7 @@ import { MIN_STAKE } from '../shared/game/economy'
 import { fmtOdds, fmtRm } from '../shared/game/format'
 import { payoutFor } from '../shared/game/odds'
 import type { HorsePublic } from '../shared/game/types'
-import { Button, cx, Modal, OddsValue, SilkBadge, toast } from '../ui'
+import { Button, cx, Modal, OddsValue, HorseBadge, toast } from '../ui'
 import { useGuestAction } from './guest'
 import { addChip, allIn, CHIPS, checkStake, clampStake } from './slip'
 
@@ -60,7 +60,7 @@ export function BetSlip({ race, horse, odds, balance, onClose, onConfirmChange }
   return (
     <div className="theme-rally75 sticky bottom-0 mt-auto flex flex-col gap-2.5 border-t-2 border-plate bg-night-deep/97 px-3 pt-3 pb-3 shadow-[0_-1rem_2rem_rgb(0_0_0/0.45)]">
       <div className="flex items-center gap-3">
-        <SilkBadge n={horse.n} silk={horse.silk} size="sm" />
+        <HorseBadge horse={horse} size="sm" />
         <span className="min-w-0 flex-1 truncate text-lg font-extrabold [font-stretch:82%]">{horse.name}</span>
         <OddsValue value={odds} size="sm" />
         <button
@@ -132,7 +132,7 @@ export function BetSlip({ race, horse, odds, balance, onClose, onConfirmChange }
         }
       >
         <div className="flex items-center gap-3 rounded-xl bg-tote/60 p-3">
-          <SilkBadge n={horse.n} silk={horse.silk} size="md" />
+          <HorseBadge horse={horse} size="md" />
           <span className="flex min-w-0 flex-1 flex-col leading-tight">
             <span className="text-lg font-extrabold [font-stretch:82%]">{horse.name}</span>
             <span className="truncate text-sm text-plate">

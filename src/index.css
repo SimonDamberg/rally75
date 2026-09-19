@@ -65,6 +65,7 @@
   --animate-toast-in: toast-in 0.3s ease-out;
   --animate-pop-in: pop-in 0.22s ease-out;
   --animate-wobble: wobble 0.3s ease-in-out infinite;
+  --animate-rock: rock 0.3s ease-in-out infinite;
   --animate-trot: trot 0.34s ease-in-out infinite alternate;
   --animate-rail: rail 0.7s linear infinite;
   --animate-fanfare: fanfare 3.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
@@ -114,6 +115,11 @@
   @keyframes wobble {
     0%, 100% { transform: skewX(-10deg) rotate(-14deg); }
     50% { transform: skewX(-10deg) rotate(14deg); }
+  }
+  /* The same galopp wobble for the round face badge, which has no skew to keep. */
+  @keyframes rock {
+    0%, 100% { transform: rotate(-14deg); }
+    50% { transform: rotate(14deg); }
   }
 }
 

@@ -1074,3 +1074,38 @@ about 50 s). A race is about 20 s, so the reconnect came after the finish and th
 
 1. Deploy. No migration. To test: on the display tab, block `realtime/v1/websocket` in DevTools and
    reload, then start a race from `/gm`. The display should go live within about 3 s.
+
+## Kusk faces instead of number plates (done, 2026-09-19)
+
+Simon's call: the horses are shown by their kusk's face, and the stable is exactly the eight
+friends (random kuskar were already off, `RANDOM_KUSKAR_PER_FIELD = 0`).
+
+**Done**
+
+- `public/kuskar/<slug>.jpg`: the eight faces, square crops at 512px (35 to 80 KB each), made by
+  `scripts/kuskar.mjs` (`npm run kuskar -- ~/Downloads`) with `sips`, no new dependency. sips writes a
+  black square if `--cropOffset` shares a call with a resize or format change, so the script does two passes.
+- `KUSK_PHOTOS` + `kuskPhoto(name)` in `src/shared/content/kuskar.ts`. Lookup is by the stored
+  `horse.jockey`, so there is no DB or `HorsePublic` change, and races already created show faces too.
+- `SilkBadge` takes `photo` (+ `kusk` for the label): a round face in a ring of the silk gradient,
+  the start number on a small yellow slanted plate at the lower right. Lead keeps the yellow glow; galopp
+  uses a new `animate-rock` (the wobble without the skew). Without a photo it is the old plate.
+- `HorseBadge horse={h}` does the lookup and now draws every horse: `HorseRow`, `ResultPanel`,
+  display `RaceScreen`/`TrotParade`/`HorseSpotlight`, control `BetsTab`/`RunningRace`, client
+  `Home`/`BetLine`/`BetSlip`/`ResultReveal`, styleguide. The attract parade shows four random friends.
+- The display iPad preloads all eight faces on mount, so the first race's lanes do not pop in.
+- Travpensionären Bengt is gone: removed from `NAMED_KUSKAR` and by the new
+  `20260919000014_kusk_seed_3.sql` (delete the eight + Bengt by name, reinsert the eight unchanged, so
+  hand-added kuskar survive and `kuskSeed.test.ts` reads the current roster).
+- `kuskPhotos.test.ts`: every stable kusk has a photo, every mapped file exists, unknown names fall back.
+
+**Open issues**
+
+- `npm run lint` fails on this machine because the leftover worktrees in `.claude/worktrees/` give
+  typescript-eslint several tsconfig roots. Remove them (`git worktree remove`) or run
+  `npx eslint . --ignore-pattern '.claude/**'` (clean). This predates this change.
+- Simon's photo is very tight (the face fills the whole frame), so his badge is mostly nose.
+
+**Manual steps for Simon**
+
+1. `npx supabase db push` (removes Bengt from the hosted `kusks` table). Then deploy.

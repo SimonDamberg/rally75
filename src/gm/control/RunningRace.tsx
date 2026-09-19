@@ -9,7 +9,7 @@ import { UI_LABELS } from '../../shared/content/ui'
 import { fmtInt } from '../../shared/game/format'
 import { commentAt } from '../../shared/game/sim'
 import type { Ruling } from '../../shared/game/types'
-import { Button, cx, SilkBadge } from '../../ui'
+import { Button, cx, HorseBadge } from '../../ui'
 import { raceView, runMs } from '../raceClock'
 import type { RaceControl } from '../useRaceControl'
 import { useRaceTimeline } from '../useRaceTimeline'
@@ -76,7 +76,7 @@ export function RunningRace({ race, control }: { race: RaceRow; control: RaceCon
 
       {leader && (
         <div className="flex items-center gap-3 rounded-xl bg-tote/60 px-3 py-2 ring-1 ring-white/10 ring-inset">
-          <SilkBadge n={leader.n} silk={leader.silk} size="md" lead />
+          <HorseBadge horse={leader} size="md" lead />
           <span className="flex min-w-0 flex-col">
             <span className="text-xs font-bold tracking-[0.14em] text-ink-dim uppercase">{GM_RACE.leader}</span>
             <span className="truncate text-lg font-extrabold [font-stretch:82%]">{leader.name}</span>

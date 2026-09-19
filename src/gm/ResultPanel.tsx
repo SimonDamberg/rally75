@@ -4,7 +4,7 @@ import type { BetRow, PlayerRow, RaceRow } from '../lib/types'
 import { GM_BETS, GM_RACE } from '../shared/content/gm'
 import { UI_LABELS } from '../shared/content/ui'
 import { fmtRm, playerLabel } from '../shared/game/format'
-import { cx, SilkBadge } from '../ui'
+import { cx, HorseBadge } from '../ui'
 import { settle } from './book'
 
 export interface ResultPanelProps {
@@ -52,7 +52,7 @@ export function ResultPanel({ race, bets, players, actions, size = 'tv', classNa
                 )}
               >
                 <span className={cx('font-display font-black text-ink-dim', tv ? 'text-2xl' : 'text-base')}>{GM_RACE.place(i + 1)}</span>
-                <SilkBadge n={h.n} silk={h.silk} size={tv ? (i === 0 ? 'tv' : 'lg') : 'md'} lead={i === 0} />
+                <HorseBadge horse={h} size={tv ? (i === 0 ? 'tv' : 'lg') : 'md'} lead={i === 0} />
                 <span
                   className={cx(
                     'w-full leading-tight font-extrabold text-balance [font-stretch:82%]',

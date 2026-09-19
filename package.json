@@ -12,7 +12,8 @@
     "test:watch": "vitest",
     "smoke": "tsx scripts/smoke.ts",
     "load": "tsx scripts/load.ts",
-    "icons": "node scripts/icons.mjs"
+    "icons": "node scripts/icons.mjs",
+    "kuskar": "node scripts/kuskar.mjs"
   },
   "dependencies": {
     "@fontsource-variable/archivo": "^5.3.0",

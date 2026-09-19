@@ -8,7 +8,7 @@ import { GM_RACE } from '../../shared/content/gm'
 import { UI_LABELS } from '../../shared/content/ui'
 import { fmtInt } from '../../shared/game/format'
 import { commentAt } from '../../shared/game/sim'
-import { ConnectionBadge, cx, SilkBadge } from '../../ui'
+import { ConnectionBadge, cx, HorseBadge } from '../../ui'
 import { raceView } from '../raceClock'
 import { useRaceTimeline } from '../useRaceTimeline'
 import { InquiryDrama } from './InquiryDrama'
@@ -76,7 +76,7 @@ export function RaceScreen({ race }: { race: RaceRow }) {
                 style={{ transform: `translateX(${left}%)`, transitionDuration: `${timeline?.tickMs ?? 300}ms` }}
               >
                 <span className="absolute top-1/2 left-0 -translate-x-1/2 -translate-y-1/2">
-                  <SilkBadge n={h.n} silk={h.silk} size="tv" lead={frame?.leader === h.n} broke={runner?.broke} />
+                  <HorseBadge horse={h} size="tv" lead={frame?.leader === h.n} broke={runner?.broke} />
                 </span>
               </div>
             </div>

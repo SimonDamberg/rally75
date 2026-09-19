@@ -105,6 +105,13 @@ supabase/migrations/ SQL migrations. (Stage 2)
   (the site brand: `mark` / `lockup` / `full`, from `public/mrgreen-logo.jpg`), `Button`, `Modal`
   (native `<dialog>`, stacks), `toast()` + `<Toaster />`, `SilkBadge`, `OddsValue`, `HorseRow`,
   `StatusBanner`, `BonusBar`, `ConnectionBadge`, `QrCode`. Most take `size` with a `tv` variant for the iPad.
+- Draw a horse with `HorseBadge horse={h}`, not a bare `SilkBadge`: it looks up the kusk's face by
+  `horse.jockey` in `KUSK_PHOTOS` (`src/shared/content/kuskar.ts`) and draws it in a ring of the silk
+  with the start number on a small plate. A kusk with no photo (added in the GM app, or renamed)
+  falls back to the plain number plate. Faces are 512px JPEGs in `public/kuskar/`, cropped by
+  `npm run kuskar -- <folder with the PNGs>` (crop table in `scripts/kuskar.mjs`). They are Rally75
+  content, so they appear on `/gm` too. New friend: add a crop, run the script, add the name to
+  `KUSK_PHOTOS` (`kuskPhotos.test.ts` checks that every kusk in the stable has one).
 - Component copy lives in `src/shared/content/ui.ts` (`BRAND` holds both brand names). Check new
   components in `/styleguide`, whose `Varumärken` section shows the two brands side by side.
 - Guest icons and `og.png` are generated from the frog art: `npm run icons -- guest` regenerates the

@@ -11,6 +11,7 @@ import {
   useRaceBets,
 } from "../../lib/hooks";
 import type { PlayerRow } from "../../lib/types";
+import { KUSK_PHOTOS } from "../../shared/content/kuskar";
 import { ATTRACT } from "../../shared/content/ui";
 import { Attract } from "./Attract";
 import { FieldBoard } from "./FieldBoard";
@@ -44,6 +45,11 @@ export function DisplayShell() {
       new Map<string, PlayerRow>((board?.players ?? []).map((p) => [p.id, p])),
     [board?.players],
   );
+
+  // Warm the cache with every kusk face, so the first race's lanes do not pop in on the big screen.
+  useEffect(() => {
+    for (const src of Object.values(KUSK_PHOTOS)) new Image().src = src;
+  }, []);
 
   // Safety net if the control phone dies between the finish and the publish.
   useFallbackPublish(race);

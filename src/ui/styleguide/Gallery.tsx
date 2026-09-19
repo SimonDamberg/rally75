@@ -22,6 +22,7 @@ import {
   NightPaidNumber,
   OddsValue,
   RollingNumber,
+  HorseBadge,
   SilkBadge,
   SmallPrint,
   StodlinjeNote,
@@ -233,10 +234,13 @@ export default function Gallery() {
         <Section title="Startnummer">
           <div className="flex flex-wrap items-center gap-4">
             {card.horses.map((h) => (
-              <SilkBadge key={h.n} n={h.n} silk={h.silk} size={tv ? 'tv' : 'lg'} lead={h.n === leader} broke={h.n === 4} />
+              <HorseBadge key={h.n} horse={h} size={tv ? 'tv' : 'lg'} lead={h.n === leader} broke={h.n === 4} />
             ))}
           </div>
           <div className="flex flex-wrap items-center gap-3">
+            <HorseBadge horse={card.horses[0]} size="sm" />
+            <HorseBadge horse={card.horses[0]} size="md" />
+            {/* A kusk without a photo keeps the plain number plate. */}
             <SilkBadge n={1} silk={card.horses[0].silk} size="sm" />
             <SilkBadge n={1} silk={card.horses[0].silk} size="md" />
             <Button variant="ghost" onClick={() => setLeader((l) => (l % card.horses.length) + 1)}>

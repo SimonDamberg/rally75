@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import type { BetRow, RaceRow } from '../lib/types'
 import { HOME } from '../shared/content/client'
 import { UI_LABELS } from '../shared/content/ui'
-import { cx, HorseRow, Logo, SilkBadge, SmallPrint, StatusBanner } from '../ui'
+import { cx, HorseRow, Logo, HorseBadge, SmallPrint, StatusBanner } from '../ui'
 import { BetLine } from './BetLine'
 import { BetSlip } from './BetSlip'
 import { useGuest } from './guest'
@@ -187,7 +187,7 @@ function ResultCard({ race }: { race: RaceRow }) {
                 )}
               >
                 <span className="w-7 font-display text-2xl font-black text-ink-dim">{i + 1}</span>
-                <SilkBadge n={h.n} silk={h.silk} size={i === 0 ? 'md' : 'sm'} lead={i === 0} />
+                <HorseBadge horse={h} size={i === 0 ? 'md' : 'sm'} lead={i === 0} />
                 <span className="flex min-w-0 flex-col leading-tight">
                   <span className={cx('truncate font-extrabold [font-stretch:82%]', i === 0 ? 'text-lg' : 'text-base')}>{h.name}</span>
                   <span className="truncate text-xs text-plate">

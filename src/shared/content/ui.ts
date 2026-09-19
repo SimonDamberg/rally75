@@ -60,6 +60,7 @@ export const UI_LABELS = {
   close: "Stäng",
   loading: "Laddar",
   startNumber: (n: number) => `Startnummer ${n}`,
+  kuskBadge: (n: number, kusk: string) => `Startnummer ${n}, kusk ${kusk}`,
 } as const;
 
 /** GM attract screen: shown on the iPad between races to pull guests in. */

@@ -4,7 +4,7 @@ import { fmtRm } from '../shared/game/format'
 import { UI_LABELS } from '../shared/content/ui'
 import { cx } from './cx'
 import { OddsValue } from './OddsValue'
-import { SilkBadge } from './SilkBadge'
+import { HorseBadge } from './SilkBadge'
 
 export interface HorseRowProps {
   horse: HorsePublic
@@ -49,7 +49,7 @@ export function HorseRow({
   const text = tv ? 'text-xl' : 'text-sm leading-snug'
   const body = (
     <>
-      <SilkBadge n={horse.n} silk={horse.silk} size={tv ? (pick ? 'lg' : 'tv') : pick ? 'sm' : 'md'} />
+      <HorseBadge horse={horse} size={tv ? (pick ? 'lg' : 'tv') : pick ? 'sm' : 'md'} />
       <span className={cx('flex min-w-0 flex-col', pick && 'flex-1')}>
         <span
           className={cx(

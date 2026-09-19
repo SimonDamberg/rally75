@@ -3,7 +3,7 @@ import type { BetRow } from '../lib/types'
 import { BET_STATUS, MY_BETS } from '../shared/content/client'
 import { fmtOdds, fmtRm } from '../shared/game/format'
 import type { HorsePublic } from '../shared/game/types'
-import { cx, SilkBadge } from '../ui'
+import { cx, HorseBadge } from '../ui'
 import { betOutcome, type BetOutcome } from './outcome'
 
 const CHIP: Record<BetOutcome['kind'], string> = {
@@ -38,7 +38,7 @@ export function BetLine({ bet, horse }: { bet: BetRow; horse: HorsePublic | unde
         outcome.kind === 'won' && 'bg-cash/10 ring-cash/40',
       )}
     >
-      {horse && <SilkBadge n={horse.n} silk={horse.silk} size="sm" />}
+      {horse && <HorseBadge horse={horse} size="sm" />}
       <span className="flex min-w-0 flex-1 flex-col leading-tight">
         <span className="truncate font-bold [font-stretch:82%]">{horse?.name ?? MY_BETS.horse(bet.horse_n)}</span>
         <span className="text-xs text-ink-dim tabular-nums">

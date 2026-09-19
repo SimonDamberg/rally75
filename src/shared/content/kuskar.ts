@@ -95,15 +95,22 @@ export const NAMED_KUSKAR: readonly KuskInput[] = [
       "Palm frågade vad andraplatsen ger. Det var ett dåligt tecken.",
     ],
   },
-  {
-    name: "Travpensionären Bengt",
-    title: "nästa vecka tar han igen det",
-    notes: [
-      "Bengt har spelat på det här loppet sedan innan han själv kom med i det.",
-      "Bengt kör med kupongen i munnen och termosen mellan knäna.",
-      "Bengt har ett system. Bengt har haft samma system i trettio år.",
-      "Bengt säger att han var nära förra veckan. Det var han inte.",
-      "Bengt tar igen allt nästa vecka. Det har han sagt varje vecka.",
-    ],
-  },
 ];
+
+// Face photos for the round kusk badge, cropped by scripts/kuskar.mjs into public/kuskar/. Looked up
+// by the kusk's name as stored on the horse (`horse.jockey`), so a kusk without an entry (one Simon
+// adds in the GM app, or a rename) falls back to the plain number plate. New friend: add the photo
+// to the script's crop table, run it, then add the name here.
+export const KUSK_PHOTOS: Readonly<Record<string, string>> = {
+  Jesper: "/kuskar/jesper.jpg",
+  GP: "/kuskar/gp.jpg",
+  Emma: "/kuskar/emma.jpg",
+  Axel: "/kuskar/axel.jpg",
+  Erik: "/kuskar/erik.jpg",
+  Kajsa: "/kuskar/kajsa.jpg",
+  Simon: "/kuskar/simon.jpg",
+  Palm: "/kuskar/palm.jpg",
+};
+
+export const kuskPhoto = (jockey: string): string | undefined =>
+  Object.hasOwn(KUSK_PHOTOS, jockey) ? KUSK_PHOTOS[jockey] : undefined;

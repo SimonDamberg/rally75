@@ -1,13 +1,18 @@
 // Idle track at the bottom of the attract screen: the camera follows the field, so the rail
 // scrolls while the plates swap places. Positions are written straight to the DOM each frame.
 import { useEffect, useRef, useState } from 'react'
+import { KUSK_PHOTOS } from '../../shared/content/kuskar'
 import { SILKS } from '../../shared/content/race'
 import { FIELD_SIZE } from '../../shared/game/field'
-import { SilkBadge } from '../../ui'
+import { HorseBadge } from '../../ui'
+
+// A different handful of the stable's faces on every page load.
+const FACES = Object.keys(KUSK_PHOTOS).sort(() => Math.random() - 0.5)
 
 const HORSES = Array.from({ length: FIELD_SIZE }, (_, i) => ({
   n: i + 1,
   silk: SILKS[i % SILKS.length],
+  jockey: FACES[i % FACES.length],
   // Two slow waves per horse with different periods: lead changes without anyone running away.
   w1: 0.17 + i * 0.041,
   p1: i * 1.9,
@@ -94,7 +99,7 @@ export function TrotParade() {
                 style={{ background: `linear-gradient(90deg, transparent, ${h.silk.edge})` }}
               />
               <span className="block animate-trot" style={{ animationDelay: `${i * -0.13}s` }}>
-                <SilkBadge n={h.n} silk={h.silk} size="lg" lead={leader === h.n} broke={broke === h.n} />
+                <HorseBadge horse={h} size="lg" lead={leader === h.n} broke={broke === h.n} />
               </span>
             </span>
           </div>

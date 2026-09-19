@@ -10,7 +10,7 @@ import { useServerClock } from "../../lib/hooks";
 import type { BetRow, PlayerRow, RaceRow } from "../../lib/types";
 import { ATTRACT, UI_LABELS } from "../../shared/content/ui";
 import { fmtRm, playerLabel } from "../../shared/game/format";
-import { OddsValue, SilkBadge } from "../../ui";
+import { OddsValue, HorseBadge } from "../../ui";
 import { bettorsOn, summarizeBook } from "../book";
 import { SPOTLIGHT_MS, spotlightIndex, spotlightRemaining } from "./spotlight";
 
@@ -70,7 +70,7 @@ export function Spotlight({
         style={{ borderLeftColor: horse.silk.edge }}
       >
         <div className="flex min-w-0 items-center gap-[1.5vw]">
-          <SilkBadge n={horse.n} silk={horse.silk} size="lg" />
+          <HorseBadge horse={horse} size="lg" />
           <span className="flex min-w-0 flex-1 flex-col">
             <span className="line-clamp-2 text-[min(2.6rem,4vw)] leading-tight font-extrabold text-balance [font-stretch:82%]">
               {horse.name}
