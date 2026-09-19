@@ -1,4 +1,4 @@
-// Thin live strip under the header: a viewer count that never sits still and "Utbetalt i kväll".
+// Thin live strip under the header: a viewer count that never sits still and "Utbetalt idag".
 import { useEffect, useState } from 'react'
 import { useNightPaid } from '../lib/hooks'
 import { PROOF } from '../shared/content/parody'

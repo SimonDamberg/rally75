@@ -4,7 +4,7 @@ import { RollingNumber } from './RollingNumber'
 
 const TICK_MS = 1100
 
-/** "Utbetalt i kväll": the real payouts on top of a clock-grown fake base, rolling as it grows. */
+/** "Utbetalt idag": the real payouts on top of a clock-grown fake base, rolling as it grows. */
 export function NightPaidNumber({ realPaid, className }: { realPaid: number; className?: string }) {
   const [now, setNow] = useState(() => Date.now())
   useEffect(() => {

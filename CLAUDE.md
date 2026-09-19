@@ -206,8 +206,8 @@ Mr Green's own arcade game, the second product tab (`src/client/Plinko.tsx` + `P
   being broke and the cookie banner. Offer copy is `OFFERS` in `src/shared/content/parody.ts`.
   Offers never change the balance.
 - Social proof: `useSocialProof` (fake win toasts, real bet toasts from `raceBets` in `useGuest()`),
-  `SocialStrip` (viewer count, "Utbetalt i kväll"). Pure helpers in `src/client/proof.ts` and
-  `src/shared/game/hype.ts`. "Utbetalt i kväll" is `nightPaidDisplay(now, useNightPaid())` on both apps.
+  `SocialStrip` (viewer count, "Utbetalt idag"). Pure helpers in `src/client/proof.ts` and
+  `src/shared/game/hype.ts`. "Utbetalt idag" is `nightPaidDisplay(now, useNightPaid())` on both apps.
 - New parody copy goes in `parody.ts` (`OFFERS`, `OFFER_UI`, `PROOF`, `SMALL_PRINT`, `LANDING`).
 - Stödlinje: a `tel:` link to a friend in costume. Number and lead lines are `STODLINJE` in
   `parody.ts`; render with `StodlinjeLink`/`StodlinjeNote` from `src/ui`. Placed in `SmallPrint`
@@ -221,12 +221,12 @@ Mr Green's own arcade game, the second product tab (`src/client/Plinko.tsx` + `P
   `gm_refund_purchase`, and both are in the Realtime publication so stock drops on every phone.
 - **Buying is rank neutral.** `buy_item` moves the price from `players.balance` to `players.spent`,
   and `netWorth` adds `spent` back, so nothing bought can move you on Toppen or the förlorarlista.
-  Spending has its own list, "Kvällens största slösare" (`bySpending`). Asserted in `buy.test.ts`,
+  Spending has its own list, "Dagens största slösare" (`bySpending`). Asserted in `buy.test.ts`,
   `economy.test.ts` and smoke.
 - **Digital items are jokes or cosmetics only.** An item may set `players.title` or `players.badge`
   (shown by `badgedLabel` and on the Topplista) and nothing else. Never odds, bets or free RM.
 - No fulfilment status: a purchase is a receipt the guest shows in the bar. The control phone's
-  Butik tab has the live "Sålt i kväll" feed and Ångra (`gm_refund_purchase`); the display iPad
+  Butik tab has the live "Sålt idag" feed and Ångra (`gm_refund_purchase`); the display iPad
   toasts each purchase (`usePurchaseToasts`). `gm_reset_night` keeps the catalogue (like kuskar) and
   drops the receipts with the players.
 - Guest copy is `BUTIK` in `client.ts`, GM copy `GM_SHOP` in `gm.ts`, display copy `ATTRACT`.
@@ -249,8 +249,8 @@ Printed tickets the guests running the physical games hand out, scanned at `/k/<
   `balance` alone, so it lifts Toppen and `nightNet`. It is the only RM the GM can mint, hence the
   `COUPON_MAX_AMOUNT` / `COUPON_MAX_BATCH` caps in `economy.ts`, mirrored in SQL and tested.
 - `/gm/kuponger` (`src/gm/coupons/`) is a third GM surface behind the same password: a laptop page
-  for minting a run, printing A4 sheets (12 per page), reprinting a lost one, and the "Inlösta i
-  kväll" feed with Ångra (`gm_void_claim`, which also frees the ticket). The QR address field must
+  for minting a run, printing A4 sheets (12 per page), reprinting a lost one, and the "Inlösta
+  idag" feed with Ångra (`gm_void_claim`, which also frees the ticket). The QR address field must
   be the real host: a sheet printed from `localhost` is waste paper.
 - The guest side is shell-owned like the other pop-ups: `ClientApp` parks a scanned code in
   localStorage (so the scan survives onboarding) and cleans the URL, `useCoupon` + `CouponReveal`

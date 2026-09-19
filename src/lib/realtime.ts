@@ -39,12 +39,12 @@ export function byNetWorth(players: readonly PlayerRow[]): PlayerRow[] {
   return players.slice().sort((a, b) => netWorth(b) - netWorth(a) || a.name.localeCompare(b.name, 'sv'))
 }
 
-/** "Kvällens största förlorare": furthest behind for the night first (see nightNet). */
+/** "Dagens största förlorare": furthest behind for the night first (see nightNet). */
 export function byLosses(players: readonly PlayerRow[]): PlayerRow[] {
   return players.slice().sort((a, b) => nightNet(a) - nightNet(b) || b.loans_taken - a.loans_taken)
 }
 
-/** "Kvällens största slösare": most RM left in the Butik first; ties by name. */
+/** "Dagens största slösare": most RM left in the Butik first; ties by name. */
 export function bySpending(players: readonly PlayerRow[]): PlayerRow[] {
   return players
     .filter((p) => p.spent > 0)

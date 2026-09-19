@@ -46,7 +46,7 @@ export function batchSummaries(coupons: readonly CouponRow[]): BatchSummary[] {
   )
 }
 
-/** Every cashed-in kupong, newest first. Drives the "Inlösta i kväll" feed and its Ångra buttons. */
+/** Every cashed-in kupong, newest first. Drives the "Inlösta idag" feed and its Ångra buttons. */
 export function claims(coupons: readonly CouponRow[]): CouponRow[] {
   return coupons
     .filter((c) => c.redeemed_at !== null)

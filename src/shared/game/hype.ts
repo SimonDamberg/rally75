@@ -13,7 +13,7 @@ export function secondsSinceNoon(ms: number): number {
 export const NIGHT_PAID_BASE = 1_250_000
 export const NIGHT_PAID_PER_SECOND = 9
 
-/** "Utbetalt i kväll": an inflated base that grows with the clock, plus the real payouts. */
+/** "Utbetalt idag": an inflated base that grows with the clock, plus the real payouts. */
 export function nightPaidDisplay(ms: number, realPaid: number): number {
   return NIGHT_PAID_BASE + secondsSinceNoon(ms) * NIGHT_PAID_PER_SECOND + Math.max(0, realPaid)
 }
