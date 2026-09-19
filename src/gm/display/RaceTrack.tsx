@@ -23,9 +23,17 @@ const BANNER_TICKS = 8
 /** How the badge itself moves while a gag runs; the props around it are GagProps. */
 const GAG_MOTION: Partial<Record<GagKind, string>> = {
   backwards: '-scale-x-100',
-  graze: 'animate-munch',
-  seagull: 'animate-rock',
+  nap: 'rotate-[-20deg] brightness-75',
+  banana: 'animate-spin-fast',
+  husvagn: 'animate-shake',
+  serverkrasch: 'animate-glitch',
+  eckero: 'opacity-40 grayscale',
+  rallyhafte: 'animate-rock',
 }
+/** Gags where the horse is not trotting, so it kicks up no dust. */
+const STANDING: readonly GagKind[] = ['backwards', 'nap', 'serverkrasch', 'fatbyte', 'eckero', 'hjalprebus']
+/** Kommitte: the two badges lean into each other across the lane line. */
+const LEAN = { up: '-translate-y-[0.22em] rotate-[-10deg]', down: 'translate-y-[0.22em] rotate-[10deg]' } as const
 
 export interface RaceTrackProps {
   raceNo: number
@@ -105,6 +113,8 @@ export function RaceTrack({ raceNo, field, timeline, tick, phase, backers, loadi
           const runner = frame?.runners[i]
           const left = runner ? (finished && timeline ? (timeline.finalLeft[h.n] ?? runner.left) : runner.left) : START_LEFT
           const gag = running ? runner?.gag : undefined
+          const partnerLane = gag && runner?.partner !== undefined ? field.findIndex((x) => x.n === runner.partner) : -1
+          const toward = partnerLane < 0 ? undefined : partnerLane < i ? 'up' : 'down'
           const lane = backers.find((b) => b.n === h.n)
           const place = places?.get(h.n)
           const was = before?.get(h.n)
@@ -146,16 +156,23 @@ export function RaceTrack({ raceNo, field, timeline, tick, phase, backers, loadi
                       won && !(photo && phase === 'finishing') && 'scale-125',
                     )}
                   >
-                    {running && gag !== 'graze' && gag !== 'backwards' && (
+                    {running && !(gag && STANDING.includes(gag)) && (
                       <>
                         <span className="absolute top-[55%] right-[70%] size-[0.35em] animate-puff rounded-full bg-white/30 blur-[3px]" />
                         <span className="absolute top-[65%] right-[75%] size-[0.28em] animate-puff rounded-full bg-white/25 blur-[3px] [animation-delay:0.3s]" />
                       </>
                     )}
-                    <span className={cx('block size-full', running && !gag && 'animate-trot', gag && GAG_MOTION[gag])}>
+                    <span
+                      className={cx(
+                        'block size-full',
+                        running && !gag && 'animate-trot',
+                        gag && GAG_MOTION[gag],
+                        toward && LEAN[toward],
+                      )}
+                    >
                       <HorseBadge horse={h} size="tv" lead={frame?.leader === h.n && !finished} broke={gag === 'galopp'} />
                     </span>
-                    {gag && <GagProps kind={gag} />}
+                    {gag && <GagProps kind={gag} toward={toward} />}
                     {place && frame && frame.tick > 0 && !finished && (
                       <span
                         className={cx(
@@ -170,7 +187,8 @@ export function RaceTrack({ raceNo, field, timeline, tick, phase, backers, loadi
                         </span>
                       </span>
                     )}
-                    {gag && <GagSticker key={`${h.n}-${gag}`} kind={gag} />}
+                    {/* A couple shares one sticker, on the upper lane. */}
+                    {gag && toward !== 'up' && <GagSticker key={`${h.n}-${gag}`} kind={gag} />}
                   </span>
                   {won && <WinnerStamp delay={photo && phase === 'finishing'} />}
                 </span>

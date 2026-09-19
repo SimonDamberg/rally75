@@ -73,43 +73,78 @@ export const COMMENTARY = {
 } as const
 
 /** What the commentator shouts when a gag starts. Galopp keeps its original line first. */
-export const GAG_LINES: Record<GagKind, readonly Line[]> = {
+export const GAG_LINES: Record<Exclude<GagKind, 'kommitte'>, readonly Line[]> = {
   galopp: [COMMENTARY.galopp, (h) => `Galopp för ${h.name}! ${h.jockey} håller i sig för livet!`],
   backwards: [
     (h) => `${h.name} har vänt och springer åt fel håll! ${h.jockey} skriker!`,
     (h) => `FEL HÅLL! ${h.name} verkar vilja hem till stallet!`,
   ],
-  graze: [
-    (h) => `${h.name} har stannat för att beta! Gräset är tydligen grönare här.`,
-    (h) => `${h.name} tar en mellanmålspaus. ${h.jockey} ser inte glad ut.`,
-  ],
-  wave: [
-    (h) => `${h.jockey} vinkar till publiken mitt i loppet! Proffsigt.`,
-    (h) => `${h.jockey} har släppt tömmarna för att vinka till mamma.`,
-  ],
   selfie: [
     (h) => `Tar ${h.jockey} en selfie? ${h.jockey} tar en selfie.`,
     (h) => `${h.jockey} fotar sig själv i full fart. Det här hamnar på Instagram.`,
-  ],
-  seagull: [
-    (h) => `MÅSATTACK! En fiskmås har gett sig på ${h.jockey}!`,
-    (h) => `En mås har landat på ${h.name}! Det här står inte i reglementet.`,
   ],
   turbo: [
     (h) => `TURBO! Någon har fyllt ${h.name} med energidryck!`,
     (h) => `${h.name} har hittat en turboknapp! Är det ens lagligt?`,
   ],
+  nap: [
+    (h) => `${h.name} har somnat mitt i loppet! ${h.jockey} försöker väcka den med en visselpipa.`,
+    (h) => `Zzz. ${h.name} tar en tupplur. Det här var inte planen.`,
+  ],
+  banana: [
+    (h) => `${h.name} halkar på ett bananskal! Vem slänger bananer på en travbana?`,
+    (h) => `Bananskal! ${h.name} snurrar runt som en piruett!`,
+  ],
+  snabblan: [
+    (h) => `${h.jockey} tar ett Snabblån mitt i loppet för att satsa på sig själv!`,
+    (h) => `${h.jockey} swishar huset i full fart. Räntan är 400 procent.`,
+  ],
+  husvagn: [
+    (h) => `En husvagn har rullat in på banan! ${h.name} får panik och drar!`,
+    (h) => `HUSVAGNSPANIK! ${h.name} springer för livet med en Kabe i hälarna!`,
+  ],
+  serverkrasch: [
+    (h) => `${h.name} har tappat uppkopplingen och laggar!`,
+    (h) => `Serverkrasch! ${h.name} står still och väntar på en omstart.`,
+  ],
+  fatbyte: [
+    (h) => `${h.jockey} har stannat för ett fatbyte. Baren först, loppet sen.`,
+    (h) => `Fatbyte! ${h.jockey} byter fat i full sele. Kön till baren tackar.`,
+  ],
+  eckero: [
+    (h) => `${h.jockey} har gjort en akutresa till Eckerölinjen! Tax free väntar.`,
+    (h) => `${h.jockey} hoppar av för Eckerölinjen. Båten går om fem minuter.`,
+  ],
+  rallyhafte: [
+    (h) => `${h.jockey} glömde läsa rallyhäftet och vet inte vart loppet går!`,
+    (h) => `${h.jockey} bläddrar i rallyhäftet mitt i loppet. Lite sent.`,
+  ],
+  hjalprebus: [
+    (h) => `${h.jockey} öppnar hjälprebusen! Det kostar strafftid, men nu vet vi vart banan går.`,
+    (h) => `${h.jockey} ger upp och river upp kuvertet med hjälprebusen. Pinsamt.`,
+  ],
 }
 
-/** Finish line when the winner had a gag on the way. */
+/** Kommitté-incest: two kuskar in adjacent lanes, so it takes a pair. */
+export const KOMMITTE_LINES: readonly Pair[] = [
+  (a, b) => `${a.jockey} och ${b.jockey} har börjat hångla mellan sulkyerna. Kommitté-incest!`,
+  (a, b) => `Kommitté-incest på banan! ${a.jockey} och ${b.jockey} glömmer bort loppet.`,
+]
+
+/** Finish line when the winner had a gag on the way. Boosts and kommitte never hit the winner. */
 export const GAG_WIN: Partial<Record<GagKind, (h: NamedRunner) => string>> = {
   galopp: (h) => `${h.name} galopperade och vann ändå!`,
   backwards: (h) => `${h.name} sprang åt fel håll och vann ändå! Vad är det här för lopp?`,
-  graze: (h) => `${h.name} betade gräs och vann ändå!`,
-  wave: (h) => `${h.jockey} vinkade till publiken och vann ändå!`,
   selfie: (h) => `${h.jockey} tog en selfie och vann ändå! Bilden säljs i Butiken.`,
-  seagull: (h) => `${h.name} överlevde måsattacken och vann!`,
   turbo: (h) => `${h.name} vinner på ren turbo! Dopingprov bokat.`,
+  nap: (h) => `${h.name} sov en stund och vann ändå!`,
+  banana: (h) => `${h.name} halkade på en banan och vann ändå!`,
+  snabblan: (h) => `${h.jockey} vinner och kan betala tillbaka Snabblånet. Nästan.`,
+  serverkrasch: (h) => `${h.name} laggade och vann ändå! Starta om och försök igen.`,
+  fatbyte: (h) => `${h.jockey} hann med ett fatbyte och vann ändå!`,
+  eckero: (h) => `${h.jockey} hann till Eckerölinjen och tillbaka och vann ändå!`,
+  rallyhafte: (h) => `${h.jockey} läste aldrig rallyhäftet och vann ändå!`,
+  hjalprebus: (h) => `${h.jockey} behövde en hjälprebus och vann ändå!`,
 }
 
 export const INQUIRY_TITLE = 'Bandomarna utreder'

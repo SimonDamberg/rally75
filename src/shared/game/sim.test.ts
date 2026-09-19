@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { createRng } from './rng'
 import { buildField, FIELD_SIZE } from './field'
-import { COMIC_GAGS, commentAt, demoteWinner, INQUIRY_RATE, PHOTO_MARGIN, SCRIPT_WEIGHTS, simulateRace, STRETCH_TICK, TICKS } from './sim'
+import { BOOSTS, COMIC_GAGS, commentAt, demoteWinner, INQUIRY_RATE, PHOTO_MARGIN, SCRIPT_WEIGHTS, simulateRace, STRETCH_TICK, TICKS } from './sim'
 import { winWeights } from './odds'
 import { NAMED_KUSKAR } from '../content/kuskar'
 
@@ -133,6 +133,39 @@ describe('simulateRace', () => {
     expect(repeats).toBe(0)
     expect([...scripts].sort()).toEqual(Object.keys(SCRIPT_WEIGHTS).sort())
     expect([...gags].sort()).toEqual(['galopp', ...COMIC_GAGS].sort())
+  })
+
+  it('pairs kommitte in adjacent lanes, keeps boosts off the winner, and lets a server crash snap back', () => {
+    let pairs = 0
+    let crashes = 0
+    for (let seed = 1; seed <= 3000; seed++) {
+      const { horses, timeline: t } = race(seed)
+      const lane = (n: number) => horses.findIndex((h) => h.n === n)
+      for (const g of t.gags) {
+        if (BOOSTS.includes(g.kind) && g.tick !== 65) expect(g.n).not.toBe(t.finishOrder[0])
+        if (g.kind === 'kommitte') {
+          pairs++
+          expect(g.partner).toBeDefined()
+          expect(Math.abs(lane(g.n) - lane(g.partner!))).toBe(1)
+          expect([g.n, g.partner]).not.toContain(t.finishOrder[0])
+          const mate = t.gags.find((x) => x.n === g.partner && x.kind === 'kommitte')
+          expect(mate).toMatchObject({ partner: g.n, tick: g.tick, ticks: g.ticks })
+        }
+        if (g.kind === 'serverkrasch') {
+          crashes++
+          const i = lane(g.n)
+          const end = g.tick + g.ticks
+          // Frozen during the crash, then most of the lost ground comes back in one tick.
+          const during = t.frames[end].runners[i].pos - t.frames[g.tick + 1].runners[i].pos
+          const jump = t.frames[end + 1].runners[i].pos - t.frames[end].runners[i].pos
+          const step = t.frames[end + 2].runners[i].pos - t.frames[end + 1].runners[i].pos
+          expect(during).toBeLessThan(1)
+          expect(jump).toBeGreaterThan(Math.max(1.5, 2 * step))
+        }
+      }
+    }
+    expect(pairs).toBeGreaterThan(0)
+    expect(crashes).toBeGreaterThan(0)
   })
 
   it('keeps commentary lines apart so they can be read', () => {

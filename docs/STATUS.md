@@ -1184,3 +1184,35 @@ inquiry") still holds, but the winner is now drawn rather than emergent.
 1. Deploy **between races**, then reload both GM devices. If the phone and the iPad run different
    builds during a race, they can show different races. No migration.
 
+
+## Race gags, round two: the party in-jokes (done, 2026-09-19)
+
+Simon's picks. Graze, wave and seagull are gone (and a first draft's wheel, phone, wasps, UFO and
+proposal never shipped). The comic set is now:
+
+- **Kept:** fel håll, selfie and turbo
+- **New slapstick:** sover, bananskal and Snabblån
+- **Party in-jokes:** Husvagnspanik, Kommitté-incest, Serverkrasch, Fatbyte, Eckerölinjen, Glömde
+  rallyhäftet and Hjälprebus
+
+Galopp is unchanged.
+
+**Done**
+
+- `GagKind`, the sim tables (`COMIC_GAGS`, `GAG_DRAG`, `GAG_TICKS`), `GAG_LINES`/`GAG_WIN`, the
+  stickers in `GM_RACE.gag` and the `GagSprite` props, all for the new set.
+- Kommitté-incest is the first **two-horse gag**. Two losers in adjacent lanes both slow down, and
+  the one ahead gives up extra ground so they end up level. `RaceGag.partner` and
+  `RunnerFrame.partner` name the other horse. The badges lean into each other, the couple gets one
+  commentary line (`KOMMITTE_LINES`) and shares one sticker.
+- Serverkrasch freezes the horse, then gives the lost ground back in a single tick (a new per-gag
+  `recover`), with a glitch animation and a 404 chip.
+- `BOOSTS` (turbo, husvagn) never land on the winner. The stop gags (sover, serverkrasch, fatbyte,
+  Eckerölinjen) now truly stand still, and so kick up no dust.
+- Comic gags are a bit more frequent: 70 % of races get one, and 30 % of those a second. 87 % of
+  races now have some gag, galopp included.
+- New tests: kommitte is always an adjacent pair of losers, boosts never hit the winner, and a
+  server crash snaps back. The race stats (win rates, house edge, late lead changes, photos) are
+  unchanged.
+
+**Manual steps for Simon:** as before, deploy between races and reload both GM devices.

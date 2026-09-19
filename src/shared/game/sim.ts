@@ -18,7 +18,7 @@ import type {
   RaceScript,
   RaceTimeline,
 } from './types'
-import { COMMENTARY, GAG_LINES, GAG_WIN, inquiryText, type NamedRunner } from '../content/commentary'
+import { COMMENTARY, GAG_LINES, GAG_WIN, inquiryText, KOMMITTE_LINES, type NamedRunner } from '../content/commentary'
 
 /** 100 ticks of 300 ms: 30 s from the start to the line. */
 export const TICKS = 100
@@ -59,30 +59,62 @@ export const SCRIPT_WEIGHTS: Record<RaceScript, number> = {
   duel: 0.18,
   pack: 0.2,
 }
-export const COMIC_GAGS: readonly GagKind[] = ['backwards', 'graze', 'wave', 'selfie', 'seagull', 'turbo']
+export const COMIC_GAGS: readonly GagKind[] = [
+  'backwards',
+  'selfie',
+  'turbo',
+  'nap',
+  'banana',
+  'snabblan',
+  'husvagn',
+  'kommitte',
+  'serverkrasch',
+  'fatbyte',
+  'eckero',
+  'rallyhafte',
+  'hjalprebus',
+]
+/** Gags that speed a horse up: never handed to the winner, where they would look like the cause. */
+export const BOOSTS: readonly GagKind[] = ['turbo', 'husvagn']
 /** Chance of a comic gag in a race, and of a second one on top. Galopp comes on top, from temper. */
-const COMIC_CHANCE = 0.62
-const SECOND_COMIC_CHANCE = 0.22
+const COMIC_CHANCE = 0.7
+const SECOND_COMIC_CHANCE = 0.3
 
 /** Extra gap per gag tick, in units. Above the leader's ~0.78/tick the horse moves backwards. */
 const GAG_DRAG: Record<GagKind, number> = {
   galopp: 0.6,
   backwards: 1.35,
-  graze: 0.8,
-  wave: 0.35,
   selfie: 0.5,
-  seagull: 0.45,
   turbo: -1.1,
+  nap: 1.1,
+  banana: 0.6,
+  snabblan: 0.45,
+  husvagn: -1.1,
+  kommitte: 0.5,
+  serverkrasch: 1.6,
+  fatbyte: 1.1,
+  eckero: 1.1,
+  rallyhafte: 0.55,
+  hjalprebus: 0.7,
 }
 const GAG_TICKS: Record<GagKind, [number, number]> = {
   galopp: [3, 6],
   backwards: [3, 4],
-  graze: [4, 6],
-  wave: [4, 6],
   selfie: [4, 5],
-  seagull: [5, 7],
   turbo: [4, 5],
+  nap: [5, 7],
+  banana: [3, 4],
+  snabblan: [5, 6],
+  husvagn: [4, 5],
+  kommitte: [5, 6],
+  serverkrasch: [4, 5],
+  fatbyte: [5, 7],
+  eckero: [5, 6],
+  rallyhafte: [5, 6],
+  hjalprebus: [4, 5],
 }
+/** Ticks a gag's lost ground takes to melt away. A crashed server comes back all at once. */
+const GAG_RECOVERY: Partial<Record<GagKind, number>> = { serverkrasch: 1 }
 
 export interface SimInput {
   horses: readonly Pick<HorsePublic, 'n' | 'name' | 'jockey' | 'baseOdds'>[]
@@ -214,27 +246,61 @@ function gapAt(g: readonly number[], p: number): number {
   return g[k] + (g[k + 1] - g[k]) * smooth(Math.min(1, Math.max(0, t)))
 }
 
-/** Galopp from temper, plus comic gags, spaced so each gets its own commentary line. */
 /** A gag as the sim needs it: horse index, and how much ground it costs per tick. */
 interface PlacedGag extends RaceGag {
   i: number
   drag: number
+  /** Ticks to win the lost ground back. */
+  recover: number
+  /** Partner horse index in a two-horse gag. */
+  j?: number
 }
 
-function drawGags(temper: readonly number[], order: readonly number[], script: RaceScript, r: Rng): PlacedGag[] {
+/**
+ * Galopp from temper, plus comic gags, spaced so each gets its own commentary line. A kommitte gag
+ * takes two losers in adjacent lanes, and the one ahead gives up extra ground so they end up level.
+ */
+function drawGags(temper: readonly number[], order: readonly number[], script: RaceScript, gaps: readonly number[][], r: Rng): PlacedGag[] {
   const gags: PlacedGag[] = []
+  const slots = () => new Set(gags.map((g) => g.tick)).size
   const free = (tick: number, len: number) =>
     tick + len + 2 <= GAG_LAST + 6 && gags.every((g) => Math.abs(g.tick - tick) >= COMMENT_GAP + 1)
-  const place = (i: number, kind: GagKind, tries = 12) => {
+  const slot = (kind: GagKind, tries = 12): { tick: number; ticks: number } | null => {
     const [lo, hi] = GAG_TICKS[kind]
-    const len = lo + r.int(hi - lo + 1)
+    const ticks = lo + r.int(hi - lo + 1)
     for (let t = 0; t < tries; t++) {
       const tick = GAG_FIRST + r.int(GAG_LAST - GAG_FIRST + 1)
-      if (free(tick, len)) {
-        gags.push({ i, n: -1, kind, tick, ticks: len, drag: GAG_DRAG[kind] })
-        return
-      }
+      if (free(tick, ticks)) return { tick, ticks }
     }
+    return null
+  }
+  const gag = (i: number, kind: GagKind, at: { tick: number; ticks: number }, drag = GAG_DRAG[kind]): PlacedGag => ({
+    i,
+    n: -1,
+    kind,
+    ...at,
+    drag,
+    recover: GAG_RECOVERY[kind] ?? GAG_RECOVER,
+  })
+  const place = (i: number, kind: GagKind) => {
+    const at = slot(kind)
+    if (at) gags.push(gag(i, kind, at))
+  }
+  const placePair = () => {
+    const losers = new Set(order.slice(1))
+    const pairs: [number, number][] = []
+    for (let a = 0; a + 1 < order.length; a++) if (losers.has(a) && losers.has(a + 1)) pairs.push([a, a + 1])
+    const at = pairs.length ? slot('kommitte') : null
+    if (!at) return
+    const [a, b] = r.pick(pairs)
+    const p = progressAt(at.tick)
+    // Positive when a is ahead of b on the plan: a drags that much extra to come back level.
+    const lead = gapAt(gaps[b], p) - gapAt(gaps[a], p)
+    const base = GAG_DRAG.kommitte
+    gags.push(
+      { ...gag(a, 'kommitte', at, base + Math.max(0, lead) / at.ticks), j: b },
+      { ...gag(b, 'kommitte', at, base + Math.max(0, -lead) / at.ticks), j: a },
+    )
   }
 
   // Galopp, about as often as the old tick-by-tick model: a hot temper breaks more.
@@ -242,16 +308,20 @@ function drawGags(temper: readonly number[], order: readonly number[], script: R
     if (r.next() < 1 - (1 - t * 0.045) ** 45) place(i, 'galopp')
   })
   const comic = r.next() < COMIC_CHANCE ? (r.next() < SECOND_COMIC_CHANCE ? 2 : 1) : 0
-  for (let c = 0; c < comic && gags.length < 3; c++) {
+  for (let c = 0; c < comic && slots() < 3; c++) {
     const kind = r.pick(COMIC_GAGS.filter((k) => gags.every((g) => g.kind !== k)))
+    if (kind === 'kommitte') {
+      placePair()
+      continue
+    }
     // Mostly a loser; the winner may take a harmless one, which is funnier.
-    const pool = r.next() < 0.25 && kind !== 'turbo' ? order : order.slice(1)
+    const pool = r.next() < 0.25 && !BOOSTS.includes(kind) ? order : order.slice(1)
     place(pool[r.int(pool.length)], kind)
   }
   // A comeback winner may light a turbo for the surge, on the turn line ("här kommer ..."). Show
   // only: the script already gains the ground, and a real boost would melt away on the upplopp.
   if (script === 'comeback' && r.next() < 0.5) {
-    gags.push({ i: order[0], n: -1, kind: 'turbo', tick: COMEBACK_TURBO_TICK, ticks: 5, drag: 0 })
+    gags.push(gag(order[0], 'turbo', { tick: COMEBACK_TURBO_TICK, ticks: 5 }, 0))
   }
   return gags.sort((x, y) => x.tick - y.tick)
 }
@@ -262,7 +332,7 @@ function gagGap(g: PlacedGag, t: number): number {
   const peak = g.drag * g.ticks
   const end = g.tick + g.ticks
   if (t <= end) return (peak * (t - g.tick)) / g.ticks
-  return peak * (1 - smooth(Math.min(1, (t - end) / GAG_RECOVER)))
+  return peak * (1 - smooth(Math.min(1, (t - end) / g.recover)))
 }
 
 export function simulateRace({ horses, stats, seed, raceNo, meters = 2140 }: SimInput): RaceTimeline {
@@ -281,6 +351,7 @@ export function simulateRace({ horses, stats, seed, raceNo, meters = 2140 }: Sim
     ordered.map((s) => s.temper),
     order,
     script,
+    plan.gaps,
     r,
   )
   // Two slow sines per horse, fading out at both ends, so nobody moves like a train on rails.
@@ -343,6 +414,7 @@ export function simulateRace({ horses, stats, seed, raceNo, meters = 2140 }: Sim
           left: t === 0 ? START_LEFT : Math.max(MIN_LEFT, leadLeft - (maxPos - row[i]) * GAP_SCALE),
           broke: gag?.kind === 'galopp',
           ...(gag ? { gag: gag.kind } : {}),
+          ...(gag?.j !== undefined ? { partner: horses[gag.j].n } : {}),
         }
       }),
     })
@@ -356,7 +428,11 @@ export function simulateRace({ horses, stats, seed, raceNo, meters = 2140 }: Sim
 
   add(0, 9, COMMENTARY.start(raceNo), true)
   for (const g of rawGags) {
-    if (g.tick !== COMEBACK_TURBO_TICK) add(g.tick + 1, 6, r.pick(GAG_LINES[g.kind])(H(g.i)), true)
+    if (g.tick === COMEBACK_TURBO_TICK) continue
+    if (g.kind === 'kommitte') {
+      // One line for the couple, from the upper lane's entry.
+      if (g.j !== undefined && g.i < g.j) add(g.tick + 1, 6, r.pick(KOMMITTE_LINES)(H(g.i), H(g.j)), true)
+    } else add(g.tick + 1, 6, r.pick(GAG_LINES[g.kind])(H(g.i)), true)
   }
   {
     const o = orderAt(20)
@@ -417,7 +493,13 @@ export function simulateRace({ horses, stats, seed, raceNo, meters = 2140 }: Sim
     finishComment: { text: finishText, hype: true },
     inquiry,
     script,
-    gags: rawGags.map(({ i, kind, tick, ticks }) => ({ n: horses[i].n, kind, tick, ticks })),
+    gags: rawGags.map(({ i, j, kind, tick, ticks }) => ({
+      n: horses[i].n,
+      kind,
+      tick,
+      ticks,
+      ...(j !== undefined ? { partner: horses[j].n } : {}),
+    })),
   }
 }
 

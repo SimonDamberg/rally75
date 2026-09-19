@@ -82,17 +82,26 @@ export interface RunnerFrame {
   broke: boolean;
   /** A comic mishap in progress (galopp included), for the display's sprites. */
   gag?: GagKind;
+  /** The other horse in a two-horse gag (kommitte), by start number. */
+  partner?: number;
 }
 
 /** Slapstick events. galopp is the real one; the rest are Rally75's own contribution to trotting. */
 export type GagKind =
   | "galopp"
   | "backwards"
-  | "graze"
-  | "wave"
   | "selfie"
-  | "seagull"
-  | "turbo";
+  | "turbo"
+  | "nap"
+  | "banana"
+  | "snabblan"
+  | "husvagn"
+  | "kommitte"
+  | "serverkrasch"
+  | "fatbyte"
+  | "eckero"
+  | "rallyhafte"
+  | "hjalprebus";
 
 /** The race's storyline, drawn after the result. */
 export type RaceScript = "wire" | "comeback" | "collapse" | "duel" | "pack";
@@ -104,6 +113,8 @@ export interface RaceGag {
   tick: number;
   /** Number of ticks it lasts. */
   ticks: number;
+  /** The other horse in a two-horse gag (kommitte), by start number. */
+  partner?: number;
 }
 
 export interface RaceFrame {
