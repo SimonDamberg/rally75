@@ -20,9 +20,13 @@ import type {
 } from './types'
 import { COMMENTARY, GAG_LINES, GAG_WIN, inquiryText, KOMMITTE_LINES, type NamedRunner } from '../content/commentary'
 
-/** 100 ticks of 300 ms: 30 s from the start to the line. */
+/**
+ * 100 base ticks of 300 ms: 30 s from the start to the line, plus the ultrarapid around each gag,
+ * where every base tick becomes SLOWMO frames. Frame count (and race length) therefore varies.
+ */
 export const TICKS = 100
 export const TICK_MS = 300
+export const SLOWMO = 3
 /** The upplopp starts here and covers the last STRETCH_FROM of the distance at half speed. */
 export const STRETCH_TICK = 76
 const STRETCH_FROM = 0.85
@@ -394,35 +398,8 @@ export function simulateRace({ horses, stats, seed, raceNo, meters = 2140 }: Sim
   for (let i = 0; i < n; i++) pos[TICKS][i] = Math.max(pos[TICKS][i], pos[TICKS - 1][i])
   const finishIdx = [...order]
 
-  // Frames, without commentary yet
-  const frames: RaceFrame[] = []
-  const leaders: number[] = []
-  for (let t = 0; t <= TICKS; t++) {
-    const progress = progressAt(t)
-    const row = pos[t]
-    const leadI = row.reduce((best, x, i) => (x > row[best] ? i : best), 0)
-    leaders.push(leadI)
-    const maxPos = row[leadI]
-    const leadLeft = START_LEFT + progress * TRACK_SPAN
-    frames.push({
-      tick: t,
-      progress,
-      meters: Math.round(progress * meters),
-      leader: t === 0 ? null : horses[leadI].n,
-      stretch: t >= STRETCH_TICK,
-      runners: horses.map((h, i) => {
-        const gag = t > 0 ? gagAt(i, t) : undefined
-        return {
-          n: h.n,
-          pos: row[i],
-          left: t === 0 ? START_LEFT : Math.max(MIN_LEFT, leadLeft - (maxPos - row[i]) * GAP_SCALE),
-          broke: gag?.kind === 'galopp',
-          ...(gag ? { gag: gag.kind } : {}),
-          ...(gag?.j !== undefined ? { partner: horses[gag.j].n } : {}),
-        }
-      }),
-    })
-  }
+  // Leader at every base tick, for the lead-change lines
+  const leaders = pos.map((row) => row.reduce((best, x, i) => (x > row[best] ? i : best), 0))
 
   // Commentary: candidates with priorities, then greedily kept so lines never crowd each other.
   const H = (i: number): NamedRunner => horses[i]
@@ -465,7 +442,50 @@ export function simulateRace({ horses, stats, seed, raceNo, meters = 2140 }: Sim
   for (const c of [...cands].sort((x, y) => y.prio - x.prio || x.tick - y.tick)) {
     if (kept.every((k) => Math.abs(k.tick - c.tick) >= COMMENT_GAP)) kept.push(c)
   }
-  for (const c of kept) frames[c.tick].comment = c.comment
+
+  // Frames. Every base tick is one frame, except around a gag, where each base tick is played as
+  // SLOWMO frames in between (ultrarapid) so the room has time to read the line and see the joke.
+  // Tick length stays the same, so raceClock needs nothing: a slowed race is just more frames.
+  const slowAt = (k: number) =>
+    rawGags.some((g) => g.tick !== COMEBACK_TURBO_TICK && k >= g.tick - 1 && k <= g.tick + g.ticks - 1)
+  const samples: number[] = [0]
+  const frameOf: number[] = [0]
+  for (let k = 0; k < TICKS; k++) {
+    const steps = slowAt(k) ? SLOWMO : 1
+    for (let j = 1; j <= steps; j++) samples.push(k + j / steps)
+    frameOf.push(samples.length - 1)
+  }
+  const lerp = (a: number, b: number, f: number) => a + (b - a) * f
+  const frames: RaceFrame[] = samples.map((b, idx) => {
+    const k0 = Math.floor(b)
+    const k1 = Math.ceil(b)
+    const f = b - k0
+    const row = pos[k0].map((x, i) => lerp(x, pos[k1][i], f))
+    const progress = lerp(progressAt(k0), progressAt(k1), f)
+    const leadI = row.reduce((best, x, i) => (x > row[best] ? i : best), 0)
+    const maxPos = row[leadI]
+    const leadLeft = START_LEFT + progress * TRACK_SPAN
+    return {
+      tick: idx,
+      progress,
+      meters: Math.round(progress * meters),
+      leader: idx === 0 ? null : horses[leadI].n,
+      stretch: b >= STRETCH_TICK,
+      slowmo: idx > 0 && slowAt(k1 - 1),
+      runners: horses.map((h, i) => {
+        const gag = idx > 0 ? gagAt(i, k1) : undefined
+        return {
+          n: h.n,
+          pos: row[i],
+          left: idx === 0 ? START_LEFT : Math.max(MIN_LEFT, leadLeft - (maxPos - row[i]) * GAP_SCALE),
+          broke: gag?.kind === 'galopp',
+          ...(gag ? { gag: gag.kind } : {}),
+          ...(gag?.j !== undefined ? { partner: horses[gag.j].n } : {}),
+        }
+      }),
+    }
+  })
+  for (const c of kept) frames[frameOf[c.tick]].comment = c.comment
 
   const winner = horses[finishIdx[0]]
   const margin = pos[TICKS][finishIdx[0]] - pos[TICKS][finishIdx[1]]
@@ -497,11 +517,12 @@ export function simulateRace({ horses, stats, seed, raceNo, meters = 2140 }: Sim
     finishComment: { text: finishText, hype: true },
     inquiry,
     script,
+    // In frames, like everything else in the timeline.
     gags: rawGags.map(({ i, j, kind, tick, ticks }) => ({
       n: horses[i].n,
       kind,
-      tick,
-      ticks,
+      tick: frameOf[tick],
+      ticks: frameOf[tick + ticks] - frameOf[tick],
       ...(j !== undefined ? { partner: horses[j].n } : {}),
     })),
   }

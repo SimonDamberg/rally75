@@ -7,7 +7,7 @@ import { GM_RACE } from '../../shared/content/gm'
 import { UI_LABELS } from '../../shared/content/ui'
 import { fmtInt, fmtRm } from '../../shared/game/format'
 import { createRng } from '../../shared/game/rng'
-import { commentAt, SKRALL_ODDS, STRETCH_TICK } from '../../shared/game/sim'
+import { commentAt, SKRALL_ODDS } from '../../shared/game/sim'
 import type { GagKind, HorsePublic, RaceTimeline } from '../../shared/game/types'
 import { cx, HorseBadge } from '../../ui'
 import type { LaneBackers } from '../book'
@@ -63,6 +63,9 @@ export function RaceTrack({ raceNo, field, timeline, tick, phase, backers, loadi
   const running = phase === 'running' && tick > 0
   const finished = phase !== 'running'
   const stretch = !!frame?.stretch && !finished
+  const slowmo = !!frame?.slowmo && !finished
+  // Frame index where the upplopp starts: frames are not ticks, since a gag's ultrarapid adds some.
+  const stretchStart = useMemo(() => timeline?.frames.findIndex((f) => f.stretch) ?? -1, [timeline])
   const winnerN = timeline?.finishOrder[0]
   const winner = field.find((h) => h.n === winnerN)
   const photo = !!timeline?.photo && finished
@@ -96,6 +99,11 @@ export function RaceTrack({ raceNo, field, timeline, tick, phase, backers, loadi
           </span>
         )}
         {frame && <span className="font-display text-tv-md font-black text-ink tabular-nums">{GM_RACE.clock(fmtInt(frame.meters))}</span>}
+        {slowmo && (
+          <span className="animate-pop-in rounded-full bg-tote-hi px-5 py-1.5 font-display text-tv-sm font-black tracking-widest text-white uppercase ring-2 ring-white/60">
+            {GM_RACE.slowmo}
+          </span>
+        )}
         <div className="ml-auto flex items-center gap-6">
           {stake > 0 && (
             <span className="rounded-full bg-black/40 px-5 py-1.5 font-display text-tv-sm font-black text-plate tabular-nums ring-2 ring-plate/60">
@@ -110,6 +118,8 @@ export function RaceTrack({ raceNo, field, timeline, tick, phase, backers, loadi
         className={cx(
           'relative flex min-h-0 flex-1 flex-col gap-2 px-6 pb-3 transition-[transform,filter] duration-[1500ms] ease-out',
           photo && phase === 'finishing' && 'grayscale',
+          // Ultrarapid: the trot and the dust slow down with the field.
+          slowmo && '[&_.animate-puff]:[animation-duration:1.8s] [&_.animate-trot]:[animation-duration:1s]',
         )}
         style={{ transform: stretch ? 'scale(1.04)' : 'none', transformOrigin: `${FINISH_LEFT}% 50%` }}
       >
@@ -132,7 +142,7 @@ export function RaceTrack({ raceNo, field, timeline, tick, phase, backers, loadi
                   'bg-[repeating-linear-gradient(90deg,rgb(255_255_255/0.05)_0_60px,transparent_60px_120px),linear-gradient(180deg,rgb(11_58_140/0.55),rgb(7_18_58/0.85))]',
                   running && 'animate-rail',
                 )}
-                style={{ animationDuration: stretch ? '1.5s' : '0.7s' }}
+                style={{ animationDuration: slowmo ? '2.1s' : stretch ? '1.5s' : '0.7s' }}
               />
               <div className="absolute inset-y-0 left-[91%] w-2 bg-[repeating-linear-gradient(0deg,#fff_0_10px,#111_10px_20px)] opacity-85" />
               <div className="absolute inset-y-1 left-40 flex max-w-[60%] flex-col justify-between">
@@ -201,7 +211,7 @@ export function RaceTrack({ raceNo, field, timeline, tick, phase, backers, loadi
           )
         })}
 
-        {stretch && frame && frame.tick < STRETCH_TICK + BANNER_TICKS && (
+        {stretch && frame && frame.tick < stretchStart + BANNER_TICKS && (
           <div className="pointer-events-none absolute inset-0 z-20 grid place-items-center">
             <p className="plate animate-slam rounded-2xl bg-plate px-12 py-3 font-display text-[8rem] leading-none font-black text-night uppercase shadow-[0_0_4rem_rgb(255_214_10/0.6)]">
               <span className="unplate">{GM_RACE.stretchBanner}</span>

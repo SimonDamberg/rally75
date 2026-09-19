@@ -126,6 +126,8 @@ export interface RaceFrame {
   leader: number | null;
   /** The upplopp: time runs at half speed from here, and the display stages it. */
   stretch: boolean;
+  /** Ultrarapid: a gag is on, and the whole field runs at a third of the speed. */
+  slowmo: boolean;
   /** Same order as the input horses. */
   runners: RunnerFrame[];
   /** Commentary line that appears on this tick, if any. */
@@ -135,7 +137,7 @@ export interface RaceFrame {
 export interface RaceTimeline {
   seed: number;
   tickMs: number;
-  /** frames[0] is the start, frames[TICKS] the last step. */
+  /** frames[0] is the start, the last frame the finish. Slowed gags add frames. */
   frames: RaceFrame[];
   /** Start numbers, winner first. */
   finishOrder: number[];
