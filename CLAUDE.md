@@ -15,9 +15,12 @@ Supabase is the shared backend.
 - **No em dash** (U+2014) anywhere under `src/`, in any language. A test enforces this. Use a
   comma, a period or parentheses instead. In source code write `'\u2014'` if you must refer to it.
 - **No audio.** No sounds, no speech synthesis. Drama is carried visually.
-- Never use ATG's real name or logo. The brand is Rally75. **One exception, Simon's call:** the
-  printed kupong carries a parody Mr Green logo (`public/kupong-logo.png`) as a corner mark. It
-  stays on the paper ticket and nowhere else: never on the guest app, the iPad or anything public.
+- **Two brands.** The guest app (`/`, `/k/:code`) is **Mr Green Nätcasino**, a parody umbrella
+  casino: deep felt green, cream wordmark, the frog in the suit. **Rally75** is the trotting product
+  inside it, and the brand of every GM surface. Never use ATG's real name or logo.
+  Mr Green art belongs on the guest app, the guest icons and the printed kupong, and **nowhere on
+  `/gm`, `/gm/display` or `/gm/kuponger`**, which stay tote blue. (This replaces the earlier rule that
+  kept the Mr Green mark on paper only; Simon's call, see `docs/STATUS.md`.)
 - Balance is authoritative in the DB and changes **only** through server-side RPCs.
 - Network is required; show clear "Ingen anslutning" states with auto-retry, no offline mode.
 
@@ -78,15 +81,33 @@ supabase/migrations/ SQL migrations. (Stage 2)
 
 ## Design system (Stage 3)
 
-- Tokens live in `@theme` in `src/index.css`: colours `night`, `tote`, `tote-hi`, `plate` (yellow),
-  `sleaze` (pink), `cash` (green, wins, odds shortening), `drift` (red, errors, odds lengthening),
-  `void`, `ink`, `ink-dim`; fonts `font-display` (Big Shoulders Display) and `font-body` (Archivo,
-  use `[font-stretch:82%]` for condensed names); GM sizes `text-tv-sm/md/lg/xl`. Use tokens, not
-  raw Tailwind colours. Dark only.
-- Build screens from `src/ui` (import from `'../ui'`): `Logo`, `Button`, `Modal` (native
-  `<dialog>`, stacks), `toast()` + `<Toaster />`, `SilkBadge`, `OddsValue`, `HorseRow`,
+- Tokens live in `@theme` in `src/index.css`: colours `night`, `night-deep`, `night-glow`, `tote`,
+  `tote-hi`, `plate` (yellow), `sleaze` (accent) + `sleaze-ink` (text on a solid sleaze surface),
+  `cash` (green, wins, odds shortening), `drift` (red, errors, odds lengthening), `void`, `ink`,
+  `ink-dim`; fonts `font-display` (Big Shoulders Display) and `font-body` (Archivo, use
+  `[font-stretch:82%]` for condensed names); GM sizes `text-tv-sm/md/lg/xl`. Use tokens, not raw
+  Tailwind colours. Dark only.
+- **Theming is token remapping, not component variants.** The `@theme` defaults are Rally75. The
+  greens live in one unlayered scope, `:root[data-brand='mrgreen'], .theme-mrgreen`, and
+  `.theme-rally75` restores the blues from the named `--color-*-blue` set for a nested subtree.
+  `index.html` sets `data-brand` on `<html>` for every path that is not `/gm`, so GM never sees it.
+  - Moved by brand: `night`, `night-deep`, `night-glow`, `tote`, `tote-hi`, `void`, `ink`,
+    `ink-dim`, `sleaze`, `sleaze-shade`, `sleaze-ink`. **Never** `plate`, `cash` or `drift`: money,
+    odds and alerts must mean the same colour in both brands. `src/ui/theme.test.ts` enforces that
+    the two scopes declare the same token names, so add a token to both or neither.
+  - Anything outside the React tree (the `body` gradient, `dialog::backdrop`) needs its own
+    `[data-brand='mrgreen']` rule. `::backdrop` cannot read a custom property on older Safari, so it
+    is written out longhand.
+  - `bg-tote/40`-style opacity utilities theme correctly only where `color-mix(in lab, ...)` is
+    supported (Safari 16.4+). Fine for party phones; do not rely on it elsewhere.
+- Build screens from `src/ui` (import from `'../ui'`): `Logo` (**Rally75 only**), `MrGreenLogo`
+  (the site brand: `mark` / `lockup` / `full`, from `public/mrgreen-logo.jpg`), `Button`, `Modal`
+  (native `<dialog>`, stacks), `toast()` + `<Toaster />`, `SilkBadge`, `OddsValue`, `HorseRow`,
   `StatusBanner`, `BonusBar`, `ConnectionBadge`, `QrCode`. Most take `size` with a `tv` variant for the iPad.
-- Component copy lives in `src/shared/content/ui.ts`. Check new components in `/styleguide`.
+- Component copy lives in `src/shared/content/ui.ts` (`BRAND` holds both brand names). Check new
+  components in `/styleguide`, whose `Varumärken` section shows the two brands side by side.
+- Guest icons and `og.png` are generated from the frog art: `npm run icons -- guest` regenerates the
+  guest set only and leaves the `gm-*` PNGs untouched.
 
 ## GM app (Stages 4 and 7)
 
@@ -117,7 +138,17 @@ Two devices, one password gate, one lazy-loaded chunk (`src/gm/GmApp.tsx` routes
 ## Client app (Stage 5)
 
 - `src/client/ClientApp.tsx`: no identity shows `Onboarding` (fake connect, KYC), otherwise
-  `ClientShell` (header, tabs Spela / Mina spel / Bank / Butik / Topplista). `CookieBanner` floats over both.
+  `ClientShell` (header, tabs Rally75 / Mina spel / Bank / Butik / Topplista). `CookieBanner` floats over both.
+- The client is **Mr Green green**; the trotting surfaces are a **blue Rally75 inset panel**. The rule:
+  anything showing a horse, a silk, odds or a race number carries `theme-rally75`. Today that is the
+  race panel in `Home.tsx`, the `BetSlip` root (its confirm modal inherits), `MyBets.tsx` and the
+  `ResultReveal` modal (a shell sibling, so it needs its own). `SmallPrint` forces itself back to
+  `theme-mrgreen`: the legal footer is the site talking, not the product.
+  Put the class on an element that already exists. A new wrapper div in the
+  `ClientShell` > `main` > `RaceView` > `BetSlip` chain breaks the sticky slip's `flex-1`/`mt-auto`.
+- Game tabs are named after products (`Rally75`, and a Triss-parody skraplott next), so the shelf
+  reads as a shelf. The tab bar is `grid-flow-col auto-cols-fr`: adding a tab to `TABS` needs no
+  class edit, but check the labels at 390px, where six tabs leave about 62px each.
 - `ClientShell` fetches the player, the player's bets and the active race once and shares them via
   `useGuest()` (`src/client/guest.ts`). Guest RPCs go through `useGuestAction().run((api, identity) => ...)`:
   errors become toasts, `player_not_found`/`invalid_token` sign out.

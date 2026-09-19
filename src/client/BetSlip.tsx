@@ -58,7 +58,7 @@ export function BetSlip({ race, horse, odds, balance, onClose, onConfirmChange }
   const hint = check === 'too_low' ? SLIP.minStake(fmtRm(MIN_STAKE)) : check === 'too_poor' ? SLIP.tooPoor : null
 
   return (
-    <div className="sticky bottom-0 mt-auto flex flex-col gap-2.5 border-t-2 border-plate bg-night-deep/97 px-3 pt-3 pb-3 shadow-[0_-1rem_2rem_rgb(0_0_0/0.45)]">
+    <div className="theme-rally75 sticky bottom-0 mt-auto flex flex-col gap-2.5 border-t-2 border-plate bg-night-deep/97 px-3 pt-3 pb-3 shadow-[0_-1rem_2rem_rgb(0_0_0/0.45)]">
       <div className="flex items-center gap-3">
         <SilkBadge n={horse.n} silk={horse.silk} size="sm" />
         <span className="min-w-0 flex-1 truncate text-lg font-extrabold [font-stretch:82%]">{horse.name}</span>
@@ -89,7 +89,7 @@ export function BetSlip({ race, horse, odds, balance, onClose, onConfirmChange }
         <button
           type="button"
           onClick={() => setStake(allIn(balance))}
-          className="min-h-12 rounded-full bg-sleaze font-display text-sm leading-none font-black text-white uppercase active:translate-y-0.5"
+          className="min-h-12 rounded-full bg-sleaze font-display text-sm leading-none font-black text-sleaze-ink uppercase active:translate-y-0.5"
         >
           {SLIP.allIn}
         </button>

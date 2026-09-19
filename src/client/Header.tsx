@@ -5,7 +5,7 @@ import type { PlayerRow } from '../lib/types'
 import { HEADER } from '../shared/content/client'
 import { UI_LABELS } from '../shared/content/ui'
 import { badgedLabel, fmtRm } from '../shared/game/format'
-import { cx, Logo } from '../ui'
+import { cx, MrGreenLogo } from '../ui'
 
 export function Header({
   player,
@@ -27,7 +27,7 @@ export function Header({
   return (
     <header className="flex shrink-0 items-center gap-3 border-b border-white/10 bg-night-deep/85 px-4 py-2.5">
       <div className="flex min-w-0 flex-col gap-1">
-        <Logo size="sm" />
+        <MrGreenLogo variant="lockup" size="sm" />
         <span className="truncate text-xs font-semibold text-ink-dim">
           {player ? badgedLabel(player) : UI_LABELS.loading}
           {player?.title && <span className="ml-1.5 font-bold text-sleaze uppercase">{player.title}</span>}
@@ -38,7 +38,7 @@ export function Header({
         <button
           type="button"
           onClick={onLoan}
-          className="animate-pulse-live rounded-full bg-sleaze px-3 py-1.5 font-display text-sm font-extrabold tracking-wide text-white uppercase"
+          className="animate-pulse-live rounded-full bg-sleaze px-3 py-1.5 font-display text-sm font-extrabold tracking-wide text-sleaze-ink uppercase"
         >
           {HEADER.loan}
         </button>

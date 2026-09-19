@@ -5,7 +5,7 @@ import { ONBOARDING } from '../shared/content/client'
 import { ERROR_MESSAGES } from '../shared/content/errors'
 import { CONNECT_LINES, KYC_CONFIRM, KYC_PLACEHOLDER, KYC_TEXT, KYC_TITLE, LEGAL_TEXT, STODLINJE } from '../shared/content/parody'
 import { MAX_NAME_LENGTH } from '../shared/game/economy'
-import { BonusBar, Button, cx, Logo, StodlinjeNote } from '../ui'
+import { BonusBar, Button, cx, MrGreenLogo, StodlinjeNote } from '../ui'
 
 const LINE_MS = 850
 
@@ -39,7 +39,7 @@ function Connect({ step, onSkip }: { step: number; onSkip: () => void }) {
       onClick={onSkip}
       className="flex flex-1 flex-col items-center justify-center gap-8 px-6 pb-24 text-center"
     >
-      <Logo size="lg" />
+      <MrGreenLogo variant="full" size="lg" />
       <div className="flex w-full max-w-xs flex-col items-center gap-4">
         <span className="text-sm font-bold tracking-[0.16em] text-ink-dim uppercase">{ONBOARDING.connectTitle}</span>
         <div className="h-2.5 w-full overflow-hidden rounded-full bg-night-deep ring-1 ring-white/10">
@@ -84,7 +84,7 @@ function Kyc({ onCreate }: { onCreate: (name: string) => Promise<void> }) {
   return (
     <main className="flex flex-1 flex-col items-center px-4 pt-6 pb-10">
       <form onSubmit={submit} className="flex w-full max-w-md flex-col gap-5">
-        <Logo size="md" />
+        <MrGreenLogo variant="lockup" size="md" />
         <div>
           <h1 className="font-display text-4xl leading-none font-black text-plate uppercase">{KYC_TITLE}</h1>
           <p className="mt-2 text-base text-ink-dim">{KYC_TEXT}</p>
@@ -124,7 +124,7 @@ function Kyc({ onCreate }: { onCreate: (name: string) => Promise<void> }) {
                 onClick={() => setLoss(i)}
                 className={cx(
                   'min-h-11 rounded-xl px-2 text-sm font-bold ring-2 ring-inset',
-                  loss === i ? 'bg-sleaze text-white ring-sleaze' : 'bg-tote/40 text-ink ring-tote-hi/50',
+                  loss === i ? 'bg-sleaze text-sleaze-ink ring-sleaze' : 'bg-tote/40 text-ink ring-tote-hi/50',
                 )}
               >
                 {label}

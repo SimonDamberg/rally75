@@ -38,6 +38,7 @@ export function ResultReveal({ race, reveal, onClose }: { race: RaceRow; reveal:
       onClose={onClose}
       tone={copy.tone}
       title={copy.title}
+      className="theme-rally75"
       actions={
         <Button size="lg" block onClick={onClose}>
           {REVEAL.ok}

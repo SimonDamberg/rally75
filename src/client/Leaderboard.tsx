@@ -41,7 +41,7 @@ export function Leaderboard() {
                   ? 'bg-plate text-night'
                   : v === 'losers'
                     ? 'bg-drift text-white'
-                    : 'bg-sleaze text-white'
+                    : 'bg-sleaze text-sleaze-ink'
                 : 'text-ink-dim',
             )}
           >

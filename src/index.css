@@ -1,21 +1,46 @@
 @import "tailwindcss";
 
-/* Rally75 design tokens. Components in src/ui use these; see /styleguide in dev. */
+/*
+ * Design tokens. Components in src/ui use these; see /styleguide in dev.
+ *
+ * Two brands share one set of semantic names. The defaults below are Rally75 (tote blue), which is
+ * what the GM apps and the race surfaces render. The guest app runs under the Mr Green umbrella
+ * brand, which remaps the surfaces, the neutrals and the sleaze accent: see the brand scopes below
+ * @layer base. plate, cash and drift never move, so money and odds mean the same in both brands.
+ */
 @theme {
-  --color-night: #07123a;
-  --color-night-deep: #040b26;
-  --color-tote: #0b3a8c;
-  --color-tote-hi: #2f7bf5;
+  /* The Rally75 surface set, named so .theme-rally75 can restore it without repeating hex. */
+  --color-night-blue: #07123a;
+  --color-night-deep-blue: #040b26;
+  --color-night-glow-blue: #0d2a78;
+  --color-tote-blue: #0b3a8c;
+  --color-tote-hi-blue: #2f7bf5;
+  --color-void-blue: #4a5578;
+  --color-ink-blue: #f3f6ff;
+  --color-ink-dim-blue: #9fb2dd;
+  /* Rally75's sleaze is hot pink on white; Mr Green's is the logo mint, which needs dark text. */
+  --color-sleaze-pink: #ff2e88;
+  --color-sleaze-pink-shade: #9e0f4f;
+  --color-sleaze-pink-ink: #ffffff;
+
+  --color-night: var(--color-night-blue);
+  --color-night-deep: var(--color-night-deep-blue);
+  /* The lit top of the page gradient. A token so the body rule needs no per-brand duplicate. */
+  --color-night-glow: var(--color-night-glow-blue);
+  --color-tote: var(--color-tote-blue);
+  --color-tote-hi: var(--color-tote-hi-blue);
   --color-plate: #ffd60a;
   --color-plate-shade: #a88600;
-  --color-sleaze: #ff2e88;
-  --color-sleaze-shade: #9e0f4f;
+  --color-sleaze: var(--color-sleaze-pink);
+  --color-sleaze-shade: var(--color-sleaze-pink-shade);
+  /* Text that sits on a solid sleaze surface. A token because the two brands need opposite ink. */
+  --color-sleaze-ink: var(--color-sleaze-pink-ink);
   --color-cash: #3dffa8;
   --color-drift: #ff5a3c;
   --color-drift-shade: #9a2a14;
-  --color-void: #4a5578;
-  --color-ink: #f3f6ff;
-  --color-ink-dim: #9fb2dd;
+  --color-void: var(--color-void-blue);
+  --color-ink: var(--color-ink-blue);
+  --color-ink-dim: var(--color-ink-dim-blue);
 
   --font-display: "Big Shoulders Display Variable", "Arial Narrow", "Helvetica Neue", sans-serif;
   --font-body: "Archivo Variable", "Helvetica Neue", Arial, sans-serif;
@@ -130,7 +155,7 @@
   }
   body {
     min-height: 100dvh;
-    background: radial-gradient(120% 70% at 50% 0%, #0d2a78 0%, var(--color-night) 55%, var(--color-night-deep) 100%) fixed;
+    background: radial-gradient(120% 70% at 50% 0%, var(--color-night-glow) 0%, var(--color-night) 55%, var(--color-night-deep) 100%) fixed;
     color: var(--color-ink);
     font-family: var(--font-body);
     -webkit-font-smoothing: antialiased;
@@ -145,6 +170,61 @@
   dialog::backdrop {
     background: rgb(4 11 38 / 0.86);
   }
+}
+
+/*
+ * Brand scopes. Unlayered, so they beat the @theme defaults on layer order rather than specificity.
+ *
+ * Mr Green is the umbrella brand of the guest app: deep casino felt, mint and cream. index.html sets
+ * data-brand on <html> for every route that is not /gm, so the GM apps never see it. The
+ * .theme-mrgreen alias is for /styleguide, which shows both brands on one page.
+ *
+ * Surfaces, neutrals and the sleaze accent move. plate (yellow), cash and drift do not, so every
+ * money, odds and alert colour keeps its meaning and gold on green stays as loud as gold on blue.
+ */
+:root[data-brand='mrgreen'],
+.theme-mrgreen {
+  --color-night: #063a1c;
+  --color-night-deep: #021c0d;
+  --color-night-glow: #0a5a2a;
+  --color-tote: #0d4a23;
+  --color-tote-hi: #3f9e4d;
+  --color-void: #4d7a5c;
+  --color-ink: #f4faf3;
+  --color-ink-dim: #93b99f;
+  /* The mint from the logo's NÄTCASINO line, in place of Rally75's hot pink. */
+  --color-sleaze: #7fe3b1;
+  --color-sleaze-shade: #3fae7d;
+  --color-sleaze-ink: #052b12;
+}
+
+/*
+ * The scrim cannot read a custom property here: ::backdrop only inherits from its originating
+ * element in Chrome 122+ / Safari 17.4+, and on anything older var(--color-night-deep) would resolve
+ * to nothing and the backdrop would go transparent. A plain descendant selector matches whatever the
+ * top layer does with the dialog, so it is the safe way to brand it.
+ */
+[data-brand='mrgreen'] dialog::backdrop {
+  background: rgb(2 28 13 / 0.86);
+}
+
+/*
+ * Rally75 inside the Mr Green page: the trotting product is a blue inset panel on the green site.
+ * Put this on an element that already exists (see src/client/Home.tsx), never on a new wrapper div:
+ * the bet slip is sticky inside a flex column and an extra box breaks it.
+ */
+.theme-rally75 {
+  --color-night: var(--color-night-blue);
+  --color-night-deep: var(--color-night-deep-blue);
+  --color-night-glow: var(--color-night-glow-blue);
+  --color-tote: var(--color-tote-blue);
+  --color-tote-hi: var(--color-tote-hi-blue);
+  --color-void: var(--color-void-blue);
+  --color-ink: var(--color-ink-blue);
+  --color-ink-dim: var(--color-ink-dim-blue);
+  --color-sleaze: var(--color-sleaze-pink);
+  --color-sleaze-shade: var(--color-sleaze-pink-shade);
+  --color-sleaze-ink: var(--color-sleaze-pink-ink);
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -6,7 +6,8 @@ import { computeOdds } from '../../shared/game/odds'
 import { createRng } from '../../shared/game/rng'
 import { fakeWinToast } from '../../shared/content/parody'
 import { NAMED_KUSKAR } from '../../shared/content/kuskar'
-import { ATTRACT } from '../../shared/content/ui'
+import { HOME } from '../../shared/content/client'
+import { ATTRACT, BRAND } from '../../shared/content/ui'
 import { fmtRm } from '../../shared/game/format'
 import type { RaceStatus } from '../../shared/game/types'
 import type { ConnectionStatus } from '../../lib/connection'
@@ -17,6 +18,7 @@ import {
   HorseRow,
   Logo,
   Modal,
+  MrGreenLogo,
   NightPaidNumber,
   OddsValue,
   RollingNumber,
@@ -45,6 +47,15 @@ const PALETTE = [
   ['ink', 'bg-ink'],
   ['ink-dim', 'bg-ink-dim'],
 ] as const
+
+function Swatch({ name, bg }: { name: string; bg: string }) {
+  return (
+    <div className="flex flex-col items-center gap-1 text-xs text-ink-dim">
+      <span className={`size-12 rounded-lg ring-1 ring-white/20 ${bg}`} />
+      {name}
+    </div>
+  )
+}
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -95,13 +106,38 @@ export default function Gallery() {
           </div>
         </Section>
 
+        <Section title="Varumärken">
+          <p className="max-w-2xl text-sm text-ink-dim">{BRAND.full} är sajten, {BRAND.rally} är travspelet i den.</p>
+          <div className="theme-mrgreen flex flex-col gap-4 rounded-2xl bg-night p-4 ring-1 ring-tote-hi/25">
+            <div className="flex flex-wrap items-end gap-6">
+              <MrGreenLogo variant="mark" size="sm" />
+              <MrGreenLogo variant="lockup" size="sm" />
+              <MrGreenLogo variant="lockup" size="md" />
+              <MrGreenLogo variant="full" size="sm" />
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {PALETTE.map(([name, bg]) => (
+                <Swatch key={name} name={name} bg={bg} />
+              ))}
+            </div>
+            {/* The one that matters: a Rally75 panel sitting on a Mr Green page. */}
+            <div className="theme-rally75 flex flex-col gap-3 rounded-2xl bg-night p-3 ring-1 ring-tote-hi/25">
+              <div className="flex items-baseline justify-between gap-2 border-b border-white/10 pb-2">
+                <Logo size="sm" />
+                <span className="font-display text-[0.6rem] font-bold tracking-[0.2em] text-ink-dim uppercase">
+                  {HOME.productTag}
+                </span>
+              </div>
+              <HorseRow horse={card.horses[0]} odds={odds[0]} pool={pools[0]} variant="pick" />
+              <p className="text-sm text-ink-dim">Samma komponenter, andra tokens.</p>
+            </div>
+          </div>
+        </Section>
+
         <Section title="Palett och typografi">
           <div className="flex flex-wrap gap-2">
             {PALETTE.map(([name, bg]) => (
-              <div key={name} className="flex flex-col items-center gap-1 text-xs text-ink-dim">
-                <span className={`size-12 rounded-lg ring-1 ring-white/20 ${bg}`} />
-                {name}
-              </div>
+              <Swatch key={name} name={name} bg={bg} />
             ))}
           </div>
           <div className="flex flex-col gap-2">

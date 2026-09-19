@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import type { BetRow, RaceRow } from '../lib/types'
 import { HOME } from '../shared/content/client'
 import { UI_LABELS } from '../shared/content/ui'
-import { cx, HorseRow, SilkBadge, SmallPrint, StatusBanner } from '../ui'
+import { cx, HorseRow, Logo, SilkBadge, SmallPrint, StatusBanner } from '../ui'
 import { BetLine } from './BetLine'
 import { BetSlip } from './BetSlip'
 import { useGuest } from './guest'
@@ -73,7 +73,16 @@ function RaceView({ race, onConfirmChange, onSlipChange }: { race: RaceRow } & H
 
   return (
     <div className="flex flex-1 flex-col">
-      <div className="flex flex-col gap-3 p-3">
+      {/* Rally75 is a product inside the Mr Green site, so the race gets its own tote-blue panel on
+          the green page. theme-rally75 goes on this element, never on a new wrapper: the bet slip
+          below is sticky inside this flex column and an extra box would break it. */}
+      <div className="theme-rally75 m-3 flex flex-col gap-3 rounded-2xl bg-night p-3 shadow-[0_0.25rem_1.5rem_rgb(0_0_0/0.35)] ring-1 ring-tote-hi/25">
+        <div className="flex items-baseline justify-between gap-2 border-b border-white/10 pb-2">
+          <Logo size="sm" />
+          <span className="font-display text-[0.6rem] font-bold tracking-[0.2em] text-ink-dim uppercase">
+            {HOME.productTag}
+          </span>
+        </div>
         <StatusBanner status={race.status} raceNo={race.race_no} />
 
         {race.status === 'paddock' && (

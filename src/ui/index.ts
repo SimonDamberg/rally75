@@ -1,4 +1,4 @@
-// Rally75 design system. Tokens live in src/index.css; see /styleguide in dev.
+// Design system for both brands. Tokens live in src/index.css; see /styleguide in dev.
 export { BonusBar } from './BonusBar'
 export { Button, type ButtonProps, type ButtonSize, type ButtonVariant } from './Button'
 export { ConnectionBadge, type ConnectionBadgeProps } from './ConnectionBadge'
@@ -8,6 +8,7 @@ export { HorseRow, type HorseRowProps } from './HorseRow'
 export { LoadingScreen } from './LoadingScreen'
 export { Logo, type LogoSize } from './Logo'
 export { Modal, type ModalProps, type ModalTone } from './Modal'
+export { MrGreenLogo, type MrGreenSize, type MrGreenVariant } from './MrGreenLogo'
 export { NightPaidNumber } from './NightPaidNumber'
 export { QrCode } from './QrCode'
 export { OddsValue, type OddsSize, type OddsValueProps } from './OddsValue'

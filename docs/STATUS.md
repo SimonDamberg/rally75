@@ -791,3 +791,118 @@ time and kept face down.
    Vercel host (not localhost), and print one run per game with that game's name as the etikett.
    Cut along the dashed lines and give each friend their stack, face down.
 3. Delete any rehearsal batch before the party so nobody turns up holding a test ticket.
+
+## Mr Green Nätcasino: umbrella rebrand of the guest client (done, 2026-09-19)
+
+Simon's change: the guest phone is getting **meta functionality that is not horse racing** (a
+Triss-parody skraplott tab is next), so the client stopped being a racing app. The model is now
+**Mr Green Nätcasino is the site, Rally75 is the trotting product inside it**. Only the client
+changed; `/gm`, `/gm/display` and `/gm/kuponger` are untouched, and the race visuals are identical.
+
+Simon's choices: the blue **inset panel** (not a fully blue tab), the racing tab renamed **Rally75**,
+the frog **mark in the header and the full lockup on the splash**, **guest-facing icons rebranded**,
+**RallyMynt kept**, and the leftover hot pink accent switched to the **logo mint**.
+
+**Approach: retheme by remapping CSS custom properties, not by editing components**
+
+Tailwind v4 compiles `bg-tote` and friends to `var(--color-*)`, so redeclaring the variables on an
+ancestor recolours everything below it. Verified against the installed `tailwindcss@4.3.3` before any
+component was touched, and again in `dist/assets/*.css` after.
+
+- `@theme` now names the Rally75 set (`--color-night-blue`, `--color-tote-blue`, `--color-sleaze-pink`,
+  ...) and points the semantic tokens at it, so `.theme-rally75` restores the blues by reference and
+  cannot drift. `#0d2a78`, the only colour literal left in `@layer base`, became `--color-night-glow`.
+- Two unlayered scopes: `:root[data-brand='mrgreen'], .theme-mrgreen` (the greens) and
+  `.theme-rally75` (back to blue for a nested subtree). Unlayered beats `@layer theme` on layer
+  order, so no specificity games.
+- Moved by brand: `night`, `night-deep`, `night-glow`, `tote`, `tote-hi`, `void`, `ink`, `ink-dim`,
+  `sleaze`, `sleaze-shade`, `sleaze-ink`. Never `plate`, `cash` or `drift`.
+- `index.html` sets `data-brand` on `<html>` in one inline script guarded on `!pathname.startsWith('/gm')`,
+  before React mounts, so there is no flash of blue and GM never sees the attribute.
+- `dialog::backdrop` got an explicit `[data-brand='mrgreen']` rule rather than a `var()`: `::backdrop`
+  only inherits from its originating element on Chrome 122+ / Safari 17.4+, and on anything older the
+  var would resolve to nothing and the scrim would go transparent.
+
+**Done**
+
+- **Brand asset**: `public/mrgreen-logo.jpg` (1200x800, 167 kB; the PNG source was 1.1 MB and the art
+  has no transparency). New `src/ui/MrGreenLogo.tsx` with `mark` / `lockup` / `full`. `mark` crops the
+  frog's head out of the same file in CSS (`background-size: 274% auto; background-position: 49% 0`),
+  so there is no second asset, and the wordmark is drawn as text so it stays sharp at header size.
+  `src/ui/Logo.tsx` is untouched and is now **Rally75 only**.
+- **Client chrome**: header and both onboarding logos swapped; tab bar moved from `grid-cols-5` to
+  `grid-flow-col auto-cols-fr` so the skraplott tab needs no class edit; `CLIENT_TABS.home` renamed
+  "Spela" to "Rally75". Bank, Butik, Topplista, the pop-ups and the cookie banner needed **no edits**:
+  they are built from tokens and went green on their own.
+- **Rally75 panel**: `theme-rally75` on four existing elements, never a new wrapper (the bet slip is
+  `sticky mt-auto` inside a flex column): the race panel in `Home.tsx` (which also covers `BetSlip`'s
+  confirm modal by DOM inheritance), the `BetSlip` root, `MyBets.tsx`, and the `ResultReveal` modal,
+  which needs its own because `ClientShell` renders it as a sibling. The panel got a real inset look:
+  rounded blue ground, ring, and a lockup strip with `<Logo>` plus "Officiell travpartner".
+  `SmallPrint` forces `theme-mrgreen` on itself, since the legal footer is the site, not the product.
+- **Mint accent**: the pink was the one off-brand colour left on the green pages. In the Mr Green
+  scope `sleaze` is now `#7fe3b1` (the logo's NÄTCASINO mint). Mint needs dark text where pink needed
+  white, so text on a solid sleaze surface became the new `--color-sleaze-ink` token (white by
+  default, `#052b12` under Mr Green) across eight components. The three GM pink badges keep
+  `text-white` and are unaffected.
+- **Copy**: `LEGAL_TEXT` and one `SMALL_PRINT` line now name Mr Green (Rally23 Holdings stays, which
+  ties the two brands together), `errors.ts` `config`, `TICKET.brand`, and a new `BRAND` constant in
+  `content/ui.ts` so no component spells either brand out.
+- **Head, manifest, icons**: `index.html` title/OG/apple title and `theme-color` `#033317`;
+  `manifest.webmanifest` renamed and recoloured. `scripts/icons.mjs` grew a `pageArt()` branch and a
+  `guest` argument: `npm run icons -- guest` rewrites only `favicon`, `apple-touch-icon`,
+  `icon-192/512`, `icon-maskable-192/512` and `og.png`. The maskable pair insets the mark inside a
+  felt margin instead of zooming, so Android's circle crop cannot eat the hat. The OG card `contain`s
+  the whole lockup on the art's own felt, so the letterboxing is invisible.
+- `src/gm/useGmManifest.ts` also restores `theme-color` to `#07123a` while a GM route is mounted, since
+  `index.html` now ships the green one. Its `setHref` became a general `setAttr`.
+- `/styleguide` gained a **Varumärken** section: the Mr Green palette and all three logo variants
+  inside `.theme-mrgreen`, with a nested `.theme-rally75` panel showing the same `HorseRow` in blue.
+
+**Verified**
+
+- `npm run build`, `npm test` (197, up from 192) and `npm run lint` pass.
+- New `src/ui/theme.test.ts` reads `src/index.css` and asserts the two scopes declare the same
+  `--color-*` names, that only surfaces/neutrals/sleaze move, that `plate`/`cash`/`drift` never get a
+  brand override, and that `.theme-rally75` contains no hex.
+- Compiled CSS checked in `dist`: `.bg-tote{background-color:var(--color-tote)}`, both scope blocks
+  present, and all eight `--color-*-blue` tokens survived Tailwind's tree-shaking.
+- Headless Chromium against the **local** stack (a seeded race in `betting`), guest at 390x844: cold
+  onboarding through KYC to the shell, every tab, the bet slip, no horizontal overflow and no console
+  errors. `/gm`, `/gm/display` and `/gm/kuponger` all reported `data-brand=none` and
+  `--color-tote=#0b3a8c`, that is, unchanged. Screenshots kept out of the repo.
+
+**Deviations from META_PLAN**
+
+- The Decisions table says "Brand: Rally75". It is now two brands, with Rally75 as the racing product.
+- This overrides the `CLAUDE.md` rule that kept the parody Mr Green mark on the printed ticket only.
+  Simon asked for it directly; `CLAUDE.md` was rewritten rather than left contradicting the code. The
+  GM surfaces still may not show it.
+- `sleaze` is no longer "pink" by definition. It is the brand accent: pink on Rally75, mint on Mr Green.
+
+**Open issues**
+
+- Mr Green's mint `sleaze` (`#7fe3b1`) and the win colour `cash` (`#3dffa8`) share a hue and differ
+  mainly in brightness. They never collide in practice (sleaze is a surface, cash is a number), but if
+  a win ever reads as chrome, shift one of them. `cash` was deliberately left alone.
+- `bg-tote/40`-style opacity utilities carry an inlined-hex fallback outside their
+  `@supports (color: color-mix(in lab, ...))` guard, so on pre-Safari-16.4 they would paint Rally75
+  blue inside the green shell. Accepted: party phones are well past that.
+- `public/kupong-logo.png` (440px) and `public/mrgreen-logo.jpg` (1200px) are the same art at two
+  sizes. The printed ticket was left pointing at the old file on purpose, to keep the print surface
+  out of this change. Worth collapsing to one asset next time the kupong sheet is touched.
+- `mrgreen-logo.jpg` is 167 kB on the guest path, which matters on a cold QR scan. A WebP would be
+  about a third of that, but `sips` on this Mac cannot write WebP and there is no image library in
+  the repo.
+- Untouched from earlier stages: the hosted `GM_PASSWORD` drift, and `20260916000008`,
+  `20260916000009`, `20260916000010`, `20260918000011` still not pushed to hosted.
+
+**Manual steps for Simon**
+
+1. Look at the green on a real phone before the party. The tokens are eleven lines in `src/index.css`
+   under `:root[data-brand='mrgreen']`; changing the felt or the mint is a one-line edit each.
+2. The guest home-screen icon and name changed ("Mr Green"). If you already added the guest app to a
+   home screen, remove it and add it again to pick up the new icon. `/gm` and `/gm/display` are
+   unaffected.
+3. Still open from before: reset the GM password and `npx supabase db push` the four unpushed
+   migrations.

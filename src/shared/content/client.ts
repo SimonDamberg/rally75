@@ -1,8 +1,10 @@
 // Swedish copy for the guest app (src/client): onboarding, betting, result reveal, Snabblån,
 // my bets and the leaderboard. Parody strings shared with the prototype stay in parody.ts.
 
+// Tab labels. The game tabs carry product names (Rally75 now, the skraplott later) so the shelf
+// under the Mr Green umbrella reads as a shelf.
 export const CLIENT_TABS = {
-  home: 'Spela',
+  home: 'Rally75',
   bets: 'Mina spel',
   bank: 'Bank',
   butik: 'Butik',
@@ -47,6 +49,8 @@ export const HEADER = {
 } as const
 
 export const HOME = {
+  /** Sits beside the Rally75 wordmark on the race panel, so the sub-brand explains itself. */
+  productTag: 'Officiell travpartner',
   loading: 'Hämtar loppet',
   offline: 'Ingen anslutning till banan. Vi försöker igen...',
   noRace: 'Inget lopp än',

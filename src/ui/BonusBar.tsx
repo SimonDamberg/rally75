@@ -7,7 +7,7 @@ const REPEAT = 2
 export function BonusBar({ text = BONUS_BAR, className }: { text?: string; className?: string }) {
   const run = Array.from({ length: REPEAT }, () => text)
   return (
-    <div className={cx('bulbs overflow-hidden bg-sleaze text-white', className)} aria-label={text} role="note">
+    <div className={cx('bulbs overflow-hidden bg-sleaze text-sleaze-ink', className)} aria-label={text} role="note">
       <div className="flex w-max animate-marquee py-2.5" aria-hidden>
         {[0, 1].map((copy) => (
           <span key={copy} className="flex shrink-0">

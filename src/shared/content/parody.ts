@@ -25,9 +25,10 @@ export const CONNECT_LINES = [
 export const BONUS_BAR =
   "Välkomstbonus 500 % • Licensierad i Atlantis • 13+ • Uttag inom 3 till 5 arbetsliv • Spela inte lagom";
 
-// Prototype said "Nat Casino Derby ... Nat Holdings Ltd"; rebranded for Rally75.
+// Prototype said "Nat Casino Derby ... Nat Holdings Ltd"; rebranded for the Mr Green umbrella.
+// Rally23 Holdings stays: the racing product and the site share an owner, which is the joke.
 export const LEGAL_TEXT =
-  "Rally75 drivs av Rally23 Holdings Ltd, reg.nr 20230930, Atlantis. Odds kan ändras utan förvarning. Vinster betalas ut i handling, sällskap eller inget alls. Bandomarnas beslut kan inte överklagas. Spelproblem? Spela mer.";
+  "Mr Green Nätcasino drivs av Rally23 Holdings Ltd, reg.nr 20230930, Atlantis. Odds kan ändras utan förvarning. Vinster betalas ut i handling, sällskap eller inget alls. Bandomarnas beslut kan inte överklagas. Spelproblem? Spela mer.";
 
 export const KYC_TITLE = "Verifiera din identitet";
 export const KYC_TEXT =
@@ -135,7 +136,7 @@ export const PROOF = {
 /** Rotating small print under each guest screen, next to LEGAL_TEXT. */
 export const SMALL_PRINT = [
   "Spel kan vara beroendeframkallande. Det är hela affärsidén.",
-  "Rally75 saknar licens men drivs av väldigt fina personer",
+  "Mr Green saknar licens men drivs av väldigt fina personer",
   "Tidigare vinster är ingen garanti för framtida vinster. Tidigare förluster däremot.",
   "Alla odds är slutgiltiga tills de ändras.",
   "Uttag behandlas inom 3 till 5 arbetsliv.",

@@ -1,6 +1,11 @@
 // Regenerates the PWA / home-screen icons in public/. Run once; the PNGs are committed.
 //
-//   npm run icons
+//   npm run icons            all of them
+//   npm run icons -- guest   only the Mr Green guest set, leaving the gm-* PNGs alone
+//
+// The guest set is the Mr Green umbrella brand and is drawn from public/mrgreen-logo.jpg; the GM
+// set stays Rally75 (the 75 plate). Headless screenshots are not byte-identical between runs, so
+// pass "guest" when only the guest brand changed and the GM diff should stay clean.
 //
 // The icons are rendered by Playwright's cached chrome-headless-shell (no ImageMagick or
 // rsvg-convert on this Mac) with the real Big Shoulders Display woff2 inlined as a data URI, so
@@ -34,11 +39,21 @@ const font = readFileSync(
   join(REPO, 'node_modules/@fontsource-variable/big-shoulders-display/files/big-shoulders-display-latin-wght-normal.woff2'),
 ).toString('base64')
 
+// Inlined the same way as the font: the source filename would otherwise need percent-encoding in a
+// file:// URL, and a data URI sidesteps that entirely.
+const art = readFileSync(join(REPO, 'public/mrgreen-logo.jpg')).toString('base64')
+const ART = `data:image/jpeg;base64,${art}`
+
+// Only the guest set when asked, so a guest-brand change cannot rewrite the GM PNGs.
+const guestOnly = process.argv[2] === 'guest'
+
 // Tokens from src/index.css @theme.
 const NIGHT = '#07123a'
 const NIGHT_DEEP = '#040b26'
 const PLATE = '#ffd60a'
 const SLEAZE = '#ff2e88'
+// The felt green the supplied artwork sits on, so letterboxing it is invisible.
+const FELT = '#033317'
 
 /**
  * The signature mark: the slanted 75 plate (skewX(-10deg), digits un-skewed) with the pink
@@ -57,7 +72,22 @@ body{display:grid;place-items:center;background:${ground};font-family:"BS",sans-
 </style><div class="plate"><span>75</span></div>`
 }
 
-const GUEST = { ground: `radial-gradient(120% 80% at 50% 0%, #0d2a78 0%, ${NIGHT} 55%, ${NIGHT_DEEP} 100%)`, plate: PLATE, digits: NIGHT, shadow: SLEAZE }
+/**
+ * The Mr Green guest mark: the frog's head cropped out of the full lockup. Same framing numbers as
+ * MrGreenLogo's "mark" variant in src/ui, so the icon and the app header show the same crop. scale
+ * shrinks the mark inside a felt margin instead of zooming out, so the maskable pair keeps the whole
+ * head rather than letting Android's circle crop eat the hat.
+ */
+function pageArt({ scale = 1 }) {
+  return `<!doctype html><meta charset="utf-8"><style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:512px;height:512px}
+body{display:grid;place-items:center;background:${FELT}}
+.mark{width:${Math.round(512 * scale)}px;height:${Math.round(512 * scale)}px;
+  background:url("${ART}") no-repeat;background-size:274% auto;background-position:49% 0}
+</style><div class="mark"></div>`
+}
+
 // The GM console gets the inverse so the two home-screen icons are told apart at a glance.
 const GM = { ground: `radial-gradient(120% 80% at 50% 0%, #ff5ba6 0%, ${SLEAZE} 55%, #9e0f4f 100%)`, plate: PLATE, digits: NIGHT, shadow: NIGHT_DEEP }
 // Android masks icons to a circle and keeps only the inner ~80%, so the maskable pair shrinks
@@ -65,28 +95,25 @@ const GM = { ground: `radial-gradient(120% 80% at 50% 0%, #ff5ba6 0%, ${SLEAZE} 
 const MASK_SCALE = 0.72
 
 const VARIANTS = [
-  { prefix: 'icon', html: page(GUEST) },
+  { prefix: 'icon', html: pageArt({}) },
   { prefix: 'gm-icon', html: page(GM) },
-  { prefix: 'icon-maskable', html: page({ ...GUEST, scale: MASK_SCALE }), maskable: true },
+  { prefix: 'icon-maskable', html: pageArt({ scale: MASK_SCALE }), maskable: true },
   { prefix: 'gm-icon-maskable', html: page({ ...GM, scale: MASK_SCALE }), maskable: true },
-]
+].filter((v) => !guestOnly || !v.prefix.startsWith('gm-'))
 
-// Link preview when the join URL is pasted into a group chat. Wide enough for the wordmark,
-// which is unreadable at icon size but is the whole point here.
+// Link preview when the join URL is pasted into a group chat. The full lockup, contained rather
+// than cropped: the wordmark is the whole point here, and the felt matches the art's own ground so
+// the letterboxing does not show.
 const OG = `<!doctype html><meta charset="utf-8"><style>
 @font-face{font-family:"BS";src:url(data:font/woff2;base64,${font}) format("woff2");font-weight:100 900;font-display:block}
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{width:1200px;height:630px}
-body{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:34px;
-  background:radial-gradient(120% 80% at 50% 0%, #0d2a78 0%, ${NIGHT} 55%, ${NIGHT_DEEP} 100%);
-  font-family:"BS",sans-serif;color:#f3f6ff}
-.logo{display:flex;align-items:center;font-weight:900;font-size:190px;line-height:0.86;letter-spacing:-0.01em}
-.plate{transform:skewX(-10deg);background:${PLATE};color:${NIGHT};box-shadow:0.07em 0.07em 0 ${SLEAZE};
-  border-radius:18px;padding:6px 26px 18px;margin-left:22px}
-.plate span{display:inline-block;transform:skewX(10deg)}
-.tag{font-size:52px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#9fb2dd}
-</style><div class="logo">RALLY<span class="plate"><span>75</span></span></div>
-<div class="tag">Spela på kvällens lopp</div>`
+body{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;
+  background:${FELT};font-family:"BS",sans-serif;color:#f4faf3;padding:28px 0 34px}
+img{height:440px;width:auto;border-radius:22px}
+.tag{font-size:46px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#7fe3b1}
+</style><img src="${ART}" alt="">
+<div class="tag">Trav, skrap och andra sätt att bli av med pengar</div>`
 
 const ogHtml = join(TMP, 'og.html')
 writeFileSync(ogHtml, OG)

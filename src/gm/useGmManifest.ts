@@ -14,15 +14,17 @@ const MANIFEST: Record<GmMode, { manifest: string; title: string }> = {
 }
 
 const GM_TOUCH_ICON = '/gm-apple-touch-icon.png'
+// index.html ships the Mr Green green, since the guest app owns the default. GM stays tote blue.
+const GM_THEME_COLOR = '#07123a'
 
-function setHref(selector: string, href: string): () => void {
-  const el = document.querySelector<HTMLLinkElement>(selector)
+function setAttr(selector: string, attr: string, value: string): () => void {
+  const el = document.querySelector(selector)
   if (!el) return () => {}
-  const previous = el.getAttribute('href')
-  el.setAttribute('href', href)
+  const previous = el.getAttribute(attr)
+  el.setAttribute(attr, value)
   return () => {
-    if (previous === null) el.removeAttribute('href')
-    else el.setAttribute('href', previous)
+    if (previous === null) el.removeAttribute(attr)
+    else el.setAttribute(attr, previous)
   }
 }
 
@@ -30,15 +32,13 @@ export function useGmManifest(mode: GmMode): void {
   useEffect(() => {
     const { manifest, title } = MANIFEST[mode]
     const restore = [
-      setHref('link[rel="manifest"]', manifest),
-      setHref('link[rel="apple-touch-icon"]', GM_TOUCH_ICON),
+      setAttr('link[rel="manifest"]', 'href', manifest),
+      setAttr('link[rel="apple-touch-icon"]', 'href', GM_TOUCH_ICON),
+      setAttr('meta[name="apple-mobile-web-app-title"]', 'content', title),
+      setAttr('meta[name="theme-color"]', 'content', GM_THEME_COLOR),
     ]
-    const titleMeta = document.querySelector<HTMLMetaElement>('meta[name="apple-mobile-web-app-title"]')
-    const previousTitle = titleMeta?.content
-    if (titleMeta) titleMeta.content = title
     return () => {
       for (const undo of restore) undo()
-      if (titleMeta && previousTitle !== undefined) titleMeta.content = previousTitle
     }
   }, [mode])
 }

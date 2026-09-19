@@ -92,7 +92,7 @@ export function Bank({
                   type="button"
                   disabled={ceiling === 0}
                   onClick={() => setAmount(ceiling)}
-                  className="min-h-11 rounded-xl bg-sleaze px-4 font-display text-lg font-extrabold text-white uppercase active:brightness-110 disabled:opacity-40"
+                  className="min-h-11 rounded-xl bg-sleaze px-4 font-display text-lg font-extrabold text-sleaze-ink uppercase active:brightness-110 disabled:opacity-40"
                 >
                   {BANK.all}
                 </button>

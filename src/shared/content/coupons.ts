@@ -11,7 +11,7 @@ export const COUPON_TIER_COPY = {
 
 /** Everything printed on a ticket. Kept short: it has to fit on a card the size of a beer mat. */
 export const TICKET = {
-  brand: 'Rally75',
+  brand: 'Mr Green Nätcasino',
   scan: 'Skanna koden',
   cash: 'Lös in på telefonen',
   once: 'Gäller en (1) inlösning',

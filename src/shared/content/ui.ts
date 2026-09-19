@@ -3,6 +3,18 @@
 import type { RaceStatus } from "../game/types";
 import { BETTING_SUBTITLE } from "./parody";
 
+/**
+ * The two brands. Mr Green Nätcasino is the site the guests log in to; Rally75 is the trotting
+ * product inside it (and the name the GM apps keep). Kept here so no component spells either out.
+ */
+export const BRAND = {
+  name: "mr green",
+  sub: "nätcasino",
+  full: "Mr Green Nätcasino",
+  logoAlt: "Mr Green Nätcasino",
+  rally: "Rally75",
+} as const;
+
 export const STATUS_LABELS: Record<
   RaceStatus,
   { title: string; subtitle: string }

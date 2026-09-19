@@ -17,7 +17,7 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 // Chunky casino buttons: a solid bottom edge that the button sinks into when pressed.
 const VARIANT: Record<ButtonVariant, string> = {
   primary: 'bg-plate text-night shadow-[0_0.3rem_0_var(--color-plate-shade)] active:shadow-[0_0.05rem_0_var(--color-plate-shade)]',
-  sleaze: 'bg-sleaze text-white shadow-[0_0.3rem_0_var(--color-sleaze-shade)] active:shadow-[0_0.05rem_0_var(--color-sleaze-shade)]',
+  sleaze: 'bg-sleaze text-sleaze-ink shadow-[0_0.3rem_0_var(--color-sleaze-shade)] active:shadow-[0_0.05rem_0_var(--color-sleaze-shade)]',
   danger: 'bg-drift text-white shadow-[0_0.3rem_0_var(--color-drift-shade)] active:shadow-[0_0.05rem_0_var(--color-drift-shade)]',
   ghost: 'bg-tote/50 text-ink ring-2 ring-tote-hi/70 ring-inset active:bg-tote',
 }

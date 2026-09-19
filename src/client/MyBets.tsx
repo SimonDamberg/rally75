@@ -19,7 +19,7 @@ export function MyBets() {
   const groups = groupByRace(bets, races ?? [])
 
   return (
-    <div className="flex flex-1 flex-col gap-4 p-3">
+    <div className="theme-rally75 flex flex-1 flex-col gap-4 p-3">
       <h1 className="px-1 font-display text-4xl leading-none font-black text-plate uppercase">{MY_BETS.title}</h1>
 
       <dl className="grid grid-cols-3 gap-2">

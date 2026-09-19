@@ -6,7 +6,7 @@ const TONE: Record<RaceStatus, string> = {
   paddock: 'bg-tote text-ink ring-2 ring-tote-hi ring-inset',
   betting: 'bg-plate text-night',
   closed: 'bg-drift text-white',
-  running: 'bg-sleaze text-white',
+  running: 'bg-sleaze text-sleaze-ink',
   finished: 'bg-cash text-night',
   void: 'bg-void text-ink',
 }

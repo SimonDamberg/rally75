@@ -90,7 +90,8 @@ export function ClientShell({ identity, player, forget, justJoined, cookiesAccep
           {tab === 'butik' && <Butik onConfirmChange={setBuying} />}
           {tab === 'board' && <Leaderboard />}
         </main>
-        <nav className="grid shrink-0 grid-cols-5 border-t border-white/10 bg-night-deep pb-[env(safe-area-inset-bottom)]">
+        {/* auto-cols-fr, not grid-cols-N: adding a tab to TABS must not need a class edit. */}
+        <nav className="grid shrink-0 grid-flow-col auto-cols-fr border-t border-white/10 bg-night-deep pb-[env(safe-area-inset-bottom)]">
           {TABS.map((t) => (
             <button
               key={t}

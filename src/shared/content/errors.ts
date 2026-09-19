@@ -47,7 +47,7 @@ export const ERROR_MESSAGES = {
   coupon_not_redeemed: 'Kupongen är inte inlöst.',
   // Client side
   network: 'Ingen anslutning. Försöker igen...',
-  config: 'Rally75 saknar serverinställningar.',
+  config: 'Mr Green saknar serverinställningar.',
   unknown: 'Något gick fel. Försök igen.',
 } as const
 
