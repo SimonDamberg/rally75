@@ -43,9 +43,6 @@ export function Leaderboard() {
           </button>
         ))}
       </div>
-      {view === 'losers' && (
-        <h1 className="px-1 font-display text-3xl leading-none font-black text-drift uppercase">{BOARD.losersTitle}</h1>
-      )}
 
       {!data && <p className={cx('p-6 text-center', error ? 'text-drift' : 'text-ink-dim')}>{error?.message ?? UI_LABELS.loading}</p>}
       {data && list.length === 0 && <p className="p-6 text-center text-ink-dim">{BOARD.empty}</p>}

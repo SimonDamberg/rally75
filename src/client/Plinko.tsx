@@ -101,15 +101,12 @@ export function Plinko({ onHold }: PlinkoProps) {
           <h1 className="font-display pr-3 text-3xl leading-none font-black tracking-wide text-sleaze uppercase italic drop-shadow-[0_0_0.6rem_var(--color-sleaze)]">
             {PLINKO.title}
           </h1>
-          <span className="font-display text-[0.6rem] font-bold tracking-[0.2em] text-ink-dim uppercase">
-            {PLINKO.partner}
-          </span>
         </div>
         <div className="rounded-xl bg-night-deep/70 px-1 pt-1 pb-0.5 ring-1 ring-white/5">
           <PlinkoBoard falling={falling} onLand={land} flash={flash} />
         </div>
 
-        <div className="flex min-h-6 items-center justify-center text-center font-display text-xl font-black tabular-nums">
+        <div className="-my-0.5 flex min-h-5 items-center justify-center text-center font-display text-lg leading-none font-black tabular-nums">
           {falling.length > 0 ? (
             <span className="text-ink-dim">{PLINKO.inFlight(falling.length)}</span>
           ) : last ? (

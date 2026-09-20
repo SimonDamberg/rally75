@@ -120,7 +120,7 @@ function RaceView({ race, onConfirmChange, onSlipChange }: { race: RaceRow } & H
 
         {(race.status === 'closed' || race.status === 'running') && (
           <>
-            <LivePanel running={race.status === 'running'} />
+            {race.status === 'running' && <LivePanel />}
             <FieldSummary race={race} odds={odds} stakes={stakes} />
           </>
         )}
@@ -145,19 +145,12 @@ function RaceView({ race, onConfirmChange, onSlipChange }: { race: RaceRow } & H
   )
 }
 
-function LivePanel({ running }: { running: boolean }) {
+function LivePanel() {
   return (
-    <div
-      className={cx(
-        'flex flex-col items-center gap-2 rounded-2xl px-5 py-8 text-center ring-2 ring-inset',
-        running ? 'bulbs bg-sleaze/15 ring-sleaze' : 'bg-drift/10 ring-drift/60',
-      )}
-    >
-      {running && <span className="size-5 animate-pulse-live rounded-full bg-sleaze" />}
-      <p className={cx('font-display text-4xl leading-none font-black text-balance uppercase', running ? 'text-sleaze' : 'text-drift')}>
-        {running ? HOME.runningTitle : HOME.closedTitle}
-      </p>
-      <p className="max-w-xs text-ink-dim">{running ? HOME.runningText : HOME.closedText}</p>
+    <div className="bulbs flex flex-col items-center gap-2 rounded-2xl bg-sleaze/15 px-5 py-8 text-center ring-2 ring-sleaze ring-inset">
+      <span className="size-5 animate-pulse-live rounded-full bg-sleaze" />
+      <p className="font-display text-4xl leading-none font-black text-balance text-sleaze uppercase">{HOME.runningTitle}</p>
+      <p className="max-w-xs text-ink-dim">{HOME.runningText}</p>
     </div>
   )
 }

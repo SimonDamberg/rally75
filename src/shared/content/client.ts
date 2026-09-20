@@ -58,9 +58,7 @@ export const HOME = {
   paddockHint: 'Spelet öppnar snart. Välj favorit nu, spela sen.',
   pickHint: 'Tryck på en häst för att spela.',
   runningTitle: 'Alla ögon på skärmen',
-  closedTitle: 'Spelen är låsta',
   runningText: 'Loppet visas på storbildsskärmen. Här händer inget förrän domarna har talat.',
-  closedText: 'Hästarna går till start. Nu kan bara hästarna, och möjligen domarna, ändra något.',
   yourBets: 'Dina spel på loppet',
   noBetsHere: 'Du har inga spel på det här loppet. Modigt.',
   resultTitle: 'Resultat',
@@ -225,7 +223,6 @@ export const BUTIK = {
 
 export const PLINKO = {
   title: 'Plånko',
-  partner: 'Ett Mr Green-original',
   stake: 'Insats per kula',
   drop: (rm: string) => `Släpp kulan (${rm})`,
   tooPoor: 'Saldot räcker inte',
@@ -245,7 +242,6 @@ export const PLINKO = {
 export const BOARD = {
   top: 'Toppen',
   losers: 'Största förlorare',
-  losersTitle: 'Dagens största förlorare',
   empty: 'Inga spelare än. Bli först, det ger ingenting extra.',
   you: 'Du',
   debt: (rm: string) => `Skuld ${rm}`,
