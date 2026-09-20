@@ -25,6 +25,7 @@ import {
   HorseBadge,
   SilkBadge,
   SmallPrint,
+  StodlinjeButton,
   StodlinjeNote,
   StatusBanner,
   toast,
@@ -283,6 +284,9 @@ export default function Gallery() {
           </p>
           <SmallPrint />
           <StodlinjeNote lead="Skuld? Vår vän tar emot samtal dygnet runt:" />
+          <div>
+            <StodlinjeButton />
+          </div>
         </Section>
 
         <Section title="Anslutning">

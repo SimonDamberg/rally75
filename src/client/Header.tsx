@@ -5,7 +5,7 @@ import type { PlayerRow } from '../lib/types'
 import { HEADER } from '../shared/content/client'
 import { UI_LABELS } from '../shared/content/ui'
 import { badgedLabel, fmtRm } from '../shared/game/format'
-import { cx, MrGreenLogo } from '../ui'
+import { cx, MrGreenLogo, StodlinjeButton } from '../ui'
 
 export function Header({
   player,
@@ -37,7 +37,7 @@ export function Header({
         </span>
       </div>
       <span className="flex-1" />
-      {broke && (
+      {broke ? (
         <button
           type="button"
           onClick={onLoan}
@@ -45,6 +45,9 @@ export function Header({
         >
           {HEADER.loan}
         </button>
+      ) : (
+        // The slot is never empty: without the loan offer it holds the help line, one tap from any tab.
+        <StodlinjeButton />
       )}
       <div className="flex flex-col items-end leading-none">
         <span className="text-[0.65rem] font-bold tracking-[0.16em] text-ink-dim uppercase">{HEADER.balance}</span>

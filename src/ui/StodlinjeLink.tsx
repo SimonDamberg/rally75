@@ -31,3 +31,22 @@ export function StodlinjeNote({ lead, className }: StodlinjeLinkProps) {
     </p>
   )
 }
+
+/**
+ * Same number as a quiet pill, for the header slot the blinking Snabblån button leaves empty.
+ * Understated on purpose: it is the counterweight to the loan shark, not another offer.
+ */
+export function StodlinjeButton({ className }: { className?: string }) {
+  return (
+    <a
+      href={`tel:${STODLINJE.number}`}
+      aria-label={`${STODLINJE.callLabel} ${STODLINJE.display}`}
+      className={cx(
+        'rounded-full border border-white/15 bg-white/5 px-3 py-1.5 font-display text-sm font-extrabold tracking-wide text-ink-dim uppercase',
+        className,
+      )}
+    >
+      {STODLINJE.label}
+    </a>
+  )
+}
