@@ -155,6 +155,15 @@ Two devices, one password gate, one lazy-loaded chunk (`src/gm/GmApp.tsx` routes
   upplopp (`STRETCH_TICK`) runs at half speed. `sim.test.ts` asserts the win rates, the house edge and
   the excitement targets; keep them green when tuning. Commentary pools and gag lines are in
   `commentary.ts`.
+- **Gags cost places, they are not decoration.** Each gag keeps part of the ground it takes
+  (`kept`, summed per horse into `hold`), and `planScript` pays for it by drawing that horse the same
+  distance further up the road for the whole race, so the line still lands exactly on the drawn
+  order. A boost is the same translation with the sign flipped. Because the order is still the first
+  draw off the seed, the gags are aimed rather than causal: `pickGags` picks victims by finishing
+  place (`VICTIM_WEIGHT`), `HARD_GAGS` only ever go to a horse that was losing anyway, `BOOSTS` only
+  to one that finishes well, and the upplopp gag takes the money off `order[2]`, which is pinned in
+  front at the turn and beaten by the line. `LIGHT_GAGS` are the only ones a winner may survive.
+  Change `kept` and the plan's shift together, or the finish stops being exact.
 - The display's race is `RaceScreen` (clock, secrets, bets) around the presentational `RaceTrack`.
   Tune it in the dev-only race lab at `/styleguide/race` (`?seed=&t=` opens a frame, `&panel=0`).
 - GM copy lives in `src/shared/content/gm.ts`; display copy in `ATTRACT` (`src/shared/content/ui.ts`).

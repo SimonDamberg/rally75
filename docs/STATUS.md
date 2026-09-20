@@ -1321,3 +1321,51 @@ orörda.
 
 `npm run build`, `npm test` (230 tester) och `npm run lint` gröna. Styleguiden visar båda de nya
 varianterna (statusrad utan biljett, spellista med markerade spel).
+
+## Gag med konsekvens: gagen avgör loppet (2026-09-20)
+
+Simon: gagen är roliga men syns inte i resultatet. Den som får en gag på upploppet tappade till
+fjärde och spurtade tillbaka till seger. Nu kostar en gag placeringar.
+
+**Grundidén.** Resultatet dras fortfarande först, ur `winWeights`, så morgonlinjen säger sanningen
+och husets marginal är orörd (det testet är oförändrat och grönt). Det som ändrats är att gagen
+riktas mot hästar som ändå skulle förlora, och att marken de tar inte kommer tillbaka: varje gag har
+ett `kept`, summerat per häst till `hold`, och `planScript` betalar för det genom att rita hästen
+exakt lika långt längre fram hela loppet. `gapAt(plan, 1) + hold === final`, så mållinjen landar på
+den dragna ordningen på decimalen. En boost är samma förflyttning med omvänt tecken: hästen ritas
+längre bak och behåller det den tar igen.
+
+- **Upploppsgagen** går aldrig mer på vinnaren. Den tar `order[2]` (första hästen utanför prispallens
+  topp två), nålar fast den i täten vid upploppsingången och låter den stå still i sju tick medan
+  fältet går förbi. Den tappar 3 till 5 längder för gott (2 till 3,5 i ett klunglopp). Aldrig
+  serverkrasch: dess ryck tillbaka på ett tick är fel form för den gag som avgör loppet.
+- **Hårda gag** (`HARD_GAGS`: backwards, nap, serverkrasch, fatbyte, eckerö) går bara till en häst
+  som slutar i bakre halvan. **Boostar** (turbo, husvagn) bara till en som slutar topp två, och de
+  får därför gå på vinnaren nu, vilket var förbjudet förut. **Lätta gag** (`LIGHT_GAGS`, galopp
+  inräknad) är de enda en vinnare kan springa av sig, så "vann ändå"-raderna finns kvar men är
+  ovanligare.
+- **En häst behåller mark en gång.** En andra gag på samma häst är ren slapstick och springs av helt.
+- `drawGags` är delad i `pickGags` (vem, när, vad, hur mycket som blir kvar) och `planDrags` (det
+  enda draget som behöver den färdiga planen, kommitté-parets utjämning). Comeback-turbon är en
+  riktig boost nu, inte bara syn, och boostarnas svall är kortare (`BOOST_RECOVER`) så att det är
+  över innan upploppet.
+- Sista tickens referenslinje lyfts nu över alla hästars näst sista position, inte bara ledarens, så
+  den gamla `Math.max`-klämman vid mål kunde tas bort: alla tar ett riktigt steg över linjen.
+
+**Text.** `COMMENTARY.backAgain` ("är tillbaka!") är borttagen, den kan aldrig hända. Ny
+`COMMENTARY.stalled` på 100 meter kvar och nya `STRETCH_ROBBED` vid mål. `GAG_WIN` är rensad från de
+fem hårda gagen och har fått `husvagn`.
+
+**Siffror efter ändringen** (3000 seeds): sena ledarbyten 0,71 (var kravet 0,35), målfoto 0,235,
+upploppsgag 0,403, upploppsoffret ligger som mest 1,16 längder bakom vid upploppsingången.
+Manusens trohet är kvar: i ett start-mål-lopp leder vinnaren vid mittkommentaren i 83 procent av
+loppen, i ett comebacklopp 0 procent, i ett "tar slut"-lopp 3 procent.
+
+**Nytt i labbet.** `/styleguide/race` har en Upploppsgag-knapp som hoppar till nästa seed med en
+sådan. Använd den för att titta på stoppet.
+
+`npm run build`, `npm test` (232 tester) och `npm run lint` gröna. Inget i `types.ts`, databasen
+eller `RaceTrack.tsx` ändrades: `RaceGag` har samma form och tidslinjen räknas alltid om ur seeden.
+
+**För Simon:** inget manuellt steg. Kör om ett par lopp i labbet och säg till om upploppsgagen ska
+kosta mer eller mindre (`UPPLOPP_DROP` i `sim.ts`).

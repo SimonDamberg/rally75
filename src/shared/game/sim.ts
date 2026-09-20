@@ -4,8 +4,13 @@
 // The result comes first: the finish order is drawn from the same win chances the morning line is
 // built from (winWeights), so the odds tell the truth and upsets happen as often as they should.
 // Then a storyline (script) is drawn, and every horse's gap to the leader is keyframed to tell it:
-// front-runners that collapse, comebacks from last, duels to a photo. Gags (galopp, running the
-// wrong way, a seagull) bend a horse's curve for a few ticks and the script takes it back after.
+// front-runners that collapse, comebacks from last, duels to a photo.
+//
+// Gags are not decoration. A gag keeps part of the ground it takes (`kept`), and the plan pays for
+// it by drawing that horse the same distance further up the road all race, so the line still lands
+// exactly on the drawn order while the room sees the gag cost real places. Hard gags therefore only
+// ever go to a horse that was going to lose anyway, and the upplopp gag takes the money off the
+// horse that turns for home in front.
 import { createRng, type Rng } from "./rng";
 import { winWeights } from "./odds";
 import type {
@@ -24,6 +29,7 @@ import {
   GAG_WIN,
   inquiryText,
   KOMMITTE_LINES,
+  STRETCH_ROBBED,
   type NamedRunner,
 } from "../content/commentary";
 
@@ -66,18 +72,38 @@ const GAG_RECOVER = 14;
 const TURN_TICK = 66;
 const COMEBACK_TURBO_TICK = TURN_TICK - 1;
 /**
- * The upplopp gag: in this share of races the winner or the runner-up gets a gag on the way home.
- * It starts 6 ticks after the UPPLOPPET line, so its own line fits between that one and the last-100 m
- * line at tick 90, and the horse wins its ground back before the finish.
+ * The upplopp gag: in this share of races the horse that turns for home in front is stopped on the
+ * way home and loses the money. It starts 6 ticks after the UPPLOPPET line, so its own line fits
+ * between that one and the last-100 m line at tick 90.
  */
 const STRETCH_GAG_CHANCE = 0.4;
 export const STRETCH_GAG_TICK = 82;
+/** Ground the upplopp gag takes for good. This is the whole reason its victim is beaten. */
+const UPPLOPP_DROP = [3, 5] as const;
+/** A pack race comes home together, so its upplopp gag costs less than three lengths. */
+const UPPLOPP_DROP_PACK = [2, 3.5] as const;
+/** The stall peaks a little above what it keeps, so the room reads it before it settles. */
+const STRETCH_OVERSHOOT = 1.25;
+/** 82 + 7 + 6 = 95: the melt is finished, and exactly the drop is still lost, before the line. */
+const STRETCH_RECOVER = 6;
+/** The victim turns in front, so it cannot end further back than the upplopp is long (7.9 units). */
+const UPPLOPP_MAX_GAP = 7;
+
+/** Ground (units) a gag takes for good, per tier. The recovery stops here instead of at zero. */
+const KEEP_LIGHT = 1.2;
+const KEEP_HARD = 3.6;
+/** Kommitte, both halves: they lose the same, so they still end up level. */
+const KEEP_PAIR = 2;
+/** Negative: ground a boost gains and keeps, so the plan draws that horse further back all race. */
+const KEEP_BOOST = -2.8;
 /**
- * The field moves at half speed in the upplopp, so a gag there needs less drag to stop a horse. Not
- * half, though: this is the gag that decides the race, and it should cost real ground.
+ * How fast a boost settles on the ground it keeps. Short on purpose: the comeback turbo fires at
+ * the turn, and a surge still melting into the upplopp would carry the winner past the horse the
+ * upplopp gag is about to stop. Their drags in GAG_DRAG are sized to match.
  */
-const STRETCH_DRAG = 0.8;
-const STRETCH_RECOVER = 10;
+const BOOST_RECOVER = 4;
+/** How likely each finishing place is to take a gag. The horse coming home last is the victim. */
+const VICTIM_WEIGHT = [0.4, 0.8, 1.6, 2.4] as const;
 
 export const SCRIPT_WEIGHTS: Record<RaceScript, number> = {
   wire: 0.14,
@@ -101,7 +127,24 @@ export const COMIC_GAGS: readonly GagKind[] = [
   "rallyhafte",
   "hjalprebus",
 ];
-/** Gags that speed a horse up: never handed to the winner, where they would look like the cause. */
+/** Gags a horse can run off: they cost ground, but not the race. */
+export const LIGHT_GAGS: readonly GagKind[] = [
+  "galopp",
+  "banana",
+  "selfie",
+  "snabblan",
+  "rallyhafte",
+  "hjalprebus",
+];
+/** Gags that end a horse's race, so they only ever go to a horse that was losing anyway. */
+export const HARD_GAGS: readonly GagKind[] = [
+  "backwards",
+  "nap",
+  "serverkrasch",
+  "fatbyte",
+  "eckero",
+];
+/** Gags that speed a horse up. They keep what they gain, so they go to a horse that finishes well. */
 export const BOOSTS: readonly GagKind[] = ["turbo", "husvagn"];
 /**
  * Every race gets a comic gag; these are the chances of a second and a third on top. Galopp comes
@@ -114,17 +157,19 @@ const MAX_GAG_SLOTS = 4;
 /**
  * Extra gap per gag tick, in units. Above the leader's ~0.78/tick the horse stands still (or, for
  * backwards, moves back), and the harder the drag, the longer it stays stuck while the gap melts
- * away again. A gag has to hurt: the room should see the ground go.
+ * away again. A gag has to hurt: the room should see the ground go. Every drag must be at least as
+ * big over GAG_TICKS as the ground its tier keeps, and the boosts are kept close to KEEP_BOOST so
+ * their surge is over by the upplopp.
  */
 const GAG_DRAG: Record<GagKind, number> = {
   galopp: 0.7,
   backwards: 2.0,
   selfie: 0.55,
-  turbo: -1.0,
+  turbo: -0.72,
   nap: 1.6,
   banana: 0.85,
   snabblan: 0.6,
-  husvagn: -0.8,
+  husvagn: -0.6,
   kommitte: 1.3,
   serverkrasch: 3,
   fatbyte: 1.5,
@@ -195,11 +240,16 @@ interface Plan {
 /**
  * Keyframed gaps for one storyline. `order` is horse indices, winner first; `fav` the favourite.
  * Every script ends on the drawn order: final gaps rise strictly down the order.
+ *
+ * `hold[i]` is the ground horse i's gags keep, and `upplopp` the horse the upplopp gag takes the
+ * race from. The plan pays for both: see the rigid shift at the end.
  */
 function planScript(
   script: RaceScript,
   order: readonly number[],
   fav: number,
+  hold: readonly number[],
+  upplopp: number | null,
   r: Rng,
 ): Plan {
   const n = order.length;
@@ -217,6 +267,18 @@ function planScript(
   final[second] = acc;
   for (const i of order.slice(2))
     final[i] = acc += tight ? r.float(0.5, 2) : r.float(1, 4);
+
+  // The upplopp gag's victim turns for home in front, so it has to be clearly beaten by the line:
+  // further back than the gag takes, and no further than the upplopp is long. Shifting the whole
+  // tail with it keeps `final` rising down the order and never touches the winning margin.
+  if (upplopp !== null) {
+    const want = Math.min(
+      Math.max(final[upplopp], hold[upplopp] + 0.8),
+      UPPLOPP_MAX_GAP,
+    );
+    const push = want - final[upplopp];
+    for (const i of order.slice(order.indexOf(upplopp))) final[i] += push;
+  }
 
   const gaps = order.map(() => KEYS.map(() => 0));
   const set = (i: number, vals: readonly number[]) =>
@@ -261,7 +323,7 @@ function planScript(
     }
     case "collapse": {
       // A front-runner (the favourite when it loses) leads clearly and dies on the way home.
-      const faller = fav !== w ? fav : second;
+      const faller = upplopp ?? fallerOf(order, fav);
       set(w, [
         early(),
         r.float(3, 5),
@@ -319,11 +381,30 @@ function planScript(
   // a pack race, which is the one storyline where the whole field really does come home together.
   if (!tight) {
     for (const i of order.slice(2)) {
+      if (i === upplopp) continue;
       gaps[i][UPPLOPP_KEY] = Math.max(
         gaps[i][UPPLOPP_KEY],
         final[i] * r.float(...BEATEN_AT_UPPLOPP),
       );
     }
+  }
+
+  // A gag that keeps its ground is one the horse cannot undo. The plan draws that horse the same
+  // distance further forward for the whole race, so the gag takes real ground off it and the line
+  // still lands on the drawn order. A boost is the same trick with the sign flipped: drawn further
+  // back to start with, and it keeps what it gains. A rigid translation, so keyframe differences
+  // (and with them the fade budget below) are untouched, and tick 0 draws at START_LEFT anyway.
+  for (let i = 0; i < n; i++)
+    if (hold[i]) for (let k = 0; k < KEYS.length; k++) gaps[i][k] -= hold[i];
+
+  // Whatever the storyline said, this horse turns into the upplopp in front. That is the ground the
+  // gag is about to take off it.
+  if (upplopp !== null) {
+    gaps[upplopp][UPPLOPP_KEY] = r.float(0, 0.5);
+    gaps[upplopp][UPPLOPP_KEY - 1] = Math.min(
+      gaps[upplopp][UPPLOPP_KEY - 1],
+      r.float(0, 1.5),
+    );
   }
 
   // Nobody may lose ground faster than they can trot: walk back from the line and lift earlier
@@ -350,29 +431,48 @@ function gapAt(g: readonly number[], p: number): number {
 interface PlacedGag extends RaceGag {
   i: number;
   drag: number;
-  /** Ticks to win the lost ground back. */
+  /** Ticks to win the lost ground back, down to `kept`. */
   recover: number;
+  /**
+   * Ground the gag never gives back. `planScript` draws the horse this much further forward for the
+   * whole race to pay for it, so the finish still lands on the drawn order. Negative for a boost.
+   */
+  kept: number;
   /** Partner horse index in a two-horse gag. */
   j?: number;
 }
 
+/** A gag before the plan exists. Only a kommitte's drag needs the finished plan (see planDrags). */
+type GagPick = Omit<PlacedGag, "n">;
+
+/** The horse a collapse storyline is built around: the favourite when it loses, else the runner-up. */
+function fallerOf(order: readonly number[], fav: number): number {
+  return fav !== order[0] ? fav : order[1];
+}
+
 /**
- * Galopp from temper, plus comic gags, spaced so each gets its own commentary line. A kommitte gag
- * takes two losers in adjacent lanes, and the one ahead gives up extra ground so they end up level.
+ * Galopp from temper, plus comic gags, spaced so each gets its own commentary line. Every pick also
+ * says how much ground it keeps (`kept`), and `hold[i]` is the sum of that per horse: the one
+ * number the plan and the finish share, so compute it here and never again.
+ *
+ * Who takes what is drawn from the finishing order, which is already known: a hard gag only goes to
+ * a horse that was losing anyway, a boost only to one that finishes well, and the upplopp gag takes
+ * the money off the horse that turns for home in front. A kommitte gag takes two losers in adjacent
+ * lanes; its drag needs the finished plan, so planDrags fills that in.
  */
-function drawGags(
+function pickGags(
   temper: readonly number[],
   order: readonly number[],
   script: RaceScript,
-  gaps: readonly number[][],
   r: Rng,
-): PlacedGag[] {
-  const gags: PlacedGag[] = [];
-  const slots = () => new Set(gags.map((g) => g.tick)).size;
+): { picks: GagPick[]; hold: number[]; upplopp: number | null } {
+  const picks: GagPick[] = [];
+  const hold = order.map(() => 0);
+  const slots = () => new Set(picks.map((g) => g.tick)).size;
   // A horse takes one gag at a time: the ground lost to the last one has to be won back first, or
   // the two recoveries fight each other and neither reads.
   const alone = (who: readonly number[], tick: number, len: number) =>
-    gags.every(
+    picks.every(
       (g) =>
         !who.includes(g.i) ||
         tick >= g.tick + g.ticks + g.recover ||
@@ -380,7 +480,7 @@ function drawGags(
     );
   const free = (tick: number, len: number, who: readonly number[]) =>
     tick + len + 2 <= GAG_LAST + 6 &&
-    gags.every((g) => Math.abs(g.tick - tick) >= COMMENT_GAP + 1) &&
+    picks.every((g) => Math.abs(g.tick - tick) >= COMMENT_GAP + 1) &&
     alone(who, tick, len);
   const slot = (
     who: readonly number[],
@@ -393,22 +493,61 @@ function drawGags(
     }
     return null;
   };
+  const keepFor = (kind: GagKind) =>
+    BOOSTS.includes(kind)
+      ? KEEP_BOOST
+      : HARD_GAGS.includes(kind)
+        ? KEEP_HARD
+        : kind === "kommitte"
+          ? KEEP_PAIR
+          : KEEP_LIGHT;
   const gag = (
     i: number,
     kind: GagKind,
     at: { tick: number; ticks: number },
     drag = GAG_DRAG[kind],
-  ): PlacedGag => ({
-    i,
-    n: -1,
-    kind,
-    ...at,
-    drag,
-    recover: GAG_RECOVERY[kind] ?? GAG_RECOVER,
-  });
-  const place = (i: number, kind: GagKind) => {
+  ): GagPick => {
+    // One horse keeps ground once. A second gag on the same horse is pure slapstick: it costs the
+    // ground for a few seconds and is then run off completely.
+    const kept = hold[i] === 0 ? keepFor(kind) : 0;
+    hold[i] += kept;
+    return {
+      i,
+      kind,
+      ...at,
+      drag,
+      recover: BOOSTS.includes(kind)
+        ? BOOST_RECOVER
+        : (GAG_RECOVERY[kind] ?? GAG_RECOVER),
+      kept,
+    };
+  };
+  /**
+   * Who takes a gag, by finishing place: the horse coming home last is the natural victim, and the
+   * winner may take a single light one, which it then has to run back.
+   */
+  const victim = (kind: GagKind): number | null => {
+    const half = order.length / 2;
+    const pool = order
+      .map((i, place) => ({ i, place }))
+      .filter(({ i, place }) =>
+        BOOSTS.includes(kind)
+          ? place < half
+          : HARD_GAGS.includes(kind)
+            ? place >= half
+            : place > 0 || hold[i] === 0,
+      );
+    if (!pool.length) return null;
+    const w = (place: number) =>
+      VICTIM_WEIGHT[Math.min(place, VICTIM_WEIGHT.length - 1)];
+    let x = r.next() * pool.reduce((sum, c) => sum + w(c.place), 0);
+    for (const c of pool) if ((x -= w(c.place)) < 0) return c.i;
+    return pool[pool.length - 1].i;
+  };
+  const place = (i: number | null, kind: GagKind) => {
+    if (i === null) return;
     const at = slot([i]);
-    if (at) gags.push(gag(i, kind, at));
+    if (at) picks.push(gag(i, kind, at));
   };
   const placePair = () => {
     const losers = new Set(order.slice(1));
@@ -419,15 +558,42 @@ function drawGags(
     const [a, b] = r.pick(pairs);
     const at = slot([a, b]);
     if (!at) return;
-    const p = progressAt(at.tick);
-    // Positive when a is ahead of b on the plan: a drags that much extra to come back level.
-    const lead = gapAt(gaps[b], p) - gapAt(gaps[a], p);
-    const base = GAG_DRAG.kommitte;
-    gags.push(
-      { ...gag(a, "kommitte", at, base + Math.max(0, lead) / at.ticks), j: b },
-      { ...gag(b, "kommitte", at, base + Math.max(0, -lead) / at.ticks), j: a },
+    // The drag that pulls the two level needs the plan, so planDrags adds it.
+    picks.push(
+      { ...gag(a, "kommitte", at), j: b },
+      { ...gag(b, "kommitte", at), j: a },
     );
   };
+
+  // The upplopp gag is decided first, because the ground it keeps has to be on the books before any
+  // other gag picks its victim, but it is pushed last so the slot accounting above is unchanged.
+  let upplopp: number | null = null;
+  let stretch: GagPick | null = null;
+  if (order.length > 2 && r.next() < STRETCH_GAG_CHANCE) {
+    // Always the first horse home outside the top two: it turns for home in front and is beaten by
+    // the line. Not the last one home, whose drawn gap is longer than the upplopp.
+    upplopp = order[2];
+    const range = script === "pack" ? UPPLOPP_DROP_PACK : UPPLOPP_DROP;
+    const drop = r.float(range[0], range[1]);
+    hold[upplopp] = drop;
+    // Never the two-horse kommitte, never a boost, and never a serverkrasch: its one-tick snap back
+    // is the wrong shape for the gag that decides the race.
+    const kind = r.pick(
+      COMIC_GAGS.filter(
+        (k) =>
+          k !== "kommitte" && k !== "serverkrasch" && !BOOSTS.includes(k),
+      ),
+    );
+    stretch = {
+      i: upplopp,
+      kind,
+      tick: STRETCH_GAG_TICK,
+      ticks: GAG_TICKS,
+      drag: (drop * STRETCH_OVERSHOOT) / GAG_TICKS,
+      recover: STRETCH_RECOVER,
+      kept: drop,
+    };
+  }
 
   // Galopp, about as often as the old tick-by-tick model: a hot temper breaks more.
   temper.forEach((t, i) => {
@@ -439,57 +605,63 @@ function drawGags(
     (r.next() < THIRD_COMIC_CHANCE ? 1 : 0);
   for (let c = 0; c < comic && slots() < MAX_GAG_SLOTS; c++) {
     const kind = r.pick(
-      COMIC_GAGS.filter((k) => gags.every((g) => g.kind !== k)),
+      COMIC_GAGS.filter((k) => picks.every((g) => g.kind !== k)),
     );
     if (kind === "kommitte") {
       placePair();
       continue;
     }
-    // Mostly a loser; the winner may take a harmless one, which is funnier.
-    const pool =
-      r.next() < 0.25 && !BOOSTS.includes(kind) ? order : order.slice(1);
-    place(pool[r.int(pool.length)], kind);
+    place(victim(kind), kind);
   }
-  // A comeback winner may light a turbo for the surge, on the turn line ("här kommer ..."). Show
-  // only: the script already gains the ground, and a real boost would melt away on the upplopp.
-  if (script === "comeback" && r.next() < 0.5) {
-    gags.push(
-      gag(
-        order[0],
-        "turbo",
-        { tick: COMEBACK_TURBO_TICK, ticks: GAG_TICKS },
-        0,
-      ),
+  // A comeback winner may light a turbo for the surge, on the turn line ("här kommer ..."). It is a
+  // real boost now: the plan draws the winner further back and the turbo is where it takes over.
+  if (
+    script === "comeback" &&
+    r.next() < 0.5 &&
+    alone([order[0]], COMEBACK_TURBO_TICK, GAG_TICKS)
+  ) {
+    picks.push(
+      gag(order[0], "turbo", {
+        tick: COMEBACK_TURBO_TICK,
+        ticks: GAG_TICKS,
+      }),
     );
   }
-  // The upplopp gag, on the winner (who stalls, gets passed and still wins) or the runner-up (who
-  // stalls right when it matters). Never a boost on the winner, and never the two-horse kommitte.
-  if (r.next() < STRETCH_GAG_CHANCE) {
-    const i = order[r.int(2)];
-    const kinds = COMIC_GAGS.filter(
-      (k) => k !== "kommitte" && !(i === order[0] && BOOSTS.includes(k)),
-    );
-    const kind = r.pick(kinds);
-    gags.push({
-      ...gag(
-        i,
-        kind,
-        { tick: STRETCH_GAG_TICK, ticks: GAG_TICKS },
-        GAG_DRAG[kind] * STRETCH_DRAG,
-      ),
-      recover: GAG_RECOVERY[kind] ?? STRETCH_RECOVER,
-    });
-  }
-  return gags.sort((x, y) => x.tick - y.tick);
+  if (stretch) picks.push(stretch);
+  return { picks, hold, upplopp };
 }
 
-/** Extra gap from a gag at tick t: builds up during the gag, then melts away (the recovery). */
+/**
+ * The one drag that needs the finished plan: a kommitte's two halves pull each other level, so the
+ * one in front gives up the difference on top of the base drag. Only `drag` changes here, never
+ * `kept`, which the plan has already been paid for.
+ */
+function planDrags(
+  picks: readonly GagPick[],
+  gaps: readonly number[][],
+): PlacedGag[] {
+  return picks
+    .map((g) => {
+      if (g.kind !== "kommitte" || g.j === undefined) return { ...g, n: -1 };
+      const p = progressAt(g.tick);
+      // Positive when this horse is ahead of its partner: it drags that much extra to come back.
+      const lead = gapAt(gaps[g.j], p) - gapAt(gaps[g.i], p);
+      return { ...g, n: -1, drag: g.drag + Math.max(0, lead) / g.ticks };
+    })
+    .sort((x, y) => x.tick - y.tick);
+}
+
+/**
+ * Extra gap from a gag at tick t: it builds up during the gag, then melts away again, but only down
+ * to the ground the gag keeps. Once the recovery is over this returns exactly `kept`, which is what
+ * lets the finish stay exact: the plan has drawn this horse that much further forward all race.
+ */
 function gagGap(g: PlacedGag, t: number): number {
   if (t <= g.tick) return 0;
   const peak = g.drag * g.ticks;
   const end = g.tick + g.ticks;
   if (t <= end) return (peak * (t - g.tick)) / g.ticks;
-  return peak * (1 - smooth(Math.min(1, (t - end) / g.recover)));
+  return g.kept + (peak - g.kept) * (1 - smooth(Math.min(1, (t - end) / g.recover)));
 }
 
 export function simulateRace({
@@ -512,14 +684,14 @@ export function simulateRace({
     0,
   );
   const script = pickScript(r);
-  const plan = planScript(script, order, fav, r);
-  const rawGags = drawGags(
+  const { picks, hold, upplopp } = pickGags(
     ordered.map((s) => s.temper),
     order,
     script,
-    plan.gaps,
     r,
   );
+  const plan = planScript(script, order, fav, hold, upplopp, r);
+  const rawGags = planDrags(picks, plan.gaps);
   // Two slow sines per horse, fading out at both ends, so nobody moves like a train on rails.
   const wobble = horses.map(() => ({
     f1: r.float(1.5, 3),
@@ -558,13 +730,15 @@ export function simulateRace({
         pos[t][i] = Math.max(pos[t][i], pos[t - 1][i]);
     }
   }
-  // The line is exact: the drawn order with the drawn margins, whatever the wobble did.
+  // The line is exact: the drawn order with the drawn margins, whatever the wobble and the gags
+  // did. Every gag has finished melting by now, so hold[i] is exactly what it still costs and the
+  // plan already aims that much higher. Lifting the reference clear of the last tick for every
+  // horse, not just the leader, means nobody has to step backwards over the line.
+  const gapNow = (i: number) => gapAt(plan.gaps[i], 1) + hold[i];
+  const stride = (RACE_UNITS * (1 - progressAt(TICKS - 1))) / 2;
   const top =
-    Math.max(...pos[TICKS - 1]) +
-    (RACE_UNITS * (1 - progressAt(TICKS - 1))) / 2;
-  for (let i = 0; i < n; i++) pos[TICKS][i] = top - gapAt(plan.gaps[i], 1);
-  for (let i = 0; i < n; i++)
-    pos[TICKS][i] = Math.max(pos[TICKS][i], pos[TICKS - 1][i]);
+    Math.max(...horses.map((_, i) => pos[TICKS - 1][i] + gapNow(i))) + stride;
+  for (let i = 0; i < n; i++) pos[TICKS][i] = top - gapNow(i);
   const finishIdx = [...order];
 
   // Frames, without commentary yet
@@ -641,14 +815,11 @@ export function simulateRace({
   {
     const t = 90;
     const o = orderAt(t);
-    const stalled = rawGags.some(
-      (g) => g.tick === STRETCH_GAG_TICK && g.i === finishIdx[0],
-    );
     add(
       t,
       8,
-      stalled
-        ? r.pick(COMMENTARY.backAgain)(H(finishIdx[0]))
+      upplopp !== null
+        ? r.pick(COMMENTARY.stalled)(H(upplopp), H(finishIdx[0]))
         : COMMENTARY.final(H(o[0]), H(o[1]), pos[t][o[0]] - pos[t][o[1]] < 1.2),
       true,
     );
@@ -688,9 +859,11 @@ export function simulateRace({
     ? COMMENTARY.photo
     : gagWin
       ? gagWin(winner)
-      : winner.baseOdds >= SKRALL_ODDS
-        ? COMMENTARY.skrall(winner, raceNo)
-        : COMMENTARY.win(winner, raceNo);
+      : upplopp !== null
+        ? r.pick(STRETCH_ROBBED)(winner, H(upplopp))
+        : winner.baseOdds >= SKRALL_ODDS
+          ? COMMENTARY.skrall(winner, raceNo)
+          : COMMENTARY.win(winner, raceNo);
 
   const inquiry =
     r.next() < INQUIRY_RATE ? { text: inquiryText(winner, r) } : null;

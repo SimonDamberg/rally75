@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { createRng } from './rng'
 import { buildField, FIELD_SIZE } from './field'
-import { BOOSTS, COMIC_GAGS, commentAt, demoteWinner, INQUIRY_RATE, PHOTO_MARGIN, SCRIPT_WEIGHTS, simulateRace, STRETCH_GAG_TICK, STRETCH_TICK, TICKS } from './sim'
+import { BOOSTS, COMIC_GAGS, commentAt, demoteWinner, HARD_GAGS, INQUIRY_RATE, LIGHT_GAGS, PHOTO_MARGIN, SCRIPT_WEIGHTS, simulateRace, STRETCH_GAG_TICK, STRETCH_TICK, TICKS } from './sim'
 import { winWeights } from './odds'
 import { NAMED_KUSKAR } from '../content/kuskar'
 
@@ -61,8 +61,10 @@ describe('simulateRace', () => {
       for (let t = 1; t <= TICKS; t++) {
         expect(frames[t].meters).toBeGreaterThanOrEqual(frames[t - 1].meters)
         frames[t].runners.forEach((x, i) => {
-          // Only a horse running the wrong way ever loses ground.
-          if (x.gag !== 'backwards') expect(x.pos).toBeGreaterThanOrEqual(frames[t - 1].runners[i].pos)
+          // Only a horse running the wrong way ever loses ground. Over the line everyone takes a
+          // real stride: the finish is force-set clear of the last tick, so it needs no clamp.
+          if (t === TICKS) expect(x.pos).toBeGreaterThan(frames[t - 1].runners[i].pos)
+          else if (x.gag !== 'backwards') expect(x.pos).toBeGreaterThanOrEqual(frames[t - 1].runners[i].pos)
           expect(x.broke).toBe(x.gag === 'galopp')
         })
       }
@@ -118,12 +120,19 @@ describe('simulateRace', () => {
       scripts.add(t.script)
       for (const g of t.gags) {
         gags.add(g.kind)
-        // Only the upplopp gag reaches the upplopp, and it is always on the winner or the runner-up.
+        // Only the upplopp gag reaches the upplopp, and it takes the money off its victim.
         if (g.tick + g.ticks >= STRETCH_TICK) {
           lateGags++
           expect(g.tick).toBe(STRETCH_GAG_TICK)
-          expect(t.finishOrder.slice(0, 2)).toContain(g.n)
+          expect(t.finishOrder.slice(0, 2)).not.toContain(g.n)
+          expect(t.finishOrder.indexOf(g.n)).toBeGreaterThanOrEqual(2)
           expect(g.kind).not.toBe('kommitte')
+          expect(g.kind).not.toBe('serverkrasch')
+          expect(BOOSTS).not.toContain(g.kind)
+          // It turned for home in front: that is the ground the gag took off it.
+          const turn = t.frames[STRETCH_TICK].runners
+          const behind = Math.max(...turn.map((x) => x.pos)) - turn.find((x) => x.n === g.n)!.pos
+          expect(behind).toBeLessThan(1.5)
         }
       }
       if (t.frames.slice(TICKS * 0.75).some((f, k, arr) => k > 0 && f.leader !== arr[k - 1].leader)) late++
@@ -143,14 +152,17 @@ describe('simulateRace', () => {
     expect([...gags].sort()).toEqual(['galopp', ...COMIC_GAGS].sort())
   })
 
-  it('pairs kommitte in adjacent lanes, keeps boosts off the winner, and lets a server crash snap back', () => {
+  it('pairs kommitte in adjacent lanes, aims gags by finishing place, and lets a server crash snap back', () => {
     let pairs = 0
     let crashes = 0
+    let rushed = 0
     for (let seed = 1; seed <= 3000; seed++) {
       const { horses, timeline: t } = race(seed)
       const lane = (n: number) => horses.findIndex((h) => h.n === n)
       for (const g of t.gags) {
-        if (BOOSTS.includes(g.kind) && g.tick !== 65) expect(g.n).not.toBe(t.finishOrder[0])
+        // A boost goes to a horse that finishes well, a hard gag only to one that was losing.
+        if (BOOSTS.includes(g.kind)) expect(t.finishOrder.indexOf(g.n)).toBeLessThan(2)
+        if (HARD_GAGS.includes(g.kind)) expect(t.finishOrder.indexOf(g.n)).toBeGreaterThanOrEqual(FIELD_SIZE / 2)
         if (g.kind === 'kommitte') {
           pairs++
           expect(g.partner).toBeDefined()
@@ -163,18 +175,60 @@ describe('simulateRace', () => {
           crashes++
           const i = lane(g.n)
           const end = g.tick + g.ticks
-          // Frozen during the crash, then most of the lost ground comes back in one tick.
+          // Frozen during the crash, then the ground it does get back comes in a rush, not a melt.
           const during = t.frames[end].runners[i].pos - t.frames[g.tick + 1].runners[i].pos
-          const jump = t.frames[end + 1].runners[i].pos - t.frames[end].runners[i].pos
+          const jump = t.frames[Math.min(TICKS, end + 3)].runners[i].pos - t.frames[end].runners[i].pos
           // Compared with its normal stride just before the crash.
           const step = t.frames[g.tick].runners[i].pos - t.frames[g.tick - 1].runners[i].pos
           expect(during).toBeLessThan(1)
-          expect(jump).toBeGreaterThan(Math.max(1, 2 * step))
+          // Not every crash: the 3.6 units it keeps leave a horse that was fading anyway parked
+          // for a few ticks longer, which is the right picture.
+          if (jump > 2 * step) rushed++
         }
       }
     }
     expect(pairs).toBeGreaterThan(0)
     expect(crashes).toBeGreaterThan(0)
+    expect(rushed / crashes).toBeGreaterThan(0.95)
+  })
+
+  it('lets gags keep the ground they take, and boosts the ground they gain', () => {
+    const N = 3000
+    const hard: number[] = []
+    const boosted: number[] = []
+    let settled = 0
+    for (let seed = 1; seed <= N; seed++) {
+      const { horses, timeline: t } = race(seed)
+      const gapAt = (tick: number, n: number) => {
+        const rs = t.frames[tick].runners
+        return Math.max(...rs.map((x) => x.pos)) - rs.find((x) => x.n === n)!.pos
+      }
+      // Nothing is still melting at the line: the plan and the gags have to add back up exactly,
+      // or the drawn order and the drawn margins would not be what the room sees.
+      for (const h of horses) {
+        settled = Math.max(settled, Math.abs(gapAt(TICKS, h.n) - gapAt(TICKS - 1, h.n)))
+      }
+      for (const g of t.gags) {
+        if (g.tick === STRETCH_GAG_TICK) continue
+        const lost = gapAt(Math.min(TICKS, g.tick + g.ticks + 15), g.n) - gapAt(g.tick, g.n)
+        if (HARD_GAGS.includes(g.kind)) hard.push(lost)
+        if (BOOSTS.includes(g.kind)) boosted.push(-lost)
+      }
+    }
+    const mean = (a: number[]) => a.reduce((x, y) => x + y, 0) / a.length
+    expect(settled).toBeLessThan(0.2)
+    // The storyline keeps moving the field, so this is an average, not a promise per gag. It would
+    // collapse to about zero if a gag stopped keeping its ground.
+    expect(hard.length).toBeGreaterThan(500)
+    expect(mean(hard)).toBeGreaterThan(1.2)
+    expect(boosted.length).toBeGreaterThan(500)
+    expect(mean(boosted)).toBeGreaterThan(2)
+  })
+
+  it('sorts every gag kind into exactly one tier', () => {
+    const tiers = [...LIGHT_GAGS, ...HARD_GAGS, ...BOOSTS, 'kommitte']
+    expect(new Set(tiers).size).toBe(tiers.length)
+    expect([...tiers].sort()).toEqual(['galopp', ...COMIC_GAGS].sort())
   })
 
   it('keeps commentary lines apart so they can be read', () => {

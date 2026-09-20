@@ -284,6 +284,7 @@ export const GM_RACE_LAB = {
   play: "Spela",
   script: "Upplägg",
   gag: "Gag",
+  upplopp: "Upploppsgag",
   inquiry: "Utredning",
   scripts: {
     wire: "Start-mål",

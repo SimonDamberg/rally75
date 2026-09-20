@@ -12,6 +12,7 @@ import {
   COMIC_GAGS,
   SCRIPT_WEIGHTS,
   simulateRace,
+  STRETCH_GAG_TICK,
 } from "../../shared/game/sim";
 import type { RaceScript, RaceTimeline } from "../../shared/game/types";
 import { pauseMs, raceView, runMs } from "../raceClock";
@@ -165,6 +166,18 @@ export default function RaceLab() {
                 {GM_RACE.gag[k]}
               </button>
             ))}
+            <button
+              className={btn}
+              onClick={() =>
+                go(
+                  nextSeed(seed, (t) =>
+                    t.gags.some((g) => g.tick === STRETCH_GAG_TICK),
+                  ),
+                )
+              }
+            >
+              {GM_RACE_LAB.upplopp}
+            </button>
             <button
               className={btn}
               onClick={() => go(nextSeed(seed, (t) => t.photo))}

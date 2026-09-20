@@ -60,11 +60,12 @@ export const COMMENTARY = {
   final: (a: NamedRunner, b: NamedRunner, close: boolean) =>
     close ? `NOS MOT NOS! ${a.name.toUpperCase()} ELLER ${b.name.toUpperCase()}!` : `HUNDRA METER KVAR! ${a.name.toUpperCase()} ÄR NÄRA!`,
 
-  /** Last 100 m, when the leader stalled in the upplopp and is coming back to win. */
-  backAgain: [
-    (h: NamedRunner) => `${h.name.toUpperCase()} ÄR TILLBAKA! VILKEN ÅTERKOMST!`,
-    (h: NamedRunner) => `${h.jockey.toUpperCase()} ÄR TILLBAKA I SULKYN! ${h.name.toUpperCase()} FLYGER!`,
-  ] as readonly Line[],
+  /** Last 100 m, when the upplopp gag has taken the race off the horse that led into the stretch. */
+  stalled: [
+    (h, w) => `${h.name.toUpperCase()} STÅR STILL! ${w.name.toUpperCase()} GÅR FÖRBI!`,
+    (h, w) => `DET ÄR SLUT FÖR ${h.name.toUpperCase()}! ${w.name.toUpperCase()} TAR ÖVER!`,
+    (h, w) => `${h.jockey.toUpperCase()} TAPPAR ALLT PÅ UPPLOPPET! ${w.name.toUpperCase()} ÄR FÖRBI!`,
+  ] as readonly Pair[],
 
   leadChange: [
     (l: NamedRunner) => `${l.name} går förbi och tar över ledningen!`,
@@ -137,21 +138,26 @@ export const KOMMITTE_LINES: readonly Pair[] = [
   (a, b) => `Kommitté-incest på banan! ${a.jockey} och ${b.jockey} glömmer bort loppet.`,
 ]
 
-/** Finish line when the winner had a gag on the way. Boosts and kommitte never hit the winner. */
+/**
+ * Finish line when the winner had a gag on the way. Only a light gag, a galopp or a boost can
+ * reach the winner now, so the hard gags have no line here.
+ */
 export const GAG_WIN: Partial<Record<GagKind, (h: NamedRunner) => string>> = {
   galopp: (h) => `${h.name} galopperade och vann ändå!`,
-  backwards: (h) => `${h.name} sprang åt fel håll och vann ändå! Vad är det här för lopp?`,
   selfie: (h) => `${h.jockey} tog en selfie och vann ändå! Bilden säljs i Butiken.`,
   turbo: (h) => `${h.name} vinner på ren turbo! Dopingprov bokat.`,
-  nap: (h) => `${h.name} sov en stund och vann ändå!`,
+  husvagn: (h) => `${h.name} sprang ifrån husvagnen och vann loppet!`,
   banana: (h) => `${h.name} halkade på en banan och vann ändå!`,
   snabblan: (h) => `${h.jockey} vinner och kan betala tillbaka Snabblånet. Nästan.`,
-  serverkrasch: (h) => `${h.name} laggade och vann ändå! Starta om och försök igen.`,
-  fatbyte: (h) => `${h.jockey} hann med ett fatbyte och vann ändå!`,
-  eckero: (h) => `${h.jockey} hann till Eckerölinjen och tillbaka och vann ändå!`,
   rallyhafte: (h) => `${h.jockey} läste aldrig rallyhäftet och vann ändå!`,
   hjalprebus: (h) => `${h.jockey} behövde en hjälprebus och vann ändå!`,
 }
+
+/** Finish line when the upplopp gag stopped the horse in front and handed the race over. */
+export const STRETCH_ROBBED: readonly Pair[] = [
+  (w, h) => `${w.name} vinner sedan ${h.name} stannat på upploppet!`,
+  (w, h) => `${w.name} tar hem det! ${h.jockey} får förklara upploppet för kommittén.`,
+]
 
 export const INQUIRY_TITLE = 'Bandomarna utreder'
 

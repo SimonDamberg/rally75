@@ -3,7 +3,7 @@ import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 import { createRng } from '../game/rng'
 import { KUSK_NOTER, STORY_MALLAR } from './stories'
-import { COMMENTARY, disqualifiedLine, GAG_LINES, GAG_WIN, inquiryText, KOMMITTE_LINES } from './commentary'
+import { COMMENTARY, disqualifiedLine, GAG_LINES, GAG_WIN, inquiryText, KOMMITTE_LINES, STRETCH_ROBBED } from './commentary'
 import { LANDING, STODLINJE } from './parody'
 import { WELCOME_BONUS } from '../game/economy'
 import { fmtRm } from '../game/format'
@@ -39,15 +39,15 @@ describe('no em dash', () => {
       ...KUSK_NOTER.flatMap((t) => Array.from({ length: 20 }, () => t(runner.jockey, r))),
       COMMENTARY.start(1),
       COMMENTARY.galopp(runner),
-      ...[...COMMENTARY.early, ...COMMENTARY.halfway, ...COMMENTARY.stretch].map((l) => l(runner, runner)),
+      ...[...COMMENTARY.early, ...COMMENTARY.halfway, ...COMMENTARY.stretch, ...COMMENTARY.stalled].map((l) => l(runner, runner)),
       ...COMMENTARY.favouriteLast.map((l) => l(runner)),
       ...[...Object.values(COMMENTARY.mid), ...Object.values(COMMENTARY.turn)].flat().map((l) => l(runner, runner)),
       COMMENTARY.final(runner, runner, true),
-      ...COMMENTARY.backAgain.map((l) => l(runner)),
       COMMENTARY.final(runner, runner, false),
       COMMENTARY.skrall(runner, 1),
       ...Object.values(GAG_LINES).flat().map((l) => l(runner)),
       ...KOMMITTE_LINES.map((l) => l(runner, runner)),
+      ...STRETCH_ROBBED.map((l) => l(runner, runner)),
       ...Object.values(GAG_WIN).map((l) => l!(runner)),
       ...COMMENTARY.leadChange.map((l) => l(runner, runner)),
       COMMENTARY.photo,
