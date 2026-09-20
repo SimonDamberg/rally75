@@ -1291,124 +1291,129 @@ and nothing else. `/gm` and `/gm/kuponger` stay pure Rally75.
 **Manual step for Simon:** `npx supabase db push` before the party, otherwise the hosted database
 still starts races without the countdown (the screens handle that fine, they just cut straight in).
 
-## Playtestfixar: kortare gästskärm (Simons spelomgång, 2026-09-20)
+## Playtest fixes: a shorter guest screen (Simon's play session, 2026-09-20)
 
-Sju noteringar från Simons playtest, alla på gästtelefonen. Inget rör GM-iPaden eller GM-telefonen;
-de två delade komponenterna ändrades med nya frivilliga props, så alla andra anropsställen står kvar
-orörda.
+Seven notes from Simon's playtest, all on the guest phone. Nothing touches the GM iPad or the GM
+phone; the two shared components got new optional props, so every other call site is untouched.
 
-- **Lagda spel syns i fältet.** `HorseRow` har en ny `mine?: number` (RM den här gästen har på
-  hästen): raden får plate-ring och en plate-rad "Du 150 RM" under poolen. `Home.tsx` bygger en
-  `Map` från spelarens spel på loppet (summerad, samma häst kan spelas två gånger) och skickar den
-  både till spellistan och till `FieldSummary`, så markeringen står kvar genom spelstopp och
-  resultat. "Dina spel på loppet" ligger kvar där den låg.
-- **Mindre statusrad.** `StatusBanner.raceNo` är nu frivillig; utan den ritas inte den streckade
-  "LOPP N"-biljetten. Klienten skickar ingen, GM-ytorna skickar som förut. På `md` är titeln
-  `text-2xl` (var `text-3xl`) med tightare padding; alla `tv`-klasser är orörda.
-- **"Mina spel" borttagen.** Fliken, `MyBets.tsx`, `CLIENT_TABS.bets`, `EMPTY_BETS`, `useRaces`
-  och `groupByRace` (med sitt testblock) är borta. `totals` är kvar: `revealFor` använder den.
-  `MY_BETS` är nedbantad till de två nycklar `BetLine` fortfarande läser. Fem flikar i raden nu.
-- **"Slösare" borttagen från Topplistan.** Vyn, `bySpending`, `Leaderboard.spenders` och
-  `BOARD.spenders*` är borta, och `BUTIK.smallPrint` lovar inte längre en lista som inte finns.
-  `players.spent` och `netWorth` är oförändrade: köp är fortfarande rangneutrala, och testen som
-  säger det (`buy.test.ts`, `economy.test.ts`, smoke) rörde vi inte.
-- **Plånko får plats.** Taglinen är borta, brädet är `max-w-[17rem]` centrerat (viewBox och
-  `drop.ts`-geometrin orörda, så falländringen och `drop.test.ts` är oförändrade) och panelens
-  `gap-3` är `gap-2`.
-- **Hästens story borta i klienten.** `HorseRow` har `story?: boolean` (default på). Paddocken i
-  `Home.tsx` skickar `story={false}` och behåller kuskens replik och formraden; GM-ytorna och
-  styleguiden skickar inget och behåller storyn.
+- **Bets are marked in the field.** `HorseRow` takes a new `mine?: number` (the RM this guest has on
+  the horse): the row gets a plate ring and a plate line "Du 150 RM" under the pool. `Home.tsx`
+  builds a `Map` from the player's bets on the race (summed, since the same horse can be backed
+  twice) and passes it to both the bet list and `FieldSummary`, so the marking survives the betting
+  close and the result. "Dina spel på loppet" stays where it was.
+- **A smaller status banner.** `StatusBanner.raceNo` is now optional; without it the dashed "LOPP N"
+  ticket is not drawn. The client passes none, the GM surfaces pass it as before. At `md` the title
+  is `text-2xl` (was `text-3xl`) with tighter padding; every `tv` class is untouched.
+- **"Mina spel" removed.** The tab, `MyBets.tsx`, `CLIENT_TABS.bets`, `EMPTY_BETS`, `useRaces` and
+  `groupByRace` (with its test block) are gone. `totals` stays: `revealFor` uses it. `MY_BETS` is
+  cut down to the two keys `BetLine` still reads. Five tabs in the row now.
+- **"Slösare" removed from the Topplista.** The view, `bySpending`, `Leaderboard.spenders` and
+  `BOARD.spenders*` are gone, and `BUTIK.smallPrint` no longer promises a list that does not exist.
+  `players.spent` and `netWorth` are unchanged: buying is still rank neutral, and the tests that say
+  so (`buy.test.ts`, `economy.test.ts`, smoke) were left alone.
+- **Plånko fits.** The tagline is gone, the board is `max-w-[17rem]` centred (the viewBox and the
+  `drop.ts` geometry are untouched, so the fall and `drop.test.ts` are unchanged) and the panel's
+  `gap-3` is now `gap-2`.
+- **The horse's story is gone in the client.** `HorseRow` takes `story?: boolean` (on by default).
+  The paddock in `Home.tsx` passes `story={false}` and keeps the kusk's line and the form row; the
+  GM surfaces and the styleguide pass nothing and keep the story.
 
-`npm run build`, `npm test` (230 tester) och `npm run lint` gröna. Styleguiden visar båda de nya
-varianterna (statusrad utan biljett, spellista med markerade spel).
+`npm run build`, `npm test` (230 tests) and `npm run lint` are green. The styleguide shows both new
+variants (a status banner without the ticket, a bet list with marked bets).
 
-## Gag med konsekvens: gagen avgör loppet (2026-09-20)
+## Gags with consequence: the gag decides the race (2026-09-20)
 
-Simon: gagen är roliga men syns inte i resultatet. Den som får en gag på upploppet tappade till
-fjärde och spurtade tillbaka till seger. Nu kostar en gag placeringar.
+Simon: the gags are funny but they do not show up in the result. A horse that took a gag in the
+upplopp dropped to fourth and sprinted back to win. Now a gag costs places.
 
-**Grundidén.** Resultatet dras fortfarande först, ur `winWeights`, så morgonlinjen säger sanningen
-och husets marginal är orörd (det testet är oförändrat och grönt). Det som ändrats är att gagen
-riktas mot hästar som ändå skulle förlora, och att marken de tar inte kommer tillbaka: varje gag har
-ett `kept`, summerat per häst till `hold`, och `planScript` betalar för det genom att rita hästen
-exakt lika långt längre fram hela loppet. `gapAt(plan, 1) + hold === final`, så mållinjen landar på
-den dragna ordningen på decimalen. En boost är samma förflyttning med omvänt tecken: hästen ritas
-längre bak och behåller det den tar igen.
+**The idea.** The result is still drawn first, from `winWeights`, so the morning line tells the truth
+and the house edge is untouched (that test is unchanged and green). What changed is that gags are
+aimed at horses that were going to lose anyway, and that the ground they take does not come back:
+every gag has a `kept`, summed per horse into `hold`, and `planScript` pays for it by drawing that
+horse exactly that much further up the road for the whole race. `gapAt(plan, 1) + hold === final`, so
+the line lands on the drawn order to the decimal. A boost is the same translation with the sign
+flipped: the horse is drawn further back and keeps what it gains.
 
-- **Upploppsgagen** går aldrig mer på vinnaren. Den tar `order[2]` (första hästen utanför prispallens
-  topp två), nålar fast den i täten vid upploppsingången och låter den stå still i sju tick medan
-  fältet går förbi. Den tappar 3 till 5 längder för gott (2 till 3,5 i ett klunglopp). Aldrig
-  serverkrasch: dess ryck tillbaka på ett tick är fel form för den gag som avgör loppet.
-- **Hårda gag** (`HARD_GAGS`: backwards, nap, serverkrasch, fatbyte, eckerö) går bara till en häst
-  som slutar i bakre halvan. **Boostar** (turbo, husvagn) bara till en som slutar topp två, och de
-  får därför gå på vinnaren nu, vilket var förbjudet förut. **Lätta gag** (`LIGHT_GAGS`, galopp
-  inräknad) är de enda en vinnare kan springa av sig, så "vann ändå"-raderna finns kvar men är
-  ovanligare.
-- **En häst behåller mark en gång.** En andra gag på samma häst är ren slapstick och springs av helt.
-- `drawGags` är delad i `pickGags` (vem, när, vad, hur mycket som blir kvar) och `planDrags` (det
-  enda draget som behöver den färdiga planen, kommitté-parets utjämning). Comeback-turbon är en
-  riktig boost nu, inte bara syn, och boostarnas svall är kortare (`BOOST_RECOVER`) så att det är
-  över innan upploppet.
-- Sista tickens referenslinje lyfts nu över alla hästars näst sista position, inte bara ledarens, så
-  den gamla `Math.max`-klämman vid mål kunde tas bort: alla tar ett riktigt steg över linjen.
+- **The upplopp gag** never goes to the winner any more. It takes `order[2]` (the first horse outside
+  the top two), pins it in front at the entry to the upplopp and lets it stand still for seven ticks
+  while the field goes past. It loses 3 to 5 lengths for good (2 to 3.5 in a pack race). Never
+  serverkrasch: its one-tick snap back is the wrong shape for the gag that decides the race.
+- **Hard gags** (`HARD_GAGS`: backwards, nap, serverkrasch, fatbyte, eckerö) only go to a horse that
+  finishes in the back half. **Boosts** (turbo, husvagn) only to one that finishes in the top two, and
+  they may therefore land on the winner now, which used to be forbidden. **Light gags**
+  (`LIGHT_GAGS`, galopp included) are the only ones a winner can run off, so the "vann ändå" lines
+  are still there but rarer.
+- **A horse keeps ground once.** A second gag on the same horse is pure slapstick and is run off
+  completely.
+- `drawGags` is split into `pickGags` (who, when, what, how much stays lost) and `planDrags` (the one
+  drag that needs the finished plan, the kommitté pair levelling out). The comeback turbo is a real
+  boost now, not just for show, and the boosts' surge is shorter (`BOOST_RECOVER`) so it is over
+  before the upplopp.
+- The last tick's reference line is now lifted clear of every horse's second to last position, not
+  just the leader's, so the old `Math.max` clamp at the line could go: everyone takes a real stride
+  over it.
 
-**Text.** `COMMENTARY.backAgain` ("är tillbaka!") är borttagen, den kan aldrig hända. Ny
-`COMMENTARY.stalled` på 100 meter kvar och nya `STRETCH_ROBBED` vid mål. `GAG_WIN` är rensad från de
-fem hårda gagen och har fått `husvagn`.
+**Copy.** `COMMENTARY.backAgain` ("är tillbaka!") is gone, it can never happen. New
+`COMMENTARY.stalled` at the hundred metre mark and new `STRETCH_ROBBED` at the line. `GAG_WIN` is
+cleared of the five hard gags and has gained `husvagn`.
 
-**Siffror efter ändringen** (3000 seeds): sena ledarbyten 0,71 (var kravet 0,35), målfoto 0,235,
-upploppsgag 0,403, upploppsoffret ligger som mest 1,16 längder bakom vid upploppsingången.
-Manusens trohet är kvar: i ett start-mål-lopp leder vinnaren vid mittkommentaren i 83 procent av
-loppen, i ett comebacklopp 0 procent, i ett "tar slut"-lopp 3 procent.
+**Numbers after the change** (3000 seeds): late lead changes 0.71 (the requirement was 0.35), photo
+finish 0.235, upplopp gag 0.403, and the upplopp victim is at most 1.16 lengths behind at the entry
+to the upplopp. The scripts still hold: in a wire to wire race the winner leads at the mid-race line
+in 83 percent of races, in a comeback race 0 percent, in a collapse race 3 percent.
 
-**Nytt i labbet.** `/styleguide/race` har en Upploppsgag-knapp som hoppar till nästa seed med en
-sådan. Använd den för att titta på stoppet.
+**New in the lab.** `/styleguide/race` has an Upploppsgag button that jumps to the next seed with
+one. Use it to watch the stall.
 
-`npm run build`, `npm test` (232 tester) och `npm run lint` gröna. Inget i `types.ts`, databasen
-eller `RaceTrack.tsx` ändrades: `RaceGag` har samma form och tidslinjen räknas alltid om ur seeden.
+`npm run build`, `npm test` (232 tests) and `npm run lint` are green. Nothing in `types.ts`, the
+database or `RaceTrack.tsx` changed: `RaceGag` has the same shape and the timeline is always
+recomputed from the seed.
 
-**För Simon:** inget manuellt steg. Kör om ett par lopp i labbet och säg till om upploppsgagen ska
-kosta mer eller mindre (`UPPLOPP_DROP` i `sim.ts`).
+**For Simon:** no manual step. Run a couple of races in the lab and say if the upplopp gag should
+cost more or less (`UPPLOPP_DROP` in `sim.ts`).
 
-## Fem nya gag: Frossa, Vaniljsås, Sänka skepp, Olvisvep, Goblin mode (2026-09-20)
+## Five more gags: Frossa, Vaniljsås, Sänka skepp, Olvisvep, Goblin mode (2026-09-20)
 
-Simons beställning. Tre nya missöden och två nya boostar, valda av honom:
+Simon's order. Three new mishaps and two new boosts, with the tiers he picked:
 
-- **Frossa** (lätt): kusken skakar av frossa, hästen darrar på stället och ber om en filt.
-- **Vaniljsås** (hård): kusken dricker vaniljsås ur paketet mitt i loppet och ångrar sig direkt.
-- **Sänka skepp** (lätt): kusken ropar "E5?" och ingen svarar. Ensam gag med flit, ensamheten är
-  poängen, så inget par som i kommittén.
-- **Olvisvep** (boost): kusken sveper en Olvi och hittar en extra växel.
-- **Goblin mode** (boost): hästen tappar alla manér och drar ifrån.
+- **Frossa** (light): the kusk has the chills, the horse shivers on the spot and asks for a blanket.
+- **Vaniljsås** (hard): the kusk drinks vanilla sauce straight from the carton mid-race and regrets
+  it immediately.
+- **Sänka skepp** (light): the kusk calls "E5?" and nobody answers. A solo gag on purpose, the
+  loneliness is the joke, so no pair like the kommitté.
+- **Olvisvep** (boost): the kusk downs an Olvi and finds another gear.
+- **Goblin mode** (boost): the horse loses every last manner and pulls away.
 
-**Gjort**
+**Done**
 
-- `GagKind` har fem nya medlemmar, vilket är det som får TypeScript att peka ut varje ställe som
-  behöver en rad: `GAG_LINES`, `GAG_WIN` och `GM_RACE.gag`.
-- Nivåerna i `sim.ts`: `LIGHT_GAGS` får frossa och sänka skepp (de kan alltså träffa vinnaren och
-  har egna "vann ändå"-rader), `HARD_GAGS` får vaniljsås (bara en häst som ändå skulle förlora),
-  `BOOSTS` får olvisvep och goblin (bara en häst som slutar topp två). Katalogen är nu 8 lätta
-  (galopp inräknad), 6 hårda, 4 boostar och 1 par, 19 sorter totalt.
-- `GAG_DRAG`: frossa 0,85, sänka skepp 0,95, vaniljsås 1,7, olvisvep -0,65, goblin -0,78. Varje drag
-  täcker med marginal vad dess nivå behåller över sju tick (1,2 lätt, 3,6 hård, -2,8 boost), och
-  boostarnas drag ligger i samma band som turbo och husvagn så att svallet är över före upploppet.
-- Sprites i `GagSprite.tsx`: 🥶 plus stigande ❄️, 🥛 plus 🤢, 🚢 plus en "E5?"-bricka (samma form som
-  404-brickan), 🍺 med fartstreck och 👺 med fartstreck. `GAG_MOTION` skakar frossa och goblin och
-  vaggar vaniljsås och olvisvep. Vaniljsås och sänka skepp står stilla, så de river ingen damm.
-- De tre missödena är automatiskt kandidater för upploppsgagen (den drar ur `COMIC_GAGS` minus
-  kommitté, serverkrasch och boostar).
-- Nytt test: per gagsort ska marken som tappas i snitt vara positiv för varje missöde och negativ för
-  varje boost. Det är invarianten ett för litet drag skulle bryta. De gamla testerna täcker resten av
-  sig själva: nivåuttömlighet, att alla sorter dyker upp på 3000 seeds och att hårda gag hamnar bak
-  och boostar fram.
+- `GagKind` has five new members, which is what makes TypeScript point at every place that needs a
+  line: `GAG_LINES`, `GAG_WIN` and `GM_RACE.gag`.
+- Tiers in `sim.ts`: `LIGHT_GAGS` gains frossa and sänka skepp (so they can reach the winner and have
+  their own "vann ändå" lines), `HARD_GAGS` gains vaniljsås (only a horse that was going to lose
+  anyway), `BOOSTS` gains olvisvep and goblin (only a horse that finishes in the top two). The
+  catalogue is now 8 light (galopp included), 6 hard, 4 boosts and 1 pair, 19 kinds in all.
+- `GAG_DRAG`: frossa 0.85, sänka skepp 0.95, vaniljsås 1.7, olvisvep -0.65, goblin -0.78. Every drag
+  covers what its tier keeps over the seven gag ticks (1.2 light, 3.6 hard, -2.8 boost) with room to
+  spare, and the boosts' drags sit in the same band as turbo and husvagn so the surge is over before
+  the upplopp.
+- Sprites in `GagSprite.tsx`: 🥶 plus rising ❄️, 🥛 plus 🤢, 🚢 plus an "E5?" chip (the same shape as
+  the 404 chip), 🍺 with speed lines and 👺 with speed lines. `GAG_MOTION` shakes frossa and goblin
+  and rocks vaniljsås and olvisvep. Vaniljsås and sänka skepp stand still, so they kick up no dust.
+- The three mishaps are automatically candidates for the upplopp gag (it draws from `COMIC_GAGS`
+  minus kommitté, serverkrasch and the boosts).
+- New test: per gag kind, the mean ground lost must be positive for every mishap and negative for
+  every boost. That is the invariant a drag that is too small would break. The older tests cover the
+  rest by themselves: tier exhaustiveness, that every kind shows up over 3000 seeds, and that hard
+  gags land behind while boosts land in front.
 
-**Siffror** (3000 seeds): varje ny sort dyker upp i 10 till 13 procent av loppen, mitt i det band de
-gamla ligger i. Loppens statistik är oförändrad, alla excitement- och husfördelstester är gröna.
+**Numbers** (3000 seeds): each new kind appears in 10 to 13 percent of races, in the middle of the
+band the old ones sit in. The race statistics are unchanged, and every excitement and house edge test
+is green.
 
-`npm run build`, `npm test` (233 tester) och `npm run lint` gröna. Inget i databasen, RPC:erna eller
-`RaceGag`-formen ändrades.
+`npm run build`, `npm test` (233 tests) and `npm run lint` are green. Nothing in the database, the
+RPCs or the `RaceGag` shape changed.
 
-**För Simon:** inget manuellt steg. Kör labbet på `/styleguide/race` och klicka de fem nya
-gagknapparna för att se dem. En sak att titta på: med fyra boostar får 43 procent av loppen numera en
-boost, och i 24 procent sitter den på vinnaren. Säg till om det ska vara färre, då flyttar vi en av
-dem till de lätta gagen.
+**For Simon:** no manual step. Open the lab at `/styleguide/race` and click the five new gag buttons
+to see them. One thing to look at: with four boosts, 43 percent of races now get a boost, and in 24
+percent it sits on the winner. Say the word if that is too many and we move one of them down to the
+light gags.
