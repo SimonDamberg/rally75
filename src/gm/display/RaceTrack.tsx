@@ -1,11 +1,11 @@
 // The race as the room sees it on the display iPad: four lanes, the commentary strip, and the
-// staging around them (upplopp banner, photo finish, winner stamp, skräll). Purely presentational:
-// everything comes in as props, so the dev race lab at /styleguide/race can play any seed.
+// staging around them (upplopp banner, photo finish, winner stamp, skräll). There is no header: the
+// lanes get the full height, and the strip at the foot carries the money and the Mr Green bug.
+// Purely presentational: everything comes in as props, so /styleguide/race can play any seed.
 import { useMemo, type CSSProperties, type ReactNode } from 'react'
 import { COMMENTARY } from '../../shared/content/commentary'
 import { GM_RACE } from '../../shared/content/gm'
-import { UI_LABELS } from '../../shared/content/ui'
-import { fmtInt, fmtRm } from '../../shared/game/format'
+import { fmtRm } from '../../shared/game/format'
 import { createRng } from '../../shared/game/rng'
 import { commentAt, SKRALL_ODDS, STRETCH_TICK } from '../../shared/game/sim'
 import type { GagKind, HorsePublic, RaceTimeline } from '../../shared/game/types'
@@ -59,7 +59,7 @@ export interface RaceTrackProps {
   backers: readonly LaneBackers[]
   /** Shown in the strip before the timeline has loaded. */
   loadingText: string
-  /** Above the header (the connection banner). */
+  /** Above the lanes (the connection banner). */
   banner?: ReactNode
   /** Overlays on top of everything (inquiry drama). */
   children?: ReactNode
@@ -96,32 +96,9 @@ export function RaceTrack({ raceNo, field, timeline, tick, phase, backers, loadi
   return (
     <div className="relative flex h-dvh flex-col overflow-hidden bg-night-deep">
       {banner}
-      <header className="flex shrink-0 items-center gap-6 px-8 py-4">
-        <span className="plate rounded-lg bg-plate px-4 py-1 font-display text-tv-md font-black text-night uppercase">
-          <span className="unplate">
-            {UI_LABELS.race} {raceNo}
-          </span>
-        </span>
-        {!finished && (
-          <span className="flex items-center gap-3 rounded-full bg-sleaze px-5 py-1.5 font-display text-tv-sm font-black text-sleaze-ink uppercase">
-            <span className="size-4 animate-pulse-live rounded-full bg-white" />
-            {UI_LABELS.live}
-          </span>
-        )}
-        {frame && <span className="font-display text-tv-md font-black text-ink tabular-nums">{GM_RACE.clock(fmtInt(frame.meters))}</span>}
-        <div className="ml-auto flex items-center gap-6">
-          {stake > 0 && (
-            <span className="rounded-full bg-black/40 px-5 py-1.5 font-display text-tv-sm font-black text-plate tabular-nums ring-2 ring-plate/60">
-              {GM_RACE.atStake(fmtRm(stake))}
-            </span>
-          )}
-          <MrGreenBug />
-        </div>
-      </header>
-
       <div
         className={cx(
-          'relative flex min-h-0 flex-1 flex-col gap-2 px-6 pb-3 transition-[transform,filter] duration-[1500ms] ease-out',
+          'relative flex min-h-0 flex-1 flex-col gap-2 px-6 py-3 transition-[transform,filter] duration-[1500ms] ease-out',
           photo && phase === 'finishing' && 'grayscale',
         )}
         style={{ transform: stretch ? 'scale(1.04)' : 'none', transformOrigin: `${FINISH_LEFT}% 50%` }}
@@ -232,7 +209,7 @@ export function RaceTrack({ raceNo, field, timeline, tick, phase, backers, loadi
 
       <div
         className={cx(
-          'relative z-10 flex min-h-40 shrink-0 items-center border-t-4 px-10 py-5 transition-colors duration-700',
+          'relative z-10 flex min-h-40 shrink-0 items-center gap-8 border-t-4 px-10 py-5 transition-colors duration-700',
           stretch ? 'border-plate bg-[linear-gradient(90deg,rgb(255_214_10/0.18),rgb(0_0_0/0.7))]' : 'border-plate/40 bg-black/60',
         )}
       >
@@ -240,15 +217,24 @@ export function RaceTrack({ raceNo, field, timeline, tick, phase, backers, loadi
           <p
             key={comment.text}
             className={cx(
-              'animate-pop-in text-tv-md leading-tight font-black [text-shadow:0_0.1em_0.4em_rgb(0_0_0/0.8)]',
+              'min-w-0 flex-1 animate-pop-in text-tv-md leading-tight font-black [text-shadow:0_0.1em_0.4em_rgb(0_0_0/0.8)]',
               comment.hype ? 'text-plate' : 'text-ink',
             )}
           >
             {comment.text}
           </p>
         ) : (
-          <p className="text-tv-sm font-bold text-ink-dim">{loadingText}</p>
+          <p className="min-w-0 flex-1 text-tv-sm font-bold text-ink-dim">{loadingText}</p>
         )}
+        {/* The chrome the header used to carry: the room's money, and Mr Green's corner bug. */}
+        <div className="flex shrink-0 items-center gap-6">
+          {stake > 0 && (
+            <span className="rounded-full bg-black/40 px-5 py-1.5 font-display text-tv-sm font-black text-plate tabular-nums ring-2 ring-plate/60">
+              {GM_RACE.atStake(fmtRm(stake))}
+            </span>
+          )}
+          <MrGreenBug />
+        </div>
       </div>
 
       {finished && winner && (!photo || phase === 'done') && <CoinRain seed={timeline?.seed ?? 0} />}
