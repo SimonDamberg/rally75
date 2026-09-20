@@ -11,10 +11,14 @@ export interface HorseRowProps {
   odds: number
   /** RM staked on this horse. Hidden when undefined. */
   pool?: number
+  /** RM this guest has on the horse. Rings the row and shows the stake. Hidden when undefined. */
+  mine?: number
   /** card: full race card entry (paddock). pick: one compact line (betting list). */
   variant?: 'card' | 'pick'
   /** tv: GM iPad, readable at 2 m. */
   size?: 'md' | 'tv'
+  /** The horse's backstory on the card. Off on the guest phone, where the card must stay short. */
+  story?: boolean
   selected?: boolean
   /** Makes the row a toggle button. */
   onSelect?: (n: number) => void
@@ -27,8 +31,10 @@ export function HorseRow({
   horse,
   odds,
   pool,
+  mine,
   variant = 'card',
   size = 'md',
+  story = true,
   selected,
   onSelect,
   children,
@@ -36,12 +42,19 @@ export function HorseRow({
 }: HorseRowProps) {
   const tv = size === 'tv'
   const pick = variant === 'pick'
+  // A horse you already have money on stays marked in the list, so the bet is visible without
+  // scrolling past the whole field to "Dina spel på loppet".
+  const backed = mine !== undefined && mine > 0
   const classes = cx(
     'w-full rounded-xl border-l-[6px] text-left ring-inset transition-colors',
     pick
       ? cx('flex items-center gap-3 px-3 py-2', tv && 'gap-5 border-l-[10px] px-5 py-3')
       : cx('grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-x-3 p-3', tv && 'gap-x-5 border-l-[10px] p-5'),
-    selected ? 'bg-tote ring-3 ring-plate' : 'bg-tote/60 ring-1 ring-white/10',
+    selected
+      ? 'bg-tote ring-3 ring-plate'
+      : backed
+        ? 'bg-tote ring-2 ring-plate/70'
+        : 'bg-tote/60 ring-1 ring-white/10',
     onSelect && !selected && 'active:bg-tote',
     className,
   )
@@ -71,12 +84,17 @@ export function HorseRow({
             {UI_LABELS.pool} {fmtRm(pool)}
           </span>
         )}
+        {backed && (
+          <span className={cx('font-bold whitespace-nowrap text-plate tabular-nums', tv ? 'text-lg' : 'text-xs')}>
+            {UI_LABELS.yours} {fmtRm(mine)}
+          </span>
+        )}
       </span>
       {!pick && (
         // Details span the whole card so the story is not squeezed beside the odds on a phone.
         <span className={cx('col-span-full flex flex-col', tv ? 'mt-3' : 'mt-2')}>
-          <span className={cx('text-ink-dim', text)}>{horse.story}</span>
-          <span className={cx('mt-1 text-ink-dim/80 italic', text)}>{horse.jnote}</span>
+          {story && <span className={cx('text-ink-dim', text)}>{horse.story}</span>}
+          <span className={cx('text-ink-dim/80 italic', story && 'mt-1', text)}>{horse.jnote}</span>
           <span className={cx('mt-2 text-ink-dim', tv ? 'text-xl' : 'text-xs')}>{horse.note}</span>
           {children}
         </span>

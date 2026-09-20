@@ -13,7 +13,8 @@ const TONE: Record<RaceStatus, string> = {
 
 export interface StatusBannerProps {
   status: RaceStatus
-  raceNo: number
+  /** The ticket stub on the left. Left out on the guest phone, where the strip must stay short. */
+  raceNo?: number
   /** Replaces the default subtitle, e.g. "2 140 m voltstart". */
   detail?: string
   size?: 'md' | 'tv'
@@ -29,17 +30,19 @@ export function StatusBanner({ status, raceNo, detail, size = 'md', className }:
       role="status"
       className={cx('flex items-stretch overflow-hidden rounded-xl', tv && 'rounded-3xl', TONE[status], className)}
     >
-      <div
-        className={cx(
-          'flex shrink-0 flex-col items-center justify-center border-r-2 border-dashed border-current/35 font-display leading-none font-black uppercase',
-          tv ? 'px-8 py-4' : 'px-3 py-2',
-        )}
-      >
-        <span className={cx('tracking-[0.18em] opacity-75', tv ? 'text-2xl' : 'text-[0.7rem]')}>{UI_LABELS.race}</span>
-        <span className={cx('tabular-nums', tv ? 'text-tv-lg' : 'text-4xl')}>{raceNo}</span>
-      </div>
-      <div className={cx('flex min-w-0 flex-1 flex-col justify-center', tv ? 'gap-2 px-8 py-4' : 'gap-0.5 px-4 py-2')}>
-        <div className={cx('flex items-center font-display leading-none font-black uppercase', tv ? 'gap-4 text-tv-lg' : 'gap-2 text-3xl')}>
+      {raceNo !== undefined && (
+        <div
+          className={cx(
+            'flex shrink-0 flex-col items-center justify-center border-r-2 border-dashed border-current/35 font-display leading-none font-black uppercase',
+            tv ? 'px-8 py-4' : 'px-3 py-2',
+          )}
+        >
+          <span className={cx('tracking-[0.18em] opacity-75', tv ? 'text-2xl' : 'text-[0.7rem]')}>{UI_LABELS.race}</span>
+          <span className={cx('tabular-nums', tv ? 'text-tv-lg' : 'text-4xl')}>{raceNo}</span>
+        </div>
+      )}
+      <div className={cx('flex min-w-0 flex-1 flex-col justify-center', tv ? 'gap-2 px-8 py-4' : 'gap-0.5 px-3 py-1.5')}>
+        <div className={cx('flex items-center font-display leading-none font-black uppercase', tv ? 'gap-4 text-tv-lg' : 'gap-2 text-2xl')}>
           {status === 'running' && (
             <span
               aria-label={UI_LABELS.live}

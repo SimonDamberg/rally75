@@ -96,7 +96,7 @@ export function Plinko({ onHold }: PlinkoProps) {
 
   return (
     <div className="flex flex-1 flex-col">
-      <section className="theme-plinko m-3 flex flex-col gap-3 rounded-2xl bg-night p-3 shadow-[0_0.25rem_1.5rem_rgb(0_0_0/0.35)] ring-1 ring-tote-hi/30">
+      <section className="theme-plinko m-3 flex flex-col gap-2 rounded-2xl bg-night p-3 shadow-[0_0.25rem_1.5rem_rgb(0_0_0/0.35)] ring-1 ring-tote-hi/30">
         <div className="flex items-baseline justify-between gap-2 border-b border-white/10 pb-2">
           <h1 className="font-display pr-3 text-3xl leading-none font-black tracking-wide text-sleaze uppercase italic drop-shadow-[0_0_0.6rem_var(--color-sleaze)]">
             {PLINKO.title}
@@ -105,13 +105,11 @@ export function Plinko({ onHold }: PlinkoProps) {
             {PLINKO.partner}
           </span>
         </div>
-        <p className="px-1 text-sm text-ink-dim">{PLINKO.tagline}</p>
-
-        <div className="rounded-xl bg-night-deep/70 px-1 pt-2 pb-1 ring-1 ring-white/5">
+        <div className="rounded-xl bg-night-deep/70 px-1 pt-1 pb-0.5 ring-1 ring-white/5">
           <PlinkoBoard falling={falling} onLand={land} flash={flash} />
         </div>
 
-        <div className="flex min-h-7 items-center justify-center text-center font-display text-xl font-black tabular-nums">
+        <div className="flex min-h-6 items-center justify-center text-center font-display text-xl font-black tabular-nums">
           {falling.length > 0 ? (
             <span className="text-ink-dim">{PLINKO.inFlight(falling.length)}</span>
           ) : last ? (
@@ -121,7 +119,7 @@ export function Plinko({ onHold }: PlinkoProps) {
           ) : null}
         </div>
 
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-1.5">
           <span className="px-1 text-[0.65rem] font-bold tracking-[0.16em] text-ink-dim uppercase">{PLINKO.stake}</span>
           <div className="grid grid-cols-5 gap-2">
             {PLINKO_CHIPS.map((c) => (

@@ -92,7 +92,7 @@ describe('afterBuy', () => {
   })
 
   // The whole point of the Butik: winners can flex or drink, and drinking is free of charge on
-  // both existing leaderboards. Only the slösare list notices.
+  // both leaderboards. The balance notices, the rank never does.
   it('leaves Toppen and förlorarlistan exactly where they were', () => {
     const before = { balance: 4200, debt: 1337, spent: 0 }
     const after = afterBuy(before, 2500)

@@ -16,7 +16,6 @@ import { Header } from './Header'
 import { Home } from './Home'
 import { Leaderboard } from './Leaderboard'
 import { LoanOffer } from './LoanOffer'
-import { MyBets } from './MyBets'
 import { OfferPopup } from './OfferPopup'
 import { Plinko } from './Plinko'
 import { ResultReveal } from './ResultReveal'
@@ -26,9 +25,9 @@ import { useOffers } from './useOffers'
 import { useResultReveal } from './useResultReveal'
 import { useSocialProof } from './useSocialProof'
 
-type Tab = 'home' | 'plinko' | 'bets' | 'bank' | 'butik' | 'board'
-const TABS: readonly Tab[] = ['home', 'plinko', 'bets', 'bank', 'butik', 'board']
-const TAB_ICON: Record<Tab, string> = { home: '★', plinko: '●', bets: '▤', bank: '¤', butik: '◆', board: '♛' }
+type Tab = 'home' | 'plinko' | 'bank' | 'butik' | 'board'
+const TABS: readonly Tab[] = ['home', 'plinko', 'bank', 'butik', 'board']
+const TAB_ICON: Record<Tab, string> = { home: '★', plinko: '●', bank: '¤', butik: '◆', board: '♛' }
 
 export interface ClientShellProps {
   identity: Identity
@@ -84,7 +83,6 @@ export function ClientShell({ identity, player, forget, justJoined, cookiesAccep
         <main className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain">
           {tab === 'home' && <Home onConfirmChange={setConfirming} onSlipChange={setSlipOpen} />}
           {tab === 'plinko' && <Plinko onHold={setPlinkoHold} />}
-          {tab === 'bets' && <MyBets />}
           {tab === 'bank' && (
             <Bank
               broke={broke}

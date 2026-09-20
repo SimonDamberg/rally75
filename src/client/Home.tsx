@@ -61,6 +61,10 @@ function RaceView({ race, onConfirmChange, onSlipChange }: { race: RaceRow } & H
   const { bets: playerBets, player, raceBets } = useGuest()
   const { odds, pools } = marketOdds(race.field, raceBets ?? [])
   const mine = (playerBets ?? []).filter((b) => b.race_id === race.id)
+  // What this guest has on each horse, so the field list marks the bets instead of hiding them
+  // under the whole card. Summed: the same horse can be backed twice.
+  const stakes = new Map<number, number>()
+  for (const b of mine) stakes.set(b.horse_n, (stakes.get(b.horse_n) ?? 0) + b.stake)
   const [selected, setSelected] = useState<number | null>(null)
   const betting = race.status === 'betting'
   const pick = betting && selected !== null ? race.field.find((h) => h.n === selected) : undefined
@@ -83,13 +87,15 @@ function RaceView({ race, onConfirmChange, onSlipChange }: { race: RaceRow } & H
             {HOME.productTag}
           </span>
         </div>
-        <StatusBanner status={race.status} raceNo={race.race_no} />
+        {/* No race-number stub here: the guest is in one race at a time and the strip has to
+            leave room for the field on a phone. The GM surfaces still pass raceNo. */}
+        <StatusBanner status={race.status} />
 
         {race.status === 'paddock' && (
           <>
             <p className="px-1 text-sm text-ink-dim">{HOME.paddockHint}</p>
             {race.field.map((h, i) => (
-              <HorseRow key={h.n} horse={h} odds={odds[i]} />
+              <HorseRow key={h.n} horse={h} odds={odds[i]} story={false} />
             ))}
           </>
         )}
@@ -103,6 +109,7 @@ function RaceView({ race, onConfirmChange, onSlipChange }: { race: RaceRow } & H
                 horse={h}
                 odds={odds[i]}
                 pool={pools[i]}
+                mine={stakes.get(h.n)}
                 variant="pick"
                 selected={selected === h.n}
                 onSelect={(n) => setSelected(selected === n ? null : n)}
@@ -114,7 +121,7 @@ function RaceView({ race, onConfirmChange, onSlipChange }: { race: RaceRow } & H
         {(race.status === 'closed' || race.status === 'running') && (
           <>
             <LivePanel running={race.status === 'running'} />
-            <FieldSummary race={race} odds={odds} />
+            <FieldSummary race={race} odds={odds} stakes={stakes} />
           </>
         )}
 
@@ -155,12 +162,12 @@ function LivePanel({ running }: { running: boolean }) {
   )
 }
 
-function FieldSummary({ race, odds }: { race: RaceRow; odds: number[] }) {
+function FieldSummary({ race, odds, stakes }: { race: RaceRow; odds: number[]; stakes: Map<number, number> }) {
   return (
     <div className="flex flex-col gap-2">
       <h2 className="px-1 text-xs font-bold tracking-[0.14em] text-ink-dim uppercase">{HOME.finalOdds}</h2>
       {race.field.map((h, i) => (
-        <HorseRow key={h.n} horse={h} odds={odds[i]} variant="pick" />
+        <HorseRow key={h.n} horse={h} odds={odds[i]} mine={stakes.get(h.n)} variant="pick" />
       ))}
     </div>
   )

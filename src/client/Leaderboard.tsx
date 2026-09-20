@@ -1,6 +1,6 @@
-// "Topplista": richest guests (saldo minus skuld plus det som gått i Butiken), "Dagens största
-// förlorare" (how far behind you are, from zero) and "Dagens största slösare" (what you left at
-// the black market). Buying moves you only on the third list, which is the whole point.
+// "Topplista": richest guests (saldo minus skuld plus det som gått i Butiken) and "Dagens största
+// förlorare" (how far behind you are, from zero). Butik spending moves you on neither, which is
+// the whole point of it being rank neutral.
 import { useState } from 'react'
 import { useLeaderboard } from '../lib/hooks'
 import type { PlayerRow } from '../lib/types'
@@ -13,21 +13,21 @@ import { useGuest } from './guest'
 import { rankOf } from './outcome'
 
 const SHOWN = 20
-type View = 'top' | 'losers' | 'spenders'
-const VIEWS: readonly View[] = ['top', 'losers', 'spenders']
+type View = 'top' | 'losers'
+const VIEWS: readonly View[] = ['top', 'losers']
 
 export function Leaderboard() {
   const { identity } = useGuest()
   const { data, error } = useLeaderboard()
   const [view, setView] = useState<View>('top')
 
-  const list = data ? data[view === 'top' ? 'top' : view === 'losers' ? 'losers' : 'spenders'] : []
+  const list = data ? data[view] : []
   const rank = rankOf(list, identity.playerId)
   const me = rank === null ? undefined : list[rank - 1]
 
   return (
     <div className="flex flex-1 flex-col gap-3 p-3">
-      <div className="grid grid-cols-3 gap-1 rounded-xl bg-night-deep p-1 ring-1 ring-white/10 ring-inset">
+      <div className="grid grid-cols-2 gap-1 rounded-xl bg-night-deep p-1 ring-1 ring-white/10 ring-inset">
         {VIEWS.map((v) => (
           <button
             key={v}
@@ -36,13 +36,7 @@ export function Leaderboard() {
             onClick={() => setView(v)}
             className={cx(
               'min-h-11 rounded-lg px-1 font-display text-base leading-tight font-extrabold uppercase',
-              view === v
-                ? v === 'top'
-                  ? 'bg-plate text-night'
-                  : v === 'losers'
-                    ? 'bg-drift text-white'
-                    : 'bg-sleaze text-sleaze-ink'
-                : 'text-ink-dim',
+              view === v ? (v === 'top' ? 'bg-plate text-night' : 'bg-drift text-white') : 'text-ink-dim',
             )}
           >
             {BOARD[v]}
@@ -52,14 +46,9 @@ export function Leaderboard() {
       {view === 'losers' && (
         <h1 className="px-1 font-display text-3xl leading-none font-black text-drift uppercase">{BOARD.losersTitle}</h1>
       )}
-      {view === 'spenders' && (
-        <h1 className="px-1 font-display text-3xl leading-none font-black text-sleaze uppercase">{BOARD.spendersTitle}</h1>
-      )}
 
       {!data && <p className={cx('p-6 text-center', error ? 'text-drift' : 'text-ink-dim')}>{error?.message ?? UI_LABELS.loading}</p>}
-      {data && list.length === 0 && (
-        <p className="p-6 text-center text-ink-dim">{view === 'spenders' ? BOARD.spendersEmpty : BOARD.empty}</p>
-      )}
+      {data && list.length === 0 && <p className="p-6 text-center text-ink-dim">{BOARD.empty}</p>}
 
       <ol className="flex flex-col gap-1.5">
         {list.slice(0, SHOWN).map((p, i) => (
@@ -81,7 +70,7 @@ function Row({ player, rank, view, mine }: { player: PlayerRow; rank: number; vi
   const net = nightNet(player)
   // The top list counts the debt against you, so a pile of Snabblån cannot buy a place up there.
   const worth = netWorth(player)
-  const value = view === 'top' ? worth : view === 'spenders' ? player.spent : net
+  const value = view === 'top' ? worth : net
   return (
     <li
       className={cx(
@@ -92,13 +81,7 @@ function Row({ player, rank, view, mine }: { player: PlayerRow; rank: number; vi
       <span
         className={cx(
           'w-8 shrink-0 text-center font-display text-2xl leading-none font-black tabular-nums',
-          rank <= 3
-            ? view === 'top'
-              ? 'text-plate'
-              : view === 'losers'
-                ? 'text-drift'
-                : 'text-sleaze'
-            : 'text-ink-dim',
+          rank <= 3 ? (view === 'top' ? 'text-plate' : 'text-drift') : 'text-ink-dim',
         )}
       >
         {rank}
@@ -119,26 +102,24 @@ function Row({ player, rank, view, mine }: { player: PlayerRow; rank: number; vi
         )}
       </span>
       <span className="flex shrink-0 flex-col items-end leading-none">
-        {(view === 'losers' || view === 'spenders' || player.debt > 0) && (
+        {(view === 'losers' || player.debt > 0) && (
           <span className="text-[0.6rem] font-bold tracking-[0.14em] text-ink-dim uppercase">
-            {view === 'losers' ? BOARD.net : view === 'spenders' ? BOARD.spent : BOARD.worth}
+            {view === 'losers' ? BOARD.net : BOARD.worth}
           </span>
         )}
         <span
           className={cx(
             'font-display text-xl font-black tabular-nums',
-            view === 'spenders'
-              ? 'text-sleaze'
-              : value < 0
-                ? 'text-drift'
-                : view === 'top'
-                  ? 'text-plate'
-                  : value > 0
-                    ? 'text-cash'
-                    : 'text-ink-dim',
+            value < 0
+              ? 'text-drift'
+              : view === 'top'
+                ? 'text-plate'
+                : value > 0
+                  ? 'text-cash'
+                  : 'text-ink-dim',
           )}
         >
-          {view === 'top' ? fmtRm(worth) : view === 'spenders' ? fmtRm(player.spent) : `${net > 0 ? '+' : ''}${fmtRm(net)}`}
+          {view === 'top' ? fmtRm(worth) : `${net > 0 ? '+' : ''}${fmtRm(net)}`}
         </span>
       </span>
     </li>

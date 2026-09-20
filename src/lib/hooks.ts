@@ -5,12 +5,11 @@ import { measureOffset, serverTime, usableOffset } from './clock'
 import { connectionStore, type ConnectionStatus } from './connection'
 import { RallyError, toRallyError } from './errors'
 import { identityStore } from './identity'
-import { applyChange, byLosses, byNetWorth, bySpending, type RowChange } from './realtime'
+import { applyChange, byLosses, byNetWorth, type RowChange } from './realtime'
 import { getApi, getSupabase } from './supabase'
 import {
   toBet,
   toPlayer,
-  toRace,
   type BetRow,
   type CouponRow,
   type Identity,
@@ -182,19 +181,6 @@ export function useActiveRace(options: { pollMs?: number } = {}): LiveResult<Rac
   })
 }
 
-/** Every race of the night, by race number. Used for the guest bet history. */
-export function useRaces(): LiveResult<RaceRow[]> {
-  return useLive({
-    key: 'races',
-    load: () => getApi().getRaces(),
-    tables: ['races'],
-    apply: (prev, change) => {
-      const next = applyChange(prev, change, toRace)
-      return next === prev ? prev : next.slice().sort((a, b) => a.race_no - b.race_no)
-    },
-  })
-}
-
 /** All bets on one race, oldest first. Drives pools, odds ticker and GM live bets. */
 export function useRaceBets(raceId: string | null): LiveResult<BetRow[]> {
   return useLive({
@@ -266,8 +252,6 @@ export interface Leaderboard {
   top: PlayerRow[]
   /** "Dagens största förlorare": lowest balance minus debt first. */
   losers: PlayerRow[]
-  /** "Dagens största slösare": most RM left in the Butik first. Only players who bought something. */
-  spenders: PlayerRow[]
 }
 
 export function useLeaderboard(): LiveResult<Leaderboard> {
@@ -280,9 +264,7 @@ export function useLeaderboard(): LiveResult<Leaderboard> {
   const players = live.data
   const data = useMemo(
     () =>
-      players
-        ? { players, top: byNetWorth(players), losers: byLosses(players), spenders: bySpending(players) }
-        : undefined,
+      players ? { players, top: byNetWorth(players), losers: byLosses(players) } : undefined,
     [players],
   )
   return { data, error: live.error, reload: live.reload }

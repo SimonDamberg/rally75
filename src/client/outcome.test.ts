@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { BetRow, RaceRow } from '../lib/types'
-import { betOutcome, groupByRace, isBigWin, rankOf, revealFor, shouldReveal, totals } from './outcome'
+import { betOutcome, isBigWin, rankOf, revealFor, shouldReveal, totals } from './outcome'
 
 const race = (over: Partial<RaceRow> = {}): RaceRow => ({
   id: 'r1',
@@ -93,24 +93,6 @@ describe('shouldReveal', () => {
     expect(shouldReveal(cancelled, revealFor(cancelled, []), early, null)).toBe(false)
     expect(shouldReveal(race(), revealFor(race(), []), late, null)).toBe(false)
     expect(shouldReveal(race(), revealFor(race(), []), early, null)).toBe(true)
-  })
-})
-
-describe('groupByRace', () => {
-  it('puts the race with the newest bet first and attaches the race row', () => {
-    const r1 = race()
-    const r2 = race({ id: 'r2', race_no: 2 })
-    const bets = [
-      bet({ race_id: 'r2', created_at: '2026-09-20T19:00:00Z' }),
-      bet({ race_id: 'r1', created_at: '2026-09-20T18:05:00Z' }),
-      bet({ race_id: 'r1', created_at: '2026-09-20T18:01:00Z' }),
-      bet({ race_id: 'gone', created_at: '2026-09-20T17:00:00Z' }),
-    ]
-    const groups = groupByRace(bets, [r1, r2])
-    expect(groups.map((g) => g.raceId)).toEqual(['r2', 'r1', 'gone'])
-    expect(groups[1].bets).toHaveLength(2)
-    expect(groups[1].race?.race_no).toBe(1)
-    expect(groups[2].race).toBeUndefined()
   })
 })
 

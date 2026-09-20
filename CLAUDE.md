@@ -163,17 +163,17 @@ Two devices, one password gate, one lazy-loaded chunk (`src/gm/GmApp.tsx` routes
 
 - `src/client/ClientApp.tsx`: no identity shows `Landing` (a parody casino homepage; every button
   leads on), then `Onboarding` (fake connect, KYC), otherwise
-  `ClientShell` (header, tabs Rally75 / Mina spel / Bank / Butik / Topplista). `CookieBanner` floats over both.
+  `ClientShell` (header, tabs Rally75 / Plånko / Bank / Butik / Topplista). `CookieBanner` floats over both.
 - The client is **Mr Green green**; the trotting surfaces are a **blue Rally75 inset panel**. The rule:
   anything showing a horse, a silk, odds or a race number carries `theme-rally75`. Today that is the
-  race panel in `Home.tsx`, the `BetSlip` root (its confirm modal inherits), `MyBets.tsx` and the
+  race panel in `Home.tsx`, the `BetSlip` root (its confirm modal inherits) and the
   `ResultReveal` modal (a shell sibling, so it needs its own). `SmallPrint` forces itself back to
   `theme-mrgreen`: the legal footer is the site talking, not the product.
   Put the class on an element that already exists. A new wrapper div in the
   `ClientShell` > `main` > `RaceView` > `BetSlip` chain breaks the sticky slip's `flex-1`/`mt-auto`.
 - Game tabs are named after products (`Rally75`, `Plånko`), so the shelf reads as a shelf. The tab
   bar is `grid-flow-col auto-cols-fr`: adding a tab to `TABS` needs no class edit, but check the
-  labels at 390px, where the six tabs leave about 62px each (checked for Plånko).
+  labels at 390px, where the five tabs leave about 75px each (checked for Plånko).
 - `ClientShell` fetches the player, the player's bets and the active race once and shares them via
   `useGuest()` (`src/client/guest.ts`). Guest RPCs go through `useGuestAction().run((api, identity) => ...)`:
   errors become toasts, `player_not_found`/`invalid_token` sign out.
@@ -181,7 +181,12 @@ Two devices, one password gate, one lazy-loaded chunk (`src/gm/GmApp.tsx` routes
   localStorage, waits until the player's bets are settled), Snabblån (broke with no open bets,
   never over a reveal or the bet confirm). Stage 6 pop-ups must respect the same `blocked` rule.
 - Pure logic with tests: `slip.ts` (chips, stake checks, `marketOdds` from open bets) and
-  `outcome.ts` (bet outcome, reveal kind, totals, history grouping).
+  `outcome.ts` (bet outcome, reveal kind, totals).
+- The guest sees one race at a time: there is no "Mina spel" tab and no bet history. Bets on the
+  open race are marked on the horse itself (`HorseRow mine={rm}`) and listed under the field;
+  Bank holds saldo, skuld and netto idag. The phone's race strip passes no `raceNo` and the
+  paddock card passes `story={false}`, so both stay short; the GM surfaces pass neither and keep
+  the stub and the backstory.
 - Guest copy lives in `src/shared/content/client.ts`.
 
 ## Plånko (Plinko)
@@ -226,8 +231,8 @@ Mr Green's own arcade game, the second product tab (`src/client/Plinko.tsx` + `P
   `gm_refund_purchase`, and both are in the Realtime publication so stock drops on every phone.
 - **Buying is rank neutral.** `buy_item` moves the price from `players.balance` to `players.spent`,
   and `netWorth` adds `spent` back, so nothing bought can move you on Toppen or the förlorarlista.
-  Spending has its own list, "Dagens största slösare" (`bySpending`). Asserted in `buy.test.ts`,
-  `economy.test.ts` and smoke.
+  There is no third list: the guest Topplista is Toppen and förlorarlistan only. Asserted in
+  `buy.test.ts`, `economy.test.ts` and smoke.
 - **Digital items are jokes or cosmetics only.** An item may set `players.title` or `players.badge`
   (shown by `badgedLabel` and on the Topplista) and nothing else. Never odds, bets or free RM.
 - No fulfilment status: a purchase is a receipt the guest shows in the bar. The control phone's

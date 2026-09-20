@@ -81,29 +81,6 @@ export function shouldReveal(
   return true
 }
 
-export interface RaceGroup {
-  raceId: string
-  race: RaceRow | undefined
-  bets: BetRow[]
-}
-
-/** Bets grouped per race, the race with the newest bet first; bets keep their input order. */
-export function groupByRace(bets: readonly BetRow[], races: readonly RaceRow[]): RaceGroup[] {
-  const byId = new Map(races.map((r) => [r.id, r]))
-  const groups = new Map<string, RaceGroup>()
-  const latest = new Map<string, string>()
-  for (const b of bets) {
-    let g = groups.get(b.race_id)
-    if (!g) {
-      g = { raceId: b.race_id, race: byId.get(b.race_id), bets: [] }
-      groups.set(b.race_id, g)
-    }
-    g.bets.push(b)
-    if (b.created_at > (latest.get(b.race_id) ?? '')) latest.set(b.race_id, b.created_at)
-  }
-  return [...groups.values()].sort((a, b) => (latest.get(b.raceId) ?? '').localeCompare(latest.get(a.raceId) ?? ''))
-}
-
 /** Position in a sorted list (1-based), or null. */
 export function rankOf(players: readonly Pick<PlayerRow, 'id'>[], playerId: string): number | null {
   const i = players.findIndex((p) => p.id === playerId)

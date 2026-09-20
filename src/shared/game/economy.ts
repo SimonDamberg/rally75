@@ -44,8 +44,8 @@ export const COUPON_CODE_LENGTH = 8
 /**
  * What a player actually owns: the balance with the debt taken off and the Butik spending added
  * back. This is what the Topplista ranks on, so a stack of Snabblån cannot buy a place at the top,
- * and a round of beers from the svarta marknaden cannot cost you one. Spending has its own list
- * ("Dagens största slösare"), which ranks on `spent`.
+ * and a round of beers from the svarta marknaden cannot cost you one: the money leaves the balance
+ * but never the rank.
  */
 export function netWorth(player: { balance: number; debt: number; spent: number }): number {
   return player.balance - player.debt + player.spent

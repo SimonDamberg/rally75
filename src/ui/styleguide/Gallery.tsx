@@ -177,6 +177,8 @@ export default function Gallery() {
 
         <Section title="Statusbanner">
           <StatusBanner status={STATUSES[status]} raceNo={3} size={size} />
+          {/* Without raceNo: the guest phone, where the field needs the room. */}
+          <StatusBanner status={STATUSES[status]} size={size} />
           <div className="flex flex-wrap gap-3">
             <Button variant="ghost" onClick={() => setStatus((s) => (s + 1) % STATUSES.length)}>
               Nästa status
@@ -214,6 +216,9 @@ export default function Gallery() {
                 key={h.n}
                 horse={h}
                 odds={odds[i]}
+                pool={pools[i]}
+                /* Every other horse is "backed", to show the marking the guest sees after a bet. */
+                mine={i % 2 === 1 ? 150 : undefined}
                 variant="pick"
                 size={size}
                 selected={selected === h.n}

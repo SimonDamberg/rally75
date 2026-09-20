@@ -6,7 +6,6 @@
 export const CLIENT_TABS = {
   home: 'Rally75',
   plinko: 'Plånko',
-  bets: 'Mina spel',
   bank: 'Bank',
   butik: 'Butik',
   board: 'Topplista',
@@ -186,13 +185,8 @@ export const KUPONG = {
   smallPrint: 'En kupong gäller en gång. Den som skannar först får pengarna.',
 } as const
 
+/** One bet line, wherever it is shown. */
 export const MY_BETS = {
-  title: 'Mina spel',
-  staked: 'Insatt',
-  paid: 'Utbetalt',
-  net: 'Netto',
-  race: (n: number) => `Lopp ${n}`,
-  unknownRace: 'Lopp',
   horse: (n: number) => `Nummer ${n}`,
   odds: (odds: string) => `Odds ${odds}`,
 } as const
@@ -226,12 +220,11 @@ export const BUTIK = {
   mineTitle: 'Mina köp',
   mineEmpty: 'Du har inte unnat dig något än. Det märks.',
   mineTotal: 'Spenderat idag',
-  smallPrint: 'Köp påverkar inte Toppen eller förlorarlistan. De syns bara på slösarlistan.',
+  smallPrint: 'Köp påverkar inte Toppen eller förlorarlistan. Pengarna är borta, platsen är kvar.',
 } as const
 
 export const PLINKO = {
   title: 'Plånko',
-  tagline: 'Töm plånboken, en kula i taget.',
   partner: 'Ett Mr Green-original',
   stake: 'Insats per kula',
   drop: (rm: string) => `Släpp kulan (${rm})`,
@@ -253,10 +246,6 @@ export const BOARD = {
   top: 'Toppen',
   losers: 'Största förlorare',
   losersTitle: 'Dagens största förlorare',
-  spenders: 'Slösare',
-  spendersTitle: 'Dagens största slösare',
-  spendersEmpty: 'Ingen har handlat något än. Butiken väntar.',
-  spent: 'Spenderat',
   empty: 'Inga spelare än. Bli först, det ger ingenting extra.',
   you: 'Du',
   debt: (rm: string) => `Skuld ${rm}`,

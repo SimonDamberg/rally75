@@ -23,7 +23,7 @@ export function PlinkoBoard({ falling, onLand, flash }: PlinkoBoardProps) {
   return (
     <svg
       viewBox={`${-HALF_W} ${DROP_Y - 12} ${HALF_W * 2} ${SLOT_Y - DROP_Y + 26}`}
-      className="w-full touch-manipulation select-none"
+      className="mx-auto block w-full max-w-[17rem] touch-manipulation select-none"
       role="img"
       aria-label="Plånko"
     >

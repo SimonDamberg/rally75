@@ -56,6 +56,8 @@ export const UI_LABELS = {
   live: "Live",
   odds: "Odds",
   pool: "Insatt",
+  /** On a horse row: what this guest already has riding on it. */
+  yours: "Du",
   kusk: "Kusk",
   close: "Stäng",
   loading: "Laddar",

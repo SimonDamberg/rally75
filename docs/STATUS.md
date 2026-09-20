@@ -1290,3 +1290,34 @@ and nothing else. `/gm` and `/gm/kuponger` stay pure Rally75.
 
 **Manual step for Simon:** `npx supabase db push` before the party, otherwise the hosted database
 still starts races without the countdown (the screens handle that fine, they just cut straight in).
+
+## Playtestfixar: kortare gästskärm (Simons spelomgång, 2026-09-20)
+
+Sju noteringar från Simons playtest, alla på gästtelefonen. Inget rör GM-iPaden eller GM-telefonen;
+de två delade komponenterna ändrades med nya frivilliga props, så alla andra anropsställen står kvar
+orörda.
+
+- **Lagda spel syns i fältet.** `HorseRow` har en ny `mine?: number` (RM den här gästen har på
+  hästen): raden får plate-ring och en plate-rad "Du 150 RM" under poolen. `Home.tsx` bygger en
+  `Map` från spelarens spel på loppet (summerad, samma häst kan spelas två gånger) och skickar den
+  både till spellistan och till `FieldSummary`, så markeringen står kvar genom spelstopp och
+  resultat. "Dina spel på loppet" ligger kvar där den låg.
+- **Mindre statusrad.** `StatusBanner.raceNo` är nu frivillig; utan den ritas inte den streckade
+  "LOPP N"-biljetten. Klienten skickar ingen, GM-ytorna skickar som förut. På `md` är titeln
+  `text-2xl` (var `text-3xl`) med tightare padding; alla `tv`-klasser är orörda.
+- **"Mina spel" borttagen.** Fliken, `MyBets.tsx`, `CLIENT_TABS.bets`, `EMPTY_BETS`, `useRaces`
+  och `groupByRace` (med sitt testblock) är borta. `totals` är kvar: `revealFor` använder den.
+  `MY_BETS` är nedbantad till de två nycklar `BetLine` fortfarande läser. Fem flikar i raden nu.
+- **"Slösare" borttagen från Topplistan.** Vyn, `bySpending`, `Leaderboard.spenders` och
+  `BOARD.spenders*` är borta, och `BUTIK.smallPrint` lovar inte längre en lista som inte finns.
+  `players.spent` och `netWorth` är oförändrade: köp är fortfarande rangneutrala, och testen som
+  säger det (`buy.test.ts`, `economy.test.ts`, smoke) rörde vi inte.
+- **Plånko får plats.** Taglinen är borta, brädet är `max-w-[17rem]` centrerat (viewBox och
+  `drop.ts`-geometrin orörda, så falländringen och `drop.test.ts` är oförändrade) och panelens
+  `gap-3` är `gap-2`.
+- **Hästens story borta i klienten.** `HorseRow` har `story?: boolean` (default på). Paddocken i
+  `Home.tsx` skickar `story={false}` och behåller kuskens replik och formraden; GM-ytorna och
+  styleguiden skickar inget och behåller storyn.
+
+`npm run build`, `npm test` (230 tester) och `npm run lint` gröna. Styleguiden visar båda de nya
+varianterna (statusrad utan biljett, spellista med markerade spel).

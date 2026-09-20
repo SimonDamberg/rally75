@@ -37,7 +37,6 @@ export const KYC_TEXT =
 export const KYC_PLACEHOLDER = "Namn, smeknamn eller lögn";
 export const KYC_CONFIRM = "Jag intygar att detta stämmer";
 
-export const EMPTY_BETS = "Inga spel lagda än. Ingen tror på något.";
 export const EMPTY_PAYOUTS =
   "Ingen spelade på det här loppet. Huset vinner ändå.";
 export const BETTING_SUBTITLE = "Odds rör sig med pengarna. Sista chansen.";

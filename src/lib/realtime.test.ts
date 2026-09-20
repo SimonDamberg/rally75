@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { nightNet, WELCOME_BONUS } from '../shared/game/economy'
-import { applyChange, byLosses, byNetWorth, bySpending, freshBets } from './realtime'
+import { applyChange, byLosses, byNetWorth, freshBets } from './realtime'
 import { toBet, type BetRow, type PlayerRow } from './types'
 
 const bet = (id: string, race_id: string, odds: unknown = '2.50') => ({
@@ -86,16 +86,6 @@ describe('leaderboard sorting', () => {
     const spender = p('Slösare', 1000, 0, 0, 2000)
     expect(byNetWorth([saver, spender]).map((x) => x.name)).toEqual(['Slösare', 'Snål'])
     expect(nightNet(spender)).toBe(nightNet(saver))
-  })
-
-  it('ranks slösare by spending and hides anyone who bought nothing', () => {
-    const players = [p('Anna', 100, 0, 0, 900), p('Bo', 5000), p('Cia', 0, 0, 0, 4000)]
-    expect(bySpending(players).map((x) => x.name)).toEqual(['Cia', 'Anna'])
-  })
-
-  it('breaks spending ties by name', () => {
-    const players = [p('Bosse', 0, 0, 0, 500), p('Anna', 0, 0, 0, 500)]
-    expect(bySpending(players).map((x) => x.name)).toEqual(['Anna', 'Bosse'])
   })
 })
 
