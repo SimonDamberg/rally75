@@ -1369,3 +1369,46 @@ eller `RaceTrack.tsx` ändrades: `RaceGag` har samma form och tidslinjen räknas
 
 **För Simon:** inget manuellt steg. Kör om ett par lopp i labbet och säg till om upploppsgagen ska
 kosta mer eller mindre (`UPPLOPP_DROP` i `sim.ts`).
+
+## Fem nya gag: Frossa, Vaniljsås, Sänka skepp, Olvisvep, Goblin mode (2026-09-20)
+
+Simons beställning. Tre nya missöden och två nya boostar, valda av honom:
+
+- **Frossa** (lätt): kusken skakar av frossa, hästen darrar på stället och ber om en filt.
+- **Vaniljsås** (hård): kusken dricker vaniljsås ur paketet mitt i loppet och ångrar sig direkt.
+- **Sänka skepp** (lätt): kusken ropar "E5?" och ingen svarar. Ensam gag med flit, ensamheten är
+  poängen, så inget par som i kommittén.
+- **Olvisvep** (boost): kusken sveper en Olvi och hittar en extra växel.
+- **Goblin mode** (boost): hästen tappar alla manér och drar ifrån.
+
+**Gjort**
+
+- `GagKind` har fem nya medlemmar, vilket är det som får TypeScript att peka ut varje ställe som
+  behöver en rad: `GAG_LINES`, `GAG_WIN` och `GM_RACE.gag`.
+- Nivåerna i `sim.ts`: `LIGHT_GAGS` får frossa och sänka skepp (de kan alltså träffa vinnaren och
+  har egna "vann ändå"-rader), `HARD_GAGS` får vaniljsås (bara en häst som ändå skulle förlora),
+  `BOOSTS` får olvisvep och goblin (bara en häst som slutar topp två). Katalogen är nu 8 lätta
+  (galopp inräknad), 6 hårda, 4 boostar och 1 par, 19 sorter totalt.
+- `GAG_DRAG`: frossa 0,85, sänka skepp 0,95, vaniljsås 1,7, olvisvep -0,65, goblin -0,78. Varje drag
+  täcker med marginal vad dess nivå behåller över sju tick (1,2 lätt, 3,6 hård, -2,8 boost), och
+  boostarnas drag ligger i samma band som turbo och husvagn så att svallet är över före upploppet.
+- Sprites i `GagSprite.tsx`: 🥶 plus stigande ❄️, 🥛 plus 🤢, 🚢 plus en "E5?"-bricka (samma form som
+  404-brickan), 🍺 med fartstreck och 👺 med fartstreck. `GAG_MOTION` skakar frossa och goblin och
+  vaggar vaniljsås och olvisvep. Vaniljsås och sänka skepp står stilla, så de river ingen damm.
+- De tre missödena är automatiskt kandidater för upploppsgagen (den drar ur `COMIC_GAGS` minus
+  kommitté, serverkrasch och boostar).
+- Nytt test: per gagsort ska marken som tappas i snitt vara positiv för varje missöde och negativ för
+  varje boost. Det är invarianten ett för litet drag skulle bryta. De gamla testerna täcker resten av
+  sig själva: nivåuttömlighet, att alla sorter dyker upp på 3000 seeds och att hårda gag hamnar bak
+  och boostar fram.
+
+**Siffror** (3000 seeds): varje ny sort dyker upp i 10 till 13 procent av loppen, mitt i det band de
+gamla ligger i. Loppens statistik är oförändrad, alla excitement- och husfördelstester är gröna.
+
+`npm run build`, `npm test` (233 tester) och `npm run lint` gröna. Inget i databasen, RPC:erna eller
+`RaceGag`-formen ändrades.
+
+**För Simon:** inget manuellt steg. Kör labbet på `/styleguide/race` och klicka de fem nya
+gagknapparna för att se dem. En sak att titta på: med fyra boostar får 43 procent av loppen numera en
+boost, och i 24 procent sitter den på vinnaren. Säg till om det ska vara färre, då flyttar vi en av
+dem till de lätta gagen.

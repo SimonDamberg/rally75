@@ -97,6 +97,45 @@ export function GagProps({ kind, toward }: { kind: GagKind; toward?: 'up' | 'dow
           </span>
         </>
       )
+    case 'frossa':
+      return (
+        <>
+          <span className={`${SPRITE} top-[0.3em] -right-[0.45em] text-[0.45em]`}>🥶</span>
+          <Rising glyph="❄️" />
+        </>
+      )
+    case 'vaniljsas':
+      return (
+        <>
+          <span className={`${SPRITE} top-[0.3em] -right-[0.5em] animate-rock text-[0.48em]`}>🥛</span>
+          <span className={`${SPRITE} -top-[0.4em] left-1/2 -translate-x-1/2 text-[0.45em]`}>🤢</span>
+        </>
+      )
+    case 'sankaskepp':
+      return (
+        <>
+          <span className={`${SPRITE} top-[0.25em] -right-[0.45em] animate-rock text-[0.45em]`}>🚢</span>
+          <span
+            className={`${SPRITE} bottom-[0.05em] -left-[0.5em] rounded-[0.1em] bg-black px-[0.12em] font-mono text-[0.26em] font-black text-ink-dim`}
+          >
+            {GM_RACE.miss}
+          </span>
+        </>
+      )
+    case 'olvisvep':
+      return (
+        <>
+          <Streaks />
+          <span className={`${SPRITE} top-[0.25em] -left-[0.55em] text-[0.5em]`}>🍺</span>
+        </>
+      )
+    case 'goblin':
+      return (
+        <>
+          <Streaks />
+          <span className={`${SPRITE} top-[0.2em] -right-[0.45em] text-[0.48em]`}>👺</span>
+        </>
+      )
   }
 }
 

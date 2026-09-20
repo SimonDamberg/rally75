@@ -101,7 +101,12 @@ export type GagKind =
   | "fatbyte"
   | "eckero"
   | "rallyhafte"
-  | "hjalprebus";
+  | "hjalprebus"
+  | "frossa"
+  | "vaniljsas"
+  | "sankaskepp"
+  | "olvisvep"
+  | "goblin";
 
 /** The race's storyline, drawn after the result. */
 export type RaceScript = "wire" | "comeback" | "collapse" | "duel" | "pack";

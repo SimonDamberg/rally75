@@ -130,6 +130,26 @@ export const GAG_LINES: Record<Exclude<GagKind, 'kommitte'>, readonly Line[]> = 
     (h) => `${h.jockey} öppnar hjälprebusen! Det kostar strafftid, men nu vet vi vart banan går.`,
     (h) => `${h.jockey} ger upp och river upp kuvertet med hjälprebusen. Pinsamt.`,
   ],
+  frossa: [
+    (h) => `${h.jockey} har fått frossa och skakar så att hela sulkyn skallrar!`,
+    (h) => `Frossa! ${h.name} darrar på stället och ber om en filt.`,
+  ],
+  vaniljsas: [
+    (h) => `${h.jockey} dricker vaniljsås ur paketet mitt i loppet! Varför?`,
+    (h) => `Vaniljsås i full fart! ${h.jockey} ångrar sig direkt och ${h.name} stannar upp.`,
+  ],
+  sankaskepp: [
+    (h) => `${h.jockey} har tagit fram sänka skepp och ropar E5. Ingen svarar.`,
+    (h) => `${h.jockey} vill spela sänka skepp. Ingen i fältet vill vara med.`,
+  ],
+  olvisvep: [
+    (h) => `Olvisvep! ${h.jockey} sveper en Olvi och hittar en extra växel!`,
+    (h) => `${h.jockey} häller i sig en Olvi i full fart. ${h.name} far iväg som en raket!`,
+  ],
+  goblin: [
+    (h) => `${h.name} går in i goblin mode! Inga manér kvar i den sulkyn!`,
+    (h) => `GOBLIN MODE! ${h.jockey} morrar och ${h.name} drar ifrån.`,
+  ],
 }
 
 /** Kommitté-incest: two kuskar in adjacent lanes, so it takes a pair. */
@@ -151,6 +171,10 @@ export const GAG_WIN: Partial<Record<GagKind, (h: NamedRunner) => string>> = {
   snabblan: (h) => `${h.jockey} vinner och kan betala tillbaka Snabblånet. Nästan.`,
   rallyhafte: (h) => `${h.jockey} läste aldrig rallyhäftet och vann ändå!`,
   hjalprebus: (h) => `${h.jockey} behövde en hjälprebus och vann ändå!`,
+  frossa: (h) => `${h.name} skakade av frossa hela vägen hem och vann ändå!`,
+  sankaskepp: (h) => `${h.jockey} fick aldrig någon motspelare och vann i stället.`,
+  olvisvep: (h) => `${h.name} vinner på en Olvi. Dopingprovet skummar.`,
+  goblin: (h) => `${h.name} vinner i goblin mode! Ingen vågade stå i vägen.`,
 }
 
 /** Finish line when the upplopp gag stopped the horse in front and handed the race over. */

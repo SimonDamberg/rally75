@@ -225,6 +225,32 @@ describe('simulateRace', () => {
     expect(mean(boosted)).toBeGreaterThan(2)
   })
 
+  it('makes every mishap cost ground and every boost gain it', () => {
+    const lost = new Map<string, number[]>()
+    for (let seed = 1; seed <= 3000; seed++) {
+      const { timeline: t } = race(seed)
+      const gapAt = (tick: number, n: number) => {
+        const rs = t.frames[tick].runners
+        return Math.max(...rs.map((x) => x.pos)) - rs.find((x) => x.n === n)!.pos
+      }
+      for (const g of t.gags) {
+        // The upplopp gag has its own drag, sized from the ground it is told to take.
+        if (g.tick === STRETCH_GAG_TICK) continue
+        const at = gapAt(Math.min(TICKS, g.tick + g.ticks + 15), g.n) - gapAt(g.tick, g.n)
+        lost.set(g.kind, [...(lost.get(g.kind) ?? []), at])
+      }
+    }
+    for (const kind of ['galopp', ...COMIC_GAGS] as const) {
+      const all = lost.get(kind) ?? []
+      expect(all.length).toBeGreaterThan(50)
+      const mean = all.reduce((x, y) => x + y, 0) / all.length
+      // The storyline keeps moving the field, so this is the sign of an average, not a promise per
+      // gag: a drag too small to cover what its tier keeps would flip it.
+      if (BOOSTS.includes(kind)) expect(mean).toBeLessThan(-1)
+      else expect(mean).toBeGreaterThan(0.5)
+    }
+  })
+
   it('sorts every gag kind into exactly one tier', () => {
     const tiers = [...LIGHT_GAGS, ...HARD_GAGS, ...BOOSTS, 'kommitte']
     expect(new Set(tiers).size).toBe(tiers.length)

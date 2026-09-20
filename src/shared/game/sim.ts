@@ -126,6 +126,11 @@ export const COMIC_GAGS: readonly GagKind[] = [
   "eckero",
   "rallyhafte",
   "hjalprebus",
+  "frossa",
+  "vaniljsas",
+  "sankaskepp",
+  "olvisvep",
+  "goblin",
 ];
 /** Gags a horse can run off: they cost ground, but not the race. */
 export const LIGHT_GAGS: readonly GagKind[] = [
@@ -135,6 +140,8 @@ export const LIGHT_GAGS: readonly GagKind[] = [
   "snabblan",
   "rallyhafte",
   "hjalprebus",
+  "frossa",
+  "sankaskepp",
 ];
 /** Gags that end a horse's race, so they only ever go to a horse that was losing anyway. */
 export const HARD_GAGS: readonly GagKind[] = [
@@ -143,9 +150,15 @@ export const HARD_GAGS: readonly GagKind[] = [
   "serverkrasch",
   "fatbyte",
   "eckero",
+  "vaniljsas",
 ];
 /** Gags that speed a horse up. They keep what they gain, so they go to a horse that finishes well. */
-export const BOOSTS: readonly GagKind[] = ["turbo", "husvagn"];
+export const BOOSTS: readonly GagKind[] = [
+  "turbo",
+  "husvagn",
+  "olvisvep",
+  "goblin",
+];
 /**
  * Every race gets a comic gag; these are the chances of a second and a third on top. Galopp comes
  * on top of that, from temper, within MAX_GAG_SLOTS moments in all.
@@ -176,6 +189,11 @@ const GAG_DRAG: Record<GagKind, number> = {
   eckero: 2.2,
   rallyhafte: 0.75,
   hjalprebus: 1.0,
+  frossa: 0.85,
+  vaniljsas: 1.7,
+  sankaskepp: 0.95,
+  olvisvep: -0.65,
+  goblin: -0.78,
 };
 /** Every gag lasts 7 ticks (2.1 s), long enough for the room to read the sticker and the line. */
 const GAG_TICKS = 7;

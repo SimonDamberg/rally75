@@ -53,6 +53,8 @@ export const GM_RACE = {
   notFound: "404",
   /** The penalty chip on a kusk who opened the hjälprebus. */
   penalty: "+5 min",
+  /** The shot nobody answers, on a kusk playing sänka skepp alone. */
+  miss: "E5?",
   gag: {
     galopp: "Galopp!",
     backwards: "Fel håll!",
@@ -68,6 +70,11 @@ export const GM_RACE = {
     eckero: "Eckerölinjen!",
     rallyhafte: "Glömde rallyhäftet!",
     hjalprebus: "Hjälprebus!",
+    frossa: "Frossa!",
+    vaniljsas: "Vaniljsås!",
+    sankaskepp: "Sänka skepp!",
+    olvisvep: "Olvisvep!",
+    goblin: "Goblin mode!",
   },
   pot: "Total pott",
   bets: (n: number) => (n === 1 ? "1 spel" : `${n} spel`),

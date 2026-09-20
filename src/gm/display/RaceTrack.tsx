@@ -30,9 +30,22 @@ const GAG_MOTION: Partial<Record<GagKind, string>> = {
   serverkrasch: 'animate-glitch',
   eckero: 'opacity-40 grayscale',
   rallyhafte: 'animate-rock',
+  frossa: 'animate-shake',
+  vaniljsas: 'animate-rock',
+  olvisvep: 'animate-rock',
+  goblin: 'animate-shake',
 }
 /** Gags where the horse is not trotting, so it kicks up no dust. */
-const STANDING: readonly GagKind[] = ['backwards', 'nap', 'serverkrasch', 'fatbyte', 'eckero', 'hjalprebus']
+const STANDING: readonly GagKind[] = [
+  'backwards',
+  'nap',
+  'serverkrasch',
+  'fatbyte',
+  'eckero',
+  'hjalprebus',
+  'vaniljsas',
+  'sankaskepp',
+]
 /** Kommitte: the two badges lean into each other across the lane line. */
 const LEAN = { up: '-translate-y-[0.22em] rotate-[-10deg]', down: 'translate-y-[0.22em] rotate-[10deg]' } as const
 
