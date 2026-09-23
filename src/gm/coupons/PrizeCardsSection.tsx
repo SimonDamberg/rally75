@@ -1,5 +1,8 @@
 // The Vinstkort half of /gm/kuponger: mint a reusable card, reprint it, pause it, give it a new code
 // when a photo of it gets around, and the night's payouts with Ångra. Kuponger above it are untouched.
+//
+// The print sheet is handed up to CouponsPage: this section lives inside the page's print:hidden
+// wrapper, so a sheet rendered here would print as a blank page.
 import { useState } from 'react'
 import { usePrizeCards, usePrizeClaims } from '../../lib/hooks'
 import type { PlayerRow, PrizeCardRow, PrizeClaimRow } from '../../lib/types'
@@ -10,19 +13,25 @@ import { badgedLabel, fmtRm } from '../../shared/game/format'
 import { Button, cx, Modal, toast } from '../../ui'
 import { useGmAction } from '../gmAuth'
 import { Field, TextInput } from '../control/form'
-import { PrizeCardSheet, type PrizeSheet } from './PrizeCardSheet'
+import type { PrizeSheet } from './PrizeCardSheet'
 import { cardTotals, repeatCounts } from './prizeCards'
 
 type Confirm = { kind: 'rotate' | 'delete'; card: PrizeCardRow }
 
-export function PrizeCardsSection({ players }: { players: ReadonlyMap<string, PlayerRow> }) {
+export function PrizeCardsSection({
+  players,
+  onPrint,
+}: {
+  players: ReadonlyMap<string, PlayerRow>
+  /** Opens the print sheet, which CouponsPage renders outside its print:hidden wrapper. */
+  onPrint: (sheet: PrizeSheet) => void
+}) {
   const { data: cards } = usePrizeCards()
   const { data: claims } = usePrizeClaims()
   const { run, busy } = useGmAction()
 
   const [tier, setTier] = useState<number>(PRIZE_CARD_TIERS[PRIZE_CARD_TIERS.length - 1].tier)
   const [label, setLabel] = useState('')
-  const [sheet, setSheet] = useState<PrizeSheet | null>(null)
   const [confirm, setConfirm] = useState<Confirm | null>(null)
 
   const totals = claims ? cardTotals(claims) : new Map()
@@ -33,14 +42,14 @@ export function PrizeCardsSection({ players }: { players: ReadonlyMap<string, Pl
     const made = await run((gm, pw) => gm.createPrizeCard(pw, tier, label.trim()))
     if (!made) return
     toast({ text: GM_PRIZE_CARDS.created })
-    setSheet({ code: made.code, tier, amount: amountOf(tier), label: label.trim() })
+    onPrint({ code: made.code, tier, amount: amountOf(tier), label: label.trim() })
     setLabel('')
   }
 
   const reprint = async (card: PrizeCardRow) => {
     const got = await run((gm, pw) => gm.prizeCardCode(pw, card.id))
     if (!got) return
-    setSheet({ code: got.code, tier: card.tier, amount: card.amount, label: card.label })
+    onPrint({ code: got.code, tier: card.tier, amount: card.amount, label: card.label })
   }
 
   const toggle = async (card: PrizeCardRow) => {
@@ -56,7 +65,7 @@ export function PrizeCardsSection({ players }: { players: ReadonlyMap<string, Pl
       const got = await run((gm, pw) => gm.rotatePrizeCard(pw, card.id))
       if (!got) return
       toast({ text: GM_PRIZE_CARDS.rotated })
-      setSheet({ code: got.code, tier: card.tier, amount: card.amount, label: card.label })
+      onPrint({ code: got.code, tier: card.tier, amount: card.amount, label: card.label })
     } else {
       if (!(await run(async (gm, pw) => (await gm.deletePrizeCard(pw, card.id), true)))) return
       toast({ text: GM_PRIZE_CARDS.deleted })
@@ -189,8 +198,6 @@ export function PrizeCardsSection({ players }: { players: ReadonlyMap<string, Pl
           </ul>
         </div>
       </section>
-
-      {sheet && <PrizeCardSheet sheet={sheet} onClose={() => setSheet(null)} />}
 
       <Modal
         open={!!confirm}

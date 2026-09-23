@@ -15,6 +15,7 @@ import { useGmAction } from '../gmAuth'
 import { parseCount } from '../parse'
 import { Field, TextInput } from '../control/form'
 import { batchSummaries, claims, type BatchSummary } from './batches'
+import { PrizeCardSheet, type PrizeSheet } from './PrizeCardSheet'
 import { PrizeCardsSection } from './PrizeCardsSection'
 import { TicketSheet, type SheetCoupon } from './TicketSheet'
 
@@ -43,6 +44,7 @@ export function CouponsPage() {
   const [base, setBase] = useState(() => window.location.origin)
   const [sheet, setSheet] = useState<Sheet | null>(null)
   const [deleting, setDeleting] = useState<BatchSummary | null>(null)
+  const [prizeSheet, setPrizeSheet] = useState<PrizeSheet | null>(null)
 
   const parsedCount = parseCount(count)
   const amount = COUPON_TIERS.find((t) => t.tier === tier)?.amount ?? COUPON_TIERS[0].amount
@@ -185,8 +187,10 @@ export function CouponsPage() {
           </ul>
         </section>
 
-        <PrizeCardsSection players={players} />
+        <PrizeCardsSection players={players} onPrint={setPrizeSheet} />
       </div>
+
+      {prizeSheet && <PrizeCardSheet sheet={prizeSheet} onClose={() => setPrizeSheet(null)} />}
 
       {sheet && (
         <TicketSheet
