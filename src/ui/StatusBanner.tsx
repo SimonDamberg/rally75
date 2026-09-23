@@ -49,7 +49,8 @@ export function StatusBanner({ status, raceNo, detail, size = 'md', className }:
               className={cx('shrink-0 animate-pulse-live rounded-full bg-white', tv ? 'size-6' : 'size-3')}
             />
           )}
-          <span className="truncate">{title}</span>
+          {/* Not leading-none: truncate clips overflow, and that took the dots off the Ö in "Spelet öppet". */}
+          <span className="truncate leading-[1.15]">{title}</span>
         </div>
         <div className={cx('font-semibold opacity-85', tv ? 'text-2xl' : 'text-sm')}>{detail ?? subtitle}</div>
       </div>

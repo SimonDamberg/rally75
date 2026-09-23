@@ -110,7 +110,7 @@ function RaceView({ race, onConfirmChange, onSlipChange }: { race: RaceRow } & H
                 odds={odds[i]}
                 pool={pools[i]}
                 mine={stakes.get(h.n)}
-                variant="pick"
+                story={false}
                 selected={selected === h.n}
                 onSelect={(n) => setSelected(selected === n ? null : n)}
               />
@@ -160,7 +160,7 @@ function FieldSummary({ race, odds, stakes }: { race: RaceRow; odds: number[]; s
     <div className="flex flex-col gap-2">
       <h2 className="px-1 text-xs font-bold tracking-[0.14em] text-ink-dim uppercase">{HOME.finalOdds}</h2>
       {race.field.map((h, i) => (
-        <HorseRow key={h.n} horse={h} odds={odds[i]} mine={stakes.get(h.n)} variant="pick" />
+        <HorseRow key={h.n} horse={h} odds={odds[i]} mine={stakes.get(h.n)} story={false} />
       ))}
     </div>
   )
@@ -169,7 +169,8 @@ function FieldSummary({ race, odds, stakes }: { race: RaceRow; odds: number[]; s
 function ResultCard({ race }: { race: RaceRow }) {
   const result = race.result
   const voided = race.status === 'void'
-  const podium = !voided && result ? result.order.slice(0, 3) : []
+  // The whole field, last place included: with four horses, being fourth is part of the joke.
+  const podium = !voided && result ? result.order : []
   return (
     <section className="flex flex-col gap-3 rounded-2xl bg-tote/40 p-3 ring-1 ring-white/10 ring-inset">
       <h2 className="font-display text-3xl leading-none font-black text-plate uppercase">{HOME.resultTitle}</h2>
@@ -189,7 +190,7 @@ function ResultCard({ race }: { race: RaceRow }) {
                 <span className="w-7 font-display text-2xl font-black text-ink-dim">{i + 1}</span>
                 <HorseBadge horse={h} size={i === 0 ? 'md' : 'sm'} lead={i === 0} />
                 <span className="flex min-w-0 flex-col leading-tight">
-                  <span className={cx('truncate font-extrabold [font-stretch:82%]', i === 0 ? 'text-lg' : 'text-base')}>{h.name}</span>
+                  <span className={cx('font-extrabold text-balance [font-stretch:82%]', i === 0 ? 'text-lg' : 'text-base')}>{h.name}</span>
                   <span className="truncate text-xs text-plate">
                     {UI_LABELS.kusk}: {h.jockey}
                   </span>

@@ -1512,3 +1512,12 @@ and the RM lands. The card is never used up. A guest can claim at most once ever
   as tappable, and it still never blinks (that stays Snabblån's). To keep it off the logo at 360 px,
   the icon hides below 380 px and a six-digit balance drops from `text-3xl` to `text-2xl`. That also
   fixes the old overlap noted above.
+
+### Guest race panel (2026-09-24, Simon's calls)
+
+- Betting and after spelstopp now use the same field card as the paddock (`HorseRow`, `story={false}`):
+  the kusk joke and the form line stay on every horse, and the betting card is still the toggle that
+  opens the slip (checked: yellow ring, sticky slip, no overflow at 390).
+- The result card on the phone lists the whole field, all four places, and wraps long names.
+- `StatusBanner`'s title is `leading-[1.15]` instead of `leading-none`: `truncate` clipped the dots
+  off the Ö in "Spelet öppet". It is shared with the GM surfaces, whose banners get a hair taller.

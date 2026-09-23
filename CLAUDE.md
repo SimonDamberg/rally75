@@ -194,7 +194,8 @@ Two devices, one password gate, one lazy-loaded chunk (`src/gm/GmApp.tsx` routes
 - The guest sees one race at a time: there is no "Mina spel" tab and no bet history. Bets on the
   open race are marked on the horse itself (`HorseRow mine={rm}`) and listed under the field;
   Bank holds saldo, skuld and netto idag. The phone's race strip passes no `raceNo` and the
-  paddock card passes `story={false}`, so both stay short; the GM surfaces pass neither and keep
+  field cards pass `story={false}` in paddock, betting and after spelstopp (the same card with the
+  kusk joke and the form line in every status), so both stay short; the GM surfaces pass neither and keep
   the stub and the backstory.
 - Guest copy lives in `src/shared/content/client.ts`.
 
