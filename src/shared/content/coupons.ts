@@ -28,6 +28,6 @@ export const PRIZE_CARD_TIER_COPY = {
 /** Everything printed on a vinstkort. Big and few words: it is flashed across a table, then pocketed. */
 export const PRIZE_CARD_PRINT = {
   brand: 'Mr Green Nätcasino',
-  scan: 'Öppna Mr Green, gå till Bank och tryck Skanna QR-kod',
+  scan: 'Öppna Mr Green och tryck Skanna',
   legal: 'Ingen kontant utbetalning. RallyMynt saknar värde utanför festen.',
 } as const

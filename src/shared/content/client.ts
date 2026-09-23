@@ -168,7 +168,8 @@ export const BANK = {
   couponText: 'Vann du något i baren? Skriv av koden från kupongen, eller skanna QR-koden.',
   couponPlaceholder: 'ABCD-1234',
   couponSubmit: 'Lös in',
-  scan: 'Skanna QR-kod',
+  // Matches the printed vinstkort ("tryck Skanna"), so cards already in pockets stay right.
+  scan: 'Skanna',
 } as const
 
 /** The printed kupong: the reveal pop-up and the manual entry in Bank. */

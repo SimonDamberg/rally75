@@ -1455,7 +1455,7 @@ and the RM lands. The card is never used up. A guest can claim at most once ever
   cash a kupong without the camera app. That is the only touch on the kupong flow.
 - Guest: `Scanner.tsx` (qr-scanner, **lazy chunk**, 16 kB plus a 44 kB worker; Swedish states for
   starting, blocked camera and no camera), `usePrizeCard`, `PrizeReveal` (one beat, `CoinBurst` for
-  a guldkort). Entry point: the **Skanna QR-kod** button in Bank's kupong section (a header pill
+  a guldkort). Entry point: the **Skanna** button in Bank's kupong section, named to match the printed card (a header pill
   was tried and removed at Simon's request). The scanner and the reveal both join the shell's `blocked`.
 - GM: a **Vinstkort** section at the bottom of `/gm/kuponger` (create, list with payout totals,
   Pausa/Aktivera, Skriv ut, Ny kod, Radera, "Vinstkort idag" feed with Ångra and a repeat tag).
