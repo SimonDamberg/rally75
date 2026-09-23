@@ -1,5 +1,4 @@
-// The in-app QR scanner. Opened from the header (one tap from any tab, standing at the dart board)
-// and from Bank. It reads vinstkort and, for a guest already in the app, printed kuponger too.
+// The in-app QR scanner, opened from Bank. It reads vinstkort and, for a guest already in the app, printed kuponger too.
 //
 // The decoder is qr-scanner, loaded on first open so it stays out of the main chunk. It uses the
 // native BarcodeDetector where there is one and its own worker elsewhere (iOS Safari has none).

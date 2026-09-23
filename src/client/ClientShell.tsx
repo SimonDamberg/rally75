@@ -92,13 +92,7 @@ export function ClientShell({ identity, player, forget, justJoined, cookiesAccep
     <GuestContext value={guest}>
       <div className="flex h-dvh flex-col">
         <BonusBar />
-        <Header
-          player={player}
-          heldBalance={plinkoHold}
-          broke={broke}
-          onLoan={() => setLoanRequested(true)}
-          onScan={() => setScanning(true)}
-        />
+        <Header player={player} heldBalance={plinkoHold} broke={broke} onLoan={() => setLoanRequested(true)} />
         <SocialStrip />
         <ConnectionBadge status={connection} variant="banner" />
         <main className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain">

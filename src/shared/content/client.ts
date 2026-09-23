@@ -46,8 +46,6 @@ export const HEADER = {
   balance: 'Saldo',
   debt: 'Skuld',
   loan: 'Snabblån',
-  scan: 'Skanna vinst',
-  scanShort: 'Skanna',
 } as const
 
 export const HOME = {

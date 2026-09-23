@@ -1455,8 +1455,8 @@ and the RM lands. The card is never used up. A guest can claim at most once ever
   cash a kupong without the camera app. That is the only touch on the kupong flow.
 - Guest: `Scanner.tsx` (qr-scanner, **lazy chunk**, 16 kB plus a 44 kB worker; Swedish states for
   starting, blocked camera and no camera), `usePrizeCard`, `PrizeReveal` (one beat, `CoinBurst` for
-  a guldkort). Entry points: a **Skanna** pill in the header, stacked above Stödlinje/Snabblån, and a
-  button in Bank's kupong section. The scanner and the reveal both join the shell's `blocked`.
+  a guldkort). Entry point: the **Skanna QR-kod** button in Bank's kupong section (a header pill
+  was tried and removed at Simon's request). The scanner and the reveal both join the shell's `blocked`.
 - GM: a **Vinstkort** section at the bottom of `/gm/kuponger` (create, list with payout totals,
   Pausa/Aktivera, Skriv ut, Ny kod, Radera, "Vinstkort idag" feed with Ångra and a repeat tag).
   `PrizeCardSheet` prints one big card per A4 (70 mm QR, frog corner mark as on the kupong).
@@ -1480,9 +1480,8 @@ and the RM lands. The card is never used up. A guest can claim at most once ever
 **Deviations / notes**
 
 - Vinstkort are a new mechanic, with no row in the Decisions table. Not rank neutral, like kuponger.
-- The header was already tight: at 360 px with a six-digit balance the Mr Green lockup runs under
-  the Stödlinje chip. That was true before this change (the Skanna pill is stacked, so it adds no
-  width) and is still open.
+- The header is tight: at 360 px with a six-digit balance the Mr Green lockup runs under the
+  Stödlinje chip. That predates this change and is still open.
 - `eslint.config.js` now ignores `.claude/`: the leftover worktree in there made `npm run lint`
   fail with a tsconfigRootDir error.
 - New dependency: `qr-scanner` (MIT, uses the native `BarcodeDetector` when present).

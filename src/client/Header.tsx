@@ -12,15 +12,12 @@ export function Header({
   heldBalance,
   broke,
   onLoan,
-  onScan,
 }: {
   player: PlayerRow | undefined
   /** Shown instead of the live balance while Plånko balls are still falling. */
   heldBalance?: number
   broke: boolean
   onLoan: () => void
-  /** Opens the in-app scanner: one tap from any tab, for a winner standing at the dart board. */
-  onScan: () => void
 }) {
   const balance = heldBalance ?? player?.balance
   const [track, setTrack] = useState({ balance, dir: 0, flash: 0 })
@@ -40,30 +37,18 @@ export function Header({
         </span>
       </div>
       <span className="flex-1" />
-      {/* Stacked, not side by side: the row has no width to spare once the balance has six digits. */}
-      <div className="flex shrink-0 flex-col items-stretch gap-1.5">
+      {broke ? (
         <button
           type="button"
-          onClick={onScan}
-          aria-label={HEADER.scan}
-          className="flex items-center justify-center gap-1.5 rounded-full bg-sleaze px-3 py-1 font-display text-sm font-extrabold tracking-wide text-sleaze-ink uppercase active:scale-95"
+          onClick={onLoan}
+          className="animate-pulse-live rounded-full bg-sleaze px-3 py-1.5 font-display text-sm font-extrabold tracking-wide text-sleaze-ink uppercase"
         >
-          <QrGlyph />
-          {HEADER.scanShort}
+          {HEADER.loan}
         </button>
-        {broke ? (
-          <button
-            type="button"
-            onClick={onLoan}
-            className="animate-pulse-live rounded-full bg-sleaze px-3 py-1 font-display text-sm font-extrabold tracking-wide text-sleaze-ink uppercase"
-          >
-            {HEADER.loan}
-          </button>
-        ) : (
-          // The slot is never empty: without the loan offer it holds the help line, one tap from any tab.
-          <StodlinjeButton className="py-1 text-center" />
-        )}
-      </div>
+      ) : (
+        // The slot is never empty: without the loan offer it holds the help line, one tap from any tab.
+        <StodlinjeButton />
+      )}
       <div className="flex flex-col items-end leading-none">
         <span className="text-[0.65rem] font-bold tracking-[0.16em] text-ink-dim uppercase">{HEADER.balance}</span>
         <span
@@ -83,15 +68,5 @@ export function Header({
         )}
       </div>
     </header>
-  )
-}
-
-/** A tiny QR: three finder squares and a few modules. */
-function QrGlyph() {
-  return (
-    <svg aria-hidden viewBox="0 0 24 24" className="size-4" fill="currentColor">
-      <path d="M3 3h7v7H3zm2 2v3h3V5zM14 3h7v7h-7zm2 2v3h3V5zM3 14h7v7H3zm2 2v3h3v-3z" fillRule="evenodd" />
-      <path d="M14 14h3v3h-3zM18 18h3v3h-3zM18 14h3v2h-3zM14 19h2v2h-2z" />
-    </svg>
   )
 }
