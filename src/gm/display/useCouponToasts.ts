@@ -26,7 +26,7 @@ export function useCouponToasts(
     for (const c of fresh) {
       const player = c.redeemed_by ? players.get(c.redeemed_by) : undefined
       const label = player ? badgedLabel(player) : ATTRACT.someone
-      toast({ text: ATTRACT.coupon(label, fmtRm(c.amount)), ms: COUPON_TOAST_MS, tone: 'win' })
+      toast({ text: ATTRACT.coupon(label, fmtRm(c.amount), c.label), ms: COUPON_TOAST_MS, tone: 'win' })
     }
   })
 

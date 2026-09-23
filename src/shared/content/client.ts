@@ -164,10 +164,8 @@ export const BANK = {
   loanLocked: (rm: string) =>
     `Snabblån öppnas när saldot är under ${rm}. Vi hjälper bara den som verkligen behöver.`,
   smallPrint: 'Avbetalning påverkar inte topplistan. Skulden försvinner bara från din rad.',
-  couponTitle: 'Lös in en kupong',
-  couponText: 'Vann du något i baren? Skriv av koden från kupongen, eller skanna QR-koden.',
-  couponPlaceholder: 'ABCD-1234',
-  couponSubmit: 'Lös in',
+  couponTitle: 'Lös in en vinst',
+  couponText: 'Vann du något i baren? Skanna QR-koden på kupongen eller vinstkortet.',
   // Matches the printed vinstkort ("tryck Skanna"), so cards already in pockets stay right.
   scan: 'Skanna',
 } as const

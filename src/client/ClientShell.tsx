@@ -102,8 +102,6 @@ export function ClientShell({ identity, player, forget, justJoined, cookiesAccep
             <Bank
               broke={broke}
               onLoan={() => setLoanRequested(true)}
-              onRedeemCoupon={(code) => void coupon.redeem(code)}
-              couponBusy={coupon.busy}
               onScan={() => setScanning(true)}
             />
           )}

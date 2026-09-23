@@ -8,7 +8,6 @@
 // the print stylesheet in index.css hides the page chrome instead.
 import { GM_COUPONS } from '../../shared/content/gm'
 import { COUPON_TIER_COPY, TICKET } from '../../shared/content/coupons'
-import { formatCode } from '../../shared/game/coupon'
 import { fmtRm } from '../../shared/game/format'
 import { Button, cx, QrCode } from '../../ui'
 
@@ -51,12 +50,9 @@ function Ticket({
       <p className="font-display text-[20pt] leading-none font-black tabular-nums">{fmtRm(amount)}</p>
       <QrCode
         value={`${base}/k/${code}`}
-        label={`${copy?.name} ${code}`}
+        label={copy?.name ?? TICKET.scan}
         className="size-[26mm] bg-white! text-black!"
       />
-      <p className="font-display text-[11pt] leading-none font-bold tracking-[0.18em] tabular-nums">
-        {formatCode(code)}
-      </p>
       <p className="text-[7pt] leading-tight">{label || TICKET.scan}</p>
       <p className="mt-auto text-[6pt] leading-tight">{TICKET.once}</p>
     </div>

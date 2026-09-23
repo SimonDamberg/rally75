@@ -5,7 +5,6 @@ import { useState } from 'react'
 import { BANK } from '../shared/content/client'
 import { STODLINJE } from '../shared/content/parody'
 import { UI_LABELS } from '../shared/content/ui'
-import { normalizeCode } from '../shared/game/coupon'
 import { LOAN_THRESHOLD, nightNet } from '../shared/game/economy'
 import { fmtRm } from '../shared/game/format'
 import { Button, cx, SmallPrint, StodlinjeNote, toast } from '../ui'
@@ -15,22 +14,16 @@ import { addRepayChip, afterRepay, checkRepay, maxRepay, REPAY_CHIPS } from './r
 export function Bank({
   onLoan,
   broke,
-  onRedeemCoupon,
-  couponBusy,
   onScan,
 }: {
   onLoan: () => void
   broke: boolean
-  /** Hands a hand-typed kupong code to the shell, which owns the reveal. */
-  onRedeemCoupon: (code: string) => void
-  couponBusy: boolean
   /** Opens the in-app scanner, which the shell owns. */
   onScan: () => void
 }) {
   const { player } = useGuest()
   const { run, busy } = useGuestAction()
   const [amount, setAmount] = useState(0)
-  const [code, setCode] = useState('')
 
   if (!player) return <p className="p-6 text-center text-ink-dim">{UI_LABELS.loading}</p>
 
@@ -128,34 +121,10 @@ export function Bank({
         </section>
       )}
 
-      {/* The fallback for a ticket whose QR will not scan in party lighting. */}
+      {/* The only way in: no typed-code fallback, a phone without a working camera is out of luck. */}
       <section className="flex flex-col gap-3 rounded-2xl bg-tote/40 p-4 ring-1 ring-white/10 ring-inset">
         <h2 className="font-display text-2xl leading-none font-black uppercase">{BANK.couponTitle}</h2>
         <p className="text-sm text-ink-dim">{BANK.couponText}</p>
-        <form
-          className="flex gap-2"
-          onSubmit={(e) => {
-            e.preventDefault()
-            const typed = code.trim()
-            if (!typed) return
-            setCode('')
-            onRedeemCoupon(normalizeCode(typed) || typed)
-          }}
-        >
-          <input
-            value={code}
-            onChange={(e) => setCode(e.target.value)}
-            placeholder={BANK.couponPlaceholder}
-            autoComplete="off"
-            autoCapitalize="characters"
-            spellCheck={false}
-            aria-label={BANK.couponTitle}
-            className="min-w-0 flex-1 rounded-xl bg-night-deep/80 px-4 py-3 font-display text-xl font-extrabold tracking-widest text-ink uppercase tabular-nums ring-2 ring-tote-hi/60 ring-inset placeholder:text-ink-dim/60 focus:ring-plate focus:outline-none"
-          />
-          <Button type="submit" loading={couponBusy} disabled={!code.trim()}>
-            {BANK.couponSubmit}
-          </Button>
-        </form>
         <Button variant="sleaze" block onClick={onScan}>
           {BANK.scan}
         </Button>

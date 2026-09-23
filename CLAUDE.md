@@ -273,7 +273,9 @@ Printed tickets the guests running the physical games hand out, scanned at `/k/<
   be the real host: a sheet printed from `localhost` is waste paper.
 - The guest side is shell-owned like the other pop-ups: `ClientApp` parks a scanned code in
   localStorage (so the scan survives onboarding) and cleans the URL, `useCoupon` + `CouponReveal`
-  do the claim, and it queues behind the bonus and result reveals. Bank has a typed-code fallback.
+  do the claim, and it queues behind the bonus and result reveals. There is no typed-code
+  fallback (Simon's call): Bank's Skanna button opens the in-app scanner, and the printed ticket
+  carries no code in text.
 - Coupons survive `gm_reset_night` (they are physical objects). Clear a rehearsal run with
   `gm_delete_coupon_batch`.
 - Guest copy `KUPONG` in `client.ts`, GM copy `GM_COUPONS` in `gm.ts`, shared tier and ticket copy

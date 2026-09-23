@@ -1495,3 +1495,16 @@ and the RM lands. The card is never used up. A guest can claim at most once ever
 3. Test one scan on a real iPhone and an Android over HTTPS: the first scan asks for the camera.
 4. During the party, watch the "Vinstkort idag" feed for repeat tags. If a card leaks: Ny kod,
    reprint, swap.
+
+### Follow-ups the same evening (Simon's calls)
+
+- The Skanna pill left the guest header again. The scanner opens from Bank's **Skanna** button,
+  named to match the printed vinstkort ("tryck Skanna"), so cards already printed stay right.
+- The vinstkort print sheet renders outside `print:hidden` (it printed blank), the card is 170 mm and
+  centred on the A4, and the toaster is `print:hidden` everywhere.
+- No brons/silver/guld in any toast. Both iPad toasts end with the game when there is a label:
+  "Kortis #21 vann 1 000 RM från Dart", "… löste in en kupong på 1 000 RM från Pong".
+- **Kuponger lost the typed-code fallback.** The printed ticket no longer shows its code in text,
+  and Bank's text field and "Lös in" button are gone. A kupong is cashed by the phone's camera
+  (`/k/<code>`) or the in-app scanner, nothing else. A guest whose camera fails is out of luck, by
+  design. `redeem_coupon` still accepts a dashed lowercase code, which smoke keeps exercising.
