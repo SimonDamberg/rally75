@@ -1508,3 +1508,7 @@ and the RM lands. The card is never used up. A guest can claim at most once ever
   and Bank's text field and "Lös in" button are gone. A kupong is cashed by the phone's camera
   (`/k/<code>`) or the in-app scanner, nothing else. A guest whose camera fails is out of luck, by
   design. `redeem_coupon` still accepts a dashed lowercase code, which smoke keeps exercising.
+- The header's Stödlinje pill is now solid cream with a phone icon and a press shadow, so it reads
+  as tappable, and it still never blinks (that stays Snabblån's). To keep it off the logo at 360 px,
+  the icon hides below 380 px and a six-digit balance drops from `text-3xl` to `text-2xl`. That also
+  fixes the old overlap noted above.

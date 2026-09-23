@@ -54,7 +54,9 @@ export function Header({
         <span
           key={track.flash}
           className={cx(
-            'mt-0.5 origin-right font-display text-3xl font-black tabular-nums',
+            'mt-0.5 origin-right font-display font-black tabular-nums',
+            // Six digits no longer fit next to the logo and the help line on a small phone.
+            balance !== undefined && Math.abs(balance) >= 100_000 ? 'text-2xl' : 'text-3xl',
             track.dir > 0 ? 'text-cash' : track.dir < 0 ? 'text-drift' : 'text-plate',
             track.flash > 1 && 'animate-odds-flash',
           )}

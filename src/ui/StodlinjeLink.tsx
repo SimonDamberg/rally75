@@ -33,8 +33,9 @@ export function StodlinjeNote({ lead, className }: StodlinjeLinkProps) {
 }
 
 /**
- * Same number as a quiet pill, for the header slot the blinking Snabblån button leaves empty.
- * Understated on purpose: it is the counterweight to the loan shark, not another offer.
+ * Same number as a pill, for the header slot the blinking Snabblån button leaves empty. Solid and
+ * pressable so it reads as something you can tap, but it never blinks: it is the counterweight to
+ * the loan shark, not another offer.
  */
 export function StodlinjeButton({ className }: { className?: string }) {
   return (
@@ -42,11 +43,21 @@ export function StodlinjeButton({ className }: { className?: string }) {
       href={`tel:${STODLINJE.number}`}
       aria-label={`${STODLINJE.callLabel} ${STODLINJE.display}`}
       className={cx(
-        'rounded-full border border-white/15 bg-white/5 px-3 py-1.5 font-display text-sm font-extrabold tracking-wide text-ink-dim uppercase',
+        'inline-flex items-center justify-center gap-1.5 rounded-full bg-ink px-2.5 py-1.5 font-display text-sm font-extrabold tracking-wide whitespace-nowrap text-night uppercase',
+        'shadow-[0_0.2rem_0] shadow-black/45 transition-[transform,box-shadow] duration-75 active:translate-y-[0.2rem] active:shadow-none',
         className,
       )}
     >
+      <PhoneGlyph />
       {STODLINJE.label}
     </a>
+  )
+}
+
+function PhoneGlyph() {
+  return (
+    <svg aria-hidden viewBox="0 0 24 24" className="size-3.5 shrink-0 max-[380px]:hidden" fill="currentColor">
+      <path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z" />
+    </svg>
   )
 }
