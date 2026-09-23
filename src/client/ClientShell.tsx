@@ -2,6 +2,7 @@
 // reveal after sign-up, result reveal after a race, Snabblån when broke, pop-up offers), plus the
 // fake social proof.
 import { useMemo, useState } from 'react'
+import type { ScanResult } from '../shared/game/scan'
 import { useActiveRace, useConnection, useLeaderboard, usePlayerBets, useRaceBets, useShopItems } from '../lib/hooks'
 import type { Identity, PlayerRow } from '../lib/types'
 import { CLIENT_TABS } from '../shared/content/client'
@@ -18,10 +19,13 @@ import { Leaderboard } from './Leaderboard'
 import { LoanOffer } from './LoanOffer'
 import { OfferPopup } from './OfferPopup'
 import { Plinko } from './Plinko'
+import { PrizeReveal } from './PrizeReveal'
 import { ResultReveal } from './ResultReveal'
+import { Scanner } from './Scanner'
 import { SocialStrip } from './SocialStrip'
 import { useCoupon } from './useCoupon'
 import { useOffers } from './useOffers'
+import { usePrizeCard } from './usePrizeCard'
 import { useResultReveal } from './useResultReveal'
 import { useSocialProof } from './useSocialProof'
 
@@ -50,6 +54,7 @@ export function ClientShell({ identity, player, forget, justJoined, cookiesAccep
   const [slipOpen, setSlipOpen] = useState(false)
   const [loanRequested, setLoanRequested] = useState(false)
   const [buying, setBuying] = useState(false)
+  const [scanning, setScanning] = useState(false)
   // Plånko balls in the air: the header shows this instead of the live balance until they land.
   const [plinkoHold, setPlinkoHold] = useState<number | undefined>()
   const dropping = plinkoHold !== undefined
@@ -62,22 +67,38 @@ export function ClientShell({ identity, player, forget, justJoined, cookiesAccep
 
   const reveal = useResultReveal(race, bets, player)
   const coupon = useCoupon(guest)
+  const prize = usePrizeCard(guest)
   // Broke with nothing still riding: winnings from open bets may be on the way.
   const broke = !!player && player.balance < LOAN_THRESHOLD && !!bets && !bets.some((b) => b.status === 'open')
   // A scanned kupong waits its turn behind the welcome bonus, a result and the bet confirm, then
   // blocks everything else itself: a pop-up offer over the reveal would bury the payout.
   const couponOpen = (!!coupon.pending || !!coupon.claimed) && !justJoined && !reveal.open && !confirming
-  const blocked = justJoined || reveal.open || confirming || couponOpen
+  // The scanner and a vinstkort payout were asked for by the guest, so they block everything too.
+  const prizeOpen = !!prize.claimed
+  const blocked = justJoined || reveal.open || confirming || couponOpen || scanning || prizeOpen
   // Offers also wait for the cookie banner, a bet, a purchase or a Plånko ball in progress and
   // Snabblån (broke).
   const offers = useOffers(blocked || slipOpen || buying || dropping || broke || !cookiesAccepted)
+  const onScan = (result: ScanResult) => {
+    setScanning(false)
+    // A kupong goes through the kupong path, reveal and all; only a vinstkort is new.
+    if (result.kind === 'card') void prize.claim(result.code)
+    else void coupon.redeem(result.code)
+  }
+
   useSocialProof({ race, raceBets, playerId: identity.playerId, players, paused: blocked || !cookiesAccepted })
 
   return (
     <GuestContext value={guest}>
       <div className="flex h-dvh flex-col">
         <BonusBar />
-        <Header player={player} heldBalance={plinkoHold} broke={broke} onLoan={() => setLoanRequested(true)} />
+        <Header
+          player={player}
+          heldBalance={plinkoHold}
+          broke={broke}
+          onLoan={() => setLoanRequested(true)}
+          onScan={() => setScanning(true)}
+        />
         <SocialStrip />
         <ConnectionBadge status={connection} variant="banner" />
         <main className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain">
@@ -89,6 +110,7 @@ export function ClientShell({ identity, player, forget, justJoined, cookiesAccep
               onLoan={() => setLoanRequested(true)}
               onRedeemCoupon={(code) => void coupon.redeem(code)}
               couponBusy={coupon.busy}
+              onScan={() => setScanning(true)}
             />
           )}
           {tab === 'butik' && <Butik onConfirmChange={setBuying} />}
@@ -126,6 +148,8 @@ export function ClientShell({ identity, player, forget, justJoined, cookiesAccep
           onClose={coupon.close}
         />
       )}
+      {scanning && <Scanner onScan={onScan} onClose={() => setScanning(false)} />}
+      {prize.claimed && <PrizeReveal claimed={prize.claimed} onClose={prize.close} />}
       {reveal.open && race && reveal.data && <ResultReveal race={race} reveal={reveal.data} onClose={reveal.close} />}
       <LoanOffer
         broke={broke}

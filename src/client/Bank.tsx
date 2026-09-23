@@ -17,12 +17,15 @@ export function Bank({
   broke,
   onRedeemCoupon,
   couponBusy,
+  onScan,
 }: {
   onLoan: () => void
   broke: boolean
   /** Hands a hand-typed kupong code to the shell, which owns the reveal. */
   onRedeemCoupon: (code: string) => void
   couponBusy: boolean
+  /** Opens the in-app scanner, which the shell owns. */
+  onScan: () => void
 }) {
   const { player } = useGuest()
   const { run, busy } = useGuestAction()
@@ -153,6 +156,9 @@ export function Bank({
             {BANK.couponSubmit}
           </Button>
         </form>
+        <Button variant="sleaze" block onClick={onScan}>
+          {BANK.scan}
+        </Button>
       </section>
 
       <section className="flex flex-col gap-2">

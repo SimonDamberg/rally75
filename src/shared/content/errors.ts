@@ -22,6 +22,9 @@ export const ERROR_MESSAGES = {
   out_of_stock: 'Slutsålt. Någon var snabbare än du.',
   coupon_not_found: 'Vi hittar ingen kupong med den koden. Kontrollera koden och försök igen.',
   coupon_used: 'Kupongen är redan inlöst. En kupong gäller en gång.',
+  card_not_found: 'Det där vinstkortet känner vi inte igen. Det kan ha fått en ny kod.',
+  card_inactive: 'Vinstkortet är pausat av spelledaren. Fråga den som höll i leken.',
+  card_cooldown: 'Lugn i stallet. Vänta några sekunder innan du skannar igen.',
   // Game master
   gm_unauthorized: 'Fel lösenord.',
   gm_no_password: 'Inget spelledarlösenord är satt i databasen.',
@@ -46,6 +49,9 @@ export const ERROR_MESSAGES = {
   coupon_code_failed: 'Kunde inte skapa unika koder. Försök igen.',
   coupon_batch_not_found: 'Kupongomgången finns inte.',
   coupon_not_redeemed: 'Kupongen är inte inlöst.',
+  bad_card_tier: 'Okänd valör för vinstkortet.',
+  card_code_failed: 'Kunde inte skapa en unik kod. Försök igen.',
+  prize_claim_not_found: 'Utbetalningen finns inte längre.',
   // Client side
   network: 'Ingen anslutning. Försöker igen...',
   config: 'Mr Green saknar serverinställningar.',

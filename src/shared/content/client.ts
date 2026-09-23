@@ -46,6 +46,8 @@ export const HEADER = {
   balance: 'Saldo',
   debt: 'Skuld',
   loan: 'Snabblån',
+  scan: 'Skanna vinst',
+  scanShort: 'Skanna',
 } as const
 
 export const HOME = {
@@ -168,6 +170,7 @@ export const BANK = {
   couponText: 'Vann du något i baren? Skriv av koden från kupongen, eller skanna QR-koden.',
   couponPlaceholder: 'ABCD-1234',
   couponSubmit: 'Lös in',
+  scan: 'Skanna QR-kod',
 } as const
 
 /** The printed kupong: the reveal pop-up and the manual entry in Bank. */
@@ -181,6 +184,29 @@ export const KUPONG = {
   wonText: 'Pengarna ligger på kontot. Ingen handläggningstid, ingen motprestation, ingen ånger.',
   from: (label: string) => `Från ${label}`,
   smallPrint: 'En kupong gäller en gång. Den som skannar först får pengarna.',
+} as const
+
+/** The in-app QR scanner: vinstkort, and kuponger for guests already in the app. */
+export const SKANNA = {
+  title: 'Skanna vinst',
+  hint: 'Rikta kameran mot vinstkortet eller kupongen.',
+  starting: 'Startar kameran...',
+  denied:
+    'Kameran är blockerad. Tillåt kameran för den här sidan i webbläsarens inställningar och försök igen.',
+  noCamera: 'Hittar ingen kamera på den här enheten.',
+  failed: 'Kameran startade inte. Försök igen.',
+  retry: 'Försök igen',
+  close: 'Stäng',
+  notOurs: 'Det där är ingen vinst-QR. Rikta mot ett vinstkort eller en kupong.',
+} as const
+
+/** A vinstkort paying out. */
+export const VINSTKORT = {
+  wonTitle: 'Vinst!',
+  wonText: 'Pengarna ligger på kontot. Kortet går tillbaka till lekledaren, du går tillbaka till spelet.',
+  from: (label: string) => `Från ${label}`,
+  cta: 'Tillbaka till spelet',
+  smallPrint: 'Vinstkort visas bara för vinnaren. Den som fotar kortet får sina pengar ångrade.',
 } as const
 
 /** One bet line, wherever it is shown. */

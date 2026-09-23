@@ -16,6 +16,9 @@ import {
   type NewPlayer,
   type PlayerRow,
   type PlinkoDropRow,
+  type PrizeCardCode,
+  type PrizeCardRow,
+  type PrizeClaimRow,
   type PurchaseRow,
   type RaceCardInput,
   type RaceRow,
@@ -162,6 +165,20 @@ export function createApi(db: SupabaseClient) {
       )
     },
 
+    /** Every vinstkort, newest first. No codes: those are in prize_card_secrets. */
+    async getPrizeCards(): Promise<PrizeCardRow[]> {
+      return query<PrizeCardRow[]>(() =>
+        db.from('prize_cards').select('*').order('created_at', { ascending: false }),
+      )
+    },
+
+    /** Vinstkort payouts tonight, newest first. Drives the GM feed and the display toasts. */
+    async getPrizeClaims(limit = 1000): Promise<PrizeClaimRow[]> {
+      return query<PrizeClaimRow[]>(() =>
+        db.from('prize_claims').select('*').order('created_at', { ascending: false }).limit(limit),
+      )
+    },
+
     // Guest RPCs -------------------------------------------------------------------------
 
     createPlayer(name: string): Promise<NewPlayer> {
@@ -213,6 +230,18 @@ export function createApi(db: SupabaseClient) {
      */
     redeemCoupon(identity: Identity, code: string): Promise<CouponRow> {
       return rpc('redeem_coupon', {
+        p_player_id: identity.playerId,
+        p_token: identity.token,
+        p_code: code,
+      })
+    },
+
+    /**
+     * Cashes in a scanned vinstkort. The card is never used up; the server only refuses a card that
+     * is switched off and a guest still inside the cooldown after their last claim.
+     */
+    claimPrizeCard(identity: Identity, code: string): Promise<PrizeClaimRow> {
+      return rpc('claim_prize_card', {
         p_player_id: identity.playerId,
         p_token: identity.token,
         p_code: code,
@@ -374,6 +403,36 @@ export function createApi(db: SupabaseClient) {
       /** Throws away a whole print run, codes included. Returns how many kuponger went. */
       deleteCouponBatch(password: string, batch: string): Promise<number> {
         return rpc('gm_delete_coupon_batch', { p_password: password, p_batch: batch })
+      },
+
+      /** Mints one vinstkort and returns its code, for printing. The tier fixes the value. */
+      createPrizeCard(password: string, tier: number, label: string): Promise<PrizeCardCode> {
+        return rpc('gm_create_prize_card', { p_password: password, p_tier: tier, p_label: label })
+      },
+
+      /** Reads a card's code back out, for reprinting it. */
+      prizeCardCode(password: string, cardId: string): Promise<PrizeCardCode> {
+        return rpc('gm_prize_card_code', { p_password: password, p_id: cardId })
+      },
+
+      /** Ny kod: the old code (and every photo of it) stops working at once. */
+      rotatePrizeCard(password: string, cardId: string): Promise<PrizeCardCode> {
+        return rpc('gm_rotate_prize_card', { p_password: password, p_id: cardId })
+      },
+
+      /** Pausa / Aktivera. */
+      setPrizeCardActive(password: string, cardId: string, active: boolean): Promise<PrizeCardRow> {
+        return rpc('gm_set_prize_card_active', { p_password: password, p_id: cardId, p_active: active })
+      },
+
+      /** Throws a card away. Its claims stay in the feed. */
+      async deletePrizeCard(password: string, cardId: string): Promise<void> {
+        await rpc('gm_delete_prize_card', { p_password: password, p_id: cardId })
+      },
+
+      /** Ångra: takes the RM back off the balance and deletes the claim. */
+      voidPrizeClaim(password: string, claimId: string): Promise<PrizeClaimRow> {
+        return rpc('gm_void_prize_claim', { p_password: password, p_id: claimId })
       },
 
       /** Wipes players, bets and races. Keeps kuskar and the password. */

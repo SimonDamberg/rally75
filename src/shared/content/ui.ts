@@ -107,6 +107,10 @@ export const ATTRACT = {
   coupon: (label: string, tier: string, amount: string) =>
     `${label} löste in en ${tier} på ${amount}`,
   couponMany: (n: number) => `${n} kuponger inlösta. Utbetalningarna rullar!`,
+  /** Toasts on the display iPad when a vinstkort is scanned. */
+  prizeCard: (label: string, amount: string, game: string) =>
+    game ? `${label} vann ${amount} i ${game}` : `${label} vann ${amount} på ett vinstkort`,
+  prizeCardMany: (n: number) => `${n} vinstkort skannade. Lekarna betalar ut!`,
   /** Toasts on the display iPad when a Plånko ball lands on a big multiplier. */
   plinko: (label: string, mult: string, amount: string) =>
     `${label} träffade ${mult} i Plånko: ${amount}`,

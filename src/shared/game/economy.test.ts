@@ -13,6 +13,8 @@ import {
   MIN_STAKE,
   netWorth,
   nightNet,
+  PRIZE_CARD_COOLDOWN_S,
+  PRIZE_CARD_TIERS,
   WELCOME_BONUS,
 } from './economy'
 
@@ -63,6 +65,45 @@ describe('economy constants', () => {
     // One byte per character, so the alphabet and the code length have to agree with the loop.
     expect(sql).toContain(`extensions.gen_random_bytes(${COUPON_CODE_LENGTH})`)
     expect(sql).toContain(`for b in 0..${COUPON_CODE_LENGTH - 1} loop`)
+  })
+})
+
+describe('vinstkort', () => {
+  const sql = () => {
+    const file = readdirSync(MIGRATIONS)
+      .filter((f) => f.endsWith('_prize_cards.sql'))
+      .sort()
+      .at(-1)!
+    return readFileSync(join(MIGRATIONS, file), 'utf8')
+  }
+
+  it('match the SQL mirror for the tiers and the cooldown', () => {
+    const text = sql()
+    const pairs = PRIZE_CARD_TIERS.map((t) => `(${t.tier}, ${t.amount})`).join(', ')
+    expect(text).toContain(`check ((tier, amount) in (${pairs}))`)
+    const cases = PRIZE_CARD_TIERS.map((t) => `when ${t.tier} then ${t.amount}`).join(' ')
+    expect(text).toContain(`case p_tier ${cases} end`)
+    expect(text).toContain(`PRIZE_CARD_COOLDOWN_S ${PRIZE_CARD_COOLDOWN_S}.`)
+    expect(text).toContain(`now() - interval '${PRIZE_CARD_COOLDOWN_S} seconds'`)
+    expect(text).toContain(`extensions.gen_random_bytes(${COUPON_CODE_LENGTH})`)
+    expect(text).toContain(`for b in 0..${COUPON_CODE_LENGTH - 1} loop`)
+  })
+
+  it('never grants or publishes the secrets table', () => {
+    const statements = sql()
+      .replace(/--.*$/gm, '')
+      .split(';')
+      .map((st) => st.trim().toLowerCase())
+    const touching = statements.filter((st) => st.includes('prize_card_secrets'))
+    expect(touching.some((st) => st.startsWith('grant'))).toBe(false)
+    expect(touching.some((st) => st.includes('publication'))).toBe(false)
+    expect(touching.some((st) => st.startsWith('create policy'))).toBe(false)
+  })
+
+  it('has one tier per valör, in rising order', () => {
+    expect(PRIZE_CARD_TIERS.map((t) => t.tier)).toEqual([1, 2, 3])
+    const amounts = PRIZE_CARD_TIERS.map((t) => t.amount)
+    expect(amounts).toEqual([...amounts].sort((a, b) => a - b))
   })
 })
 

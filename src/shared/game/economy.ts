@@ -42,6 +42,22 @@ export const COUPON_MAX_BATCH = 200
 export const COUPON_CODE_LENGTH = 8
 
 /**
+ * Vinstkort: reusable printed cards the game runners carry and flash at a winner, scanned inside the
+ * guest app. Unlike a kupong, the value is fixed by the tier in SQL (`*_prize_cards.sql` checks the
+ * pair), so these amounts are the mirror, not a suggestion. Not rank neutral, like a kupong.
+ */
+export const PRIZE_CARD_TIERS = [
+  { tier: 1, amount: 100 },
+  { tier: 2, amount: 500 },
+  { tier: 3, amount: 1000 },
+] as const
+
+export type PrizeCardTier = (typeof PRIZE_CARD_TIERS)[number]['tier']
+
+/** Seconds a guest waits between two vinstkort claims (any card). Stops a double scan of one flash. */
+export const PRIZE_CARD_COOLDOWN_S = 5
+
+/**
  * What a player actually owns: the balance with the debt taken off and the Butik spending added
  * back. This is what the Topplista ranks on, so a stack of Snabblån cannot buy a place at the top,
  * and a round of beers from the svarta marknaden cannot cost you one: the money leaves the balance

@@ -282,6 +282,56 @@ export const GM_COUPONS = {
   someone: "Raderad spelare",
 } as const;
 
+/** The Vinstkort section on /gm/kuponger: reusable cards scanned inside the guest app. */
+export const GM_PRIZE_CARDS = {
+  title: "Vinstkort",
+  subtitle:
+    "Ett kort per lek som lekledaren bär på och visar för vinnaren. Kortet tar aldrig slut. Gästen skannar det i appen, en gång per fem sekunder.",
+  createTitle: "Nytt vinstkort",
+  tierLabel: "Valör",
+  labelLabel: "Etikett",
+  labelHint: "Vilken lek kortet hör till, till exempel Dart. Trycks på kortet och syns i flödet.",
+  create: "Skapa och skriv ut",
+  created: "Vinstkort skapat.",
+  cardsTitle: "Korten",
+  cardsEmpty: "Inga vinstkort än.",
+  noLabel: "Utan etikett",
+  claims: (n: number, rm: string) => (n === 1 ? `1 utbetalning, ${rm}` : `${n} utbetalningar, ${rm}`),
+  paused: "Pausat",
+  pause: "Pausa",
+  resume: "Aktivera",
+  pausedToast: "Kortet är pausat. Skanningar nekas tills du aktiverar det.",
+  resumedToast: "Kortet är aktivt igen.",
+  reprint: "Skriv ut",
+  rotate: "Ny kod",
+  rotateConfirmTitle: "Ge kortet en ny kod?",
+  rotateConfirmText:
+    "Den gamla koden slutar gälla direkt, även alla foton av den. Du måste skriva ut kortet igen och byta det utskrivna.",
+  rotateConfirmOk: "Ja, ny kod",
+  rotated: "Ny kod klar. Skriv ut och byt kortet.",
+  delete: "Radera",
+  deleteConfirmTitle: "Radera kortet?",
+  deleteConfirmText:
+    "Kortet slutar gälla direkt. Utbetalningar som redan gjorts ligger kvar på kontona och i flödet. Det går inte att ångra.",
+  deleteConfirmOk: "Ja, radera",
+  deleted: "Vinstkortet raderat.",
+  cancel: "Avbryt",
+  feedTitle: "Vinstkort idag",
+  feedEmpty: "Ingen har skannat ett vinstkort än.",
+  /** Shown on a claim when the same guest has cashed the same card this many times tonight. */
+  repeat: (n: number) => {
+    const suffix = [1, 2].includes(n % 10) && ![11, 12].includes(n % 100) ? "a" : "e";
+    return `${n}:${suffix} gången på det här kortet`;
+  },
+  undo: "Ångra",
+  undone: (rm: string) => `${rm} draget tillbaka.`,
+  someone: "Raderad spelare",
+  sheetTitle: "Utskrift av vinstkort",
+  sheetHint: "Ett kort per A4. Klipp ut, plasta gärna in, och ge det till lekledaren.",
+  print: "Skriv ut",
+  sheetClose: "Stäng utskriften",
+} as const;
+
 /** Dev-only race lab at /styleguide/race, for tuning the race screen without a backend. */
 export const GM_RACE_LAB = {
   seed: "Seed",

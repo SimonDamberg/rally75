@@ -1417,3 +1417,82 @@ RPCs or the `RaceGag` shape changed.
 to see them. One thing to look at: with four boosts, 43 percent of races now get a boost, and in 24
 percent it sits on the winner. Say the word if that is too many and we move one of them down to the
 light gags.
+
+## Vinstkort: reusable prize QR cards, scanned in the app (done, 2026-09-23)
+
+Simon's addition, **next to** the one-time kuponger (which are unchanged): each friend running a
+physical game carries one printed card worth **100 / 500 / 1 000 RM** (Brons / Silver / Guld) and
+flashes it only at whoever just won. The winner scans it with a **scanner inside the Mr Green app**
+and the RM lands. The card is never used up. A guest can claim at most once every **5 seconds**
+(Simon's number).
+
+**The security model, stated honestly**
+
+1. The server cannot tell a camera scan from a replayed string, so the in-app scanner is friction,
+   not a lock. The QR holds `MRG1:<code>`, not a URL, so a phone's camera app does nothing with it,
+   and the app never shows the decoded code. The code is not printed as text on the card either.
+2. Codes live in `prize_card_secrets` (no grants, no policies, not published), like `coupon_secrets`.
+3. The 5 s cooldown is per guest across all cards, enforced in `claim_prize_card` under a lock on the
+   player row. It stops a double scan of one flash, not farming.
+4. **Residual risk:** a guest who photographs a card can farm it every 5 s (12 000 RM a minute off a
+   guldkort). The countermeasures are the GM's: the feed tags repeat claims ("3:e gången på det här
+   kortet"), **Pausa** stops a card, **Ny kod** kills every photo of it (reprint the card), and
+   **Ångra** takes a claim back. Keep the cards in a pocket between wins.
+
+**Done**
+
+- Migration `20260923000017_prize_cards.sql`: `prize_cards` (tier, amount checked against the tier,
+  label, active; public read, Realtime), `prize_card_secrets`, `prize_claims` (snapshot of tier,
+  amount, label; `card_id` set null on card delete so tonight's payouts stay in the feed; cascades
+  off players, so `gm_reset_night` needs no change). RPCs `claim_prize_card`, `gm_create_prize_card`,
+  `gm_prize_card_code` (reprint), `gm_rotate_prize_card`, `gm_set_prize_card_active`,
+  `gm_delete_prize_card`, `gm_void_prize_claim`. New error codes in `errors.ts`.
+- `PRIZE_CARD_TIERS` and `PRIZE_CARD_COOLDOWN_S` in `economy.ts`, mirrored in SQL and asserted by
+  `economy.test.ts`, which also checks that no statement grants, publishes or adds a policy on the
+  secrets table.
+- `src/shared/game/scan.ts`: `cardPayload` / `parseScan`. The scanner also recognises a **kupong**
+  QR (`…/k/<code>`) and hands it to the existing `coupon.redeem`, so a guest already in the app can
+  cash a kupong without the camera app. That is the only touch on the kupong flow.
+- Guest: `Scanner.tsx` (qr-scanner, **lazy chunk**, 16 kB plus a 44 kB worker; Swedish states for
+  starting, blocked camera and no camera), `usePrizeCard`, `PrizeReveal` (one beat, `CoinBurst` for
+  a guldkort). Entry points: a **Skanna** pill in the header, stacked above Stödlinje/Snabblån, and a
+  button in Bank's kupong section. The scanner and the reveal both join the shell's `blocked`.
+- GM: a **Vinstkort** section at the bottom of `/gm/kuponger` (create, list with payout totals,
+  Pausa/Aktivera, Skriv ut, Ny kod, Radera, "Vinstkort idag" feed with Ångra and a repeat tag).
+  `PrizeCardSheet` prints one big card per A4 (70 mm QR, frog corner mark as on the kupong).
+- iPad: `usePrizeClaimToasts` ("Kortis #21 vann 1 000 RM i Dart").
+
+**Verified**
+
+- `npm run build`, `npm test` (243) and `npm run lint` pass.
+- `npm run smoke -- --reset` against the local stack: all 23 steps, including the new **vinstkort**
+  step (tier guard, payout lifts netWorth, immediate re-scan `card_cooldown`, a second guest right
+  away is fine, same guest again after 5 s, pause, rotate kills the old code, Ångra, delete keeps
+  the claims) and the RLS step extended to the three new tables.
+- Headless Chromium with a fake camera fed a video of a card QR: a phone at 390 scans, the reveal
+  shows Guldkort 1 000 RM, the header goes to 2 000 RM, an immediate re-scan shows the cooldown
+  toast, the iPad toasts, the GM feed lists the claim, a paused card is refused on a second phone and
+  pays after Aktivera, Ångra takes it back live, and a kupong QR through the same scanner redeems.
+  No horizontal overflow at 360 or 390.
+- **Not verified on a real phone.** Camera permission on iOS Safari needs HTTPS, so test on the
+  Vercel deploy.
+
+**Deviations / notes**
+
+- Vinstkort are a new mechanic, with no row in the Decisions table. Not rank neutral, like kuponger.
+- The header was already tight: at 360 px with a six-digit balance the Mr Green lockup runs under
+  the Stödlinje chip. That was true before this change (the Skanna pill is stacked, so it adds no
+  width) and is still open.
+- `eslint.config.js` now ignores `.claude/`: the leftover worktree in there made `npm run lint`
+  fail with a tsconfigRootDir error.
+- New dependency: `qr-scanner` (MIT, uses the native `BarcodeDetector` when present).
+
+**Manual steps for Simon**
+
+1. `npx supabase db push` to apply `20260923000017_prize_cards.sql` to hosted (plus anything still
+   unpushed from earlier stages).
+2. On the deploy, open `/gm/kuponger`, scroll to Vinstkort, make one card per game, print, cut,
+   laminate if you can.
+3. Test one scan on a real iPhone and an Android over HTTPS: the first scan asks for the camera.
+4. During the party, watch the "Vinstkort idag" feed for repeat tags. If a card leaks: Ny kod,
+   reprint, swap.

@@ -161,6 +161,40 @@ export interface CouponBatch {
   coupons: { id: string; code: string }[];
 }
 
+/**
+ * A vinstkort: a reusable printed card a game runner flashes at a winner. The code is never here:
+ * it lives in prize_card_secrets, which no browser can read.
+ */
+export interface PrizeCardRow {
+  id: string;
+  /** 1 = 100, 2 = 500, 3 = 1 000 RM. */
+  tier: number;
+  amount: number;
+  /** Which game carries it ("Dart"); '' when the GM left it blank. */
+  label: string;
+  /** Off: scans are refused with card_inactive. */
+  active: boolean;
+  created_at: string;
+}
+
+/** One payout from a vinstkort. tier, amount and label are snapshots of the card. */
+export interface PrizeClaimRow {
+  id: string;
+  /** null once the card has been deleted. */
+  card_id: string | null;
+  player_id: string;
+  tier: number;
+  amount: number;
+  label: string;
+  created_at: string;
+}
+
+/** Returned by the GM RPCs that mint, reprint or rotate a card. The only time a code is readable. */
+export interface PrizeCardCode {
+  id: string;
+  code: string;
+}
+
 export interface GameStateRow {
   id: boolean;
   active_race_id: string | null;

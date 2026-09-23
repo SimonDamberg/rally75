@@ -16,6 +16,8 @@ import {
   type KuskRow,
   type PlayerRow,
   type PlinkoDropRow,
+  type PrizeCardRow,
+  type PrizeClaimRow,
   type PurchaseRow,
   type RaceRow,
   type ShopItemRow,
@@ -316,6 +318,32 @@ export function useCoupons(): LiveResult<CouponRow[]> {
     tables: ['coupons'],
     apply: (prev, change) => {
       const next = applyChange(prev, change, (row) => row as unknown as CouponRow)
+      return next === prev ? prev : next.slice().sort((a, b) => b.created_at.localeCompare(a.created_at))
+    },
+  })
+}
+
+/** Every vinstkort, newest first. The GM page's card list. */
+export function usePrizeCards(): LiveResult<PrizeCardRow[]> {
+  return useLive({
+    key: 'prize-cards',
+    load: () => getApi().getPrizeCards(),
+    tables: ['prize_cards'],
+    apply: (prev, change) => {
+      const next = applyChange(prev, change, (row) => row as unknown as PrizeCardRow)
+      return next === prev ? prev : next.slice().sort((a, b) => b.created_at.localeCompare(a.created_at))
+    },
+  })
+}
+
+/** Vinstkort payouts tonight, newest first. The GM feed and the display toasts. */
+export function usePrizeClaims(): LiveResult<PrizeClaimRow[]> {
+  return useLive({
+    key: 'prize-claims',
+    load: () => getApi().getPrizeClaims(),
+    tables: ['prize_claims'],
+    apply: (prev, change) => {
+      const next = applyChange(prev, change, (row) => row as unknown as PrizeClaimRow)
       return next === prev ? prev : next.slice().sort((a, b) => b.created_at.localeCompare(a.created_at))
     },
   })

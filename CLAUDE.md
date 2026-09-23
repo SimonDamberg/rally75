@@ -280,6 +280,24 @@ Printed tickets the guests running the physical games hand out, scanned at `/k/<
   in `src/shared/content/coupons.ts`, iPad toast in `ATTRACT`. Print CSS lives at the end of
   `src/index.css` and is the only light surface in the app.
 
+## Vinstkort (reusable prize QR cards)
+
+Next to the kuponger, never instead of them. One printed card per game, flashed at a winner,
+scanned in the guest app (`src/client/Scanner.tsx`, `qr-scanner` lazy-loaded), never used up.
+
+- The QR holds `MRG1:<code>` (`cardPayload` / `parseScan` in `src/shared/game/scan.ts`), never a
+  URL. The scanner also reads kupong URLs and hands them to `coupon.redeem`.
+- `prize_card_secrets` holds the codes: no grants, no policies, never published (tested).
+  `prize_cards` and `prize_claims` are public read and in Realtime.
+- `claim_prize_card` enforces the per-guest cooldown (`PRIZE_CARD_COOLDOWN_S`) under a lock on the
+  player row. The value comes from the tier (`PRIZE_CARD_TIERS`), both mirrored in
+  `*_prize_cards.sql` and checked by `economy.test.ts`. Not rank neutral.
+- The scanner is friction, not security. The GM's tools against a photographed card are Pausa,
+  Ny kod (`gm_rotate_prize_card`), Ångra and the repeat tag in the feed (Vinstkort section of
+  `/gm/kuponger`, `src/gm/coupons/PrizeCardsSection.tsx`).
+- Copy: `SKANNA` / `VINSTKORT` in `client.ts`, `GM_PRIZE_CARDS` in `gm.ts`, tier and print copy in
+  `coupons.ts`, iPad toast in `ATTRACT`.
+
 ## Conventions
 
 - Code, identifiers and code comments in English; content pools keep their Swedish names

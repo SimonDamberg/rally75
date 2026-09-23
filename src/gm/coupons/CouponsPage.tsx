@@ -15,6 +15,7 @@ import { useGmAction } from '../gmAuth'
 import { parseCount } from '../parse'
 import { Field, TextInput } from '../control/form'
 import { batchSummaries, claims, type BatchSummary } from './batches'
+import { PrizeCardsSection } from './PrizeCardsSection'
 import { TicketSheet, type SheetCoupon } from './TicketSheet'
 
 /** What the sheet overlay needs to render, captured when a run is minted or reprinted. */
@@ -183,6 +184,8 @@ export function CouponsPage() {
             ))}
           </ul>
         </section>
+
+        <PrizeCardsSection players={players} />
       </div>
 
       {sheet && (

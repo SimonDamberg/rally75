@@ -34,6 +34,8 @@ import {
   LOAN_THRESHOLD,
   MIN_STAKE,
   netWorth,
+  PRIZE_CARD_COOLDOWN_S,
+  PRIZE_CARD_TIERS,
   WELCOME_BONUS,
 } from "../src/shared/game/economy";
 import {
@@ -275,12 +277,27 @@ await step("RLS: anon cannot write tables or read secrets", async () => {
     balance_after: 100000,
   });
   assert.ok(drop.error, "insert plinko_drops must fail");
+  const card = await db.from("prize_cards").insert({ tier: 3, amount: 1000 });
+  assert.ok(card.error, "insert prize_cards must fail");
+  const claim = await db.from("prize_claims").insert({
+    player_id: anna.playerId,
+    tier: 3,
+    amount: 1000,
+    label: "",
+  });
+  assert.ok(claim.error, "insert prize_claims must fail");
+  const secret = await db
+    .from("prize_card_secrets")
+    .insert({ code: "ZZZZZZZZ", card_id: anna.playerId });
+  assert.ok(secret.error, "insert prize_card_secrets must fail");
   for (const table of [
     "player_secrets",
     "race_secrets",
     "gm_auth",
     // The whole kupong security model: the printed codes must be unreadable from a browser.
     "coupon_secrets",
+    // And the vinstkort codes, for the same reason.
+    "prize_card_secrets",
   ]) {
     const res = await db.from(table).select("*");
     assert.ok(
@@ -972,6 +989,85 @@ await step("kuponger", async () => {
   await expectCode(api.redeemCoupon(vinnare, made.coupons[1].code), "coupon_not_found");
 });
 
+await step("vinstkort", async () => {
+  const vinnare = await newPlayer("Smoke Kortvinnare");
+  const tvaan = await newPlayer("Smoke Tvåan");
+  const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+  await expectCode(gm.createPrizeCard(pw!, 4, "Dart"), "bad_card_tier");
+  await expectCode(gm.createPrizeCard("fel", 1, "Dart"), "gm_unauthorized");
+
+  const tier = PRIZE_CARD_TIERS[2];
+  const made = await gm.createPrizeCard(pw!, tier.tier, "Smoke Dart");
+  assert.match(made.code, /^[0-9ABCDEFGHJKMNPQRSTVWXYZ]{8}$/, "a card code is 8 Crockford characters");
+  const row = (await api.getPrizeCards()).find((c) => c.id === made.id);
+  assert.ok(row, "the card is public");
+  assert.equal(row.amount, tier.amount, "the tier fixes the value");
+  assert.equal(row.active, true);
+  assert.ok(!("code" in row), "the public row carries no code");
+  assert.deepEqual(await gm.prizeCardCode(pw!, made.id), made, "reprint gives the same code");
+
+  await expectCode(api.claimPrizeCard(vinnare, "ZZZZZZZZ"), "card_not_found");
+  await expectCode(api.claimPrizeCard(vinnare, ""), "card_not_found");
+  await expectCode(
+    api.claimPrizeCard({ ...vinnare, token: tvaan.token }, made.code),
+    "invalid_token",
+  );
+
+  const before = (await api.getPlayer(vinnare.playerId))!;
+  const first = await api.claimPrizeCard(vinnare, made.code);
+  assert.equal(first.amount, tier.amount);
+  assert.equal(first.card_id, made.id);
+  assert.equal(first.player_id, vinnare.playerId);
+  assert.equal(first.label, "Smoke Dart");
+  const after = (await api.getPlayer(vinnare.playerId))!;
+  assert.equal(after.balance, before.balance + tier.amount);
+  assert.equal(netWorth(after), netWorth(before) + tier.amount, "a vinstkort lifts the Topplista");
+
+  // A double scan of one flash: refused, and nothing paid.
+  await expectCode(api.claimPrizeCard(vinnare, made.code), "card_cooldown");
+  assert.equal(await balanceOf(vinnare), after.balance);
+  // The cooldown is per guest: the next winner scans the same card straight away.
+  await api.claimPrizeCard(tvaan, made.code);
+  assert.equal(await balanceOf(tvaan), WELCOME_BONUS + tier.amount);
+
+  // Reusable: after the cooldown, the same guest wins again off the same card.
+  await sleep(PRIZE_CARD_COOLDOWN_S * 1000 + 300);
+  await api.claimPrizeCard(vinnare, made.code);
+  assert.equal(await balanceOf(vinnare), after.balance + tier.amount);
+
+  // Pausa.
+  const paused = await gm.setPrizeCardActive(pw!, made.id, false);
+  assert.equal(paused.active, false);
+  await expectCode(api.claimPrizeCard(tvaan, made.code), "card_inactive");
+  await gm.setPrizeCardActive(pw!, made.id, true);
+
+  // Ny kod: every photo of the old code is dead.
+  const rotated = await gm.rotatePrizeCard(pw!, made.id);
+  assert.notEqual(rotated.code, made.code);
+  await sleep(PRIZE_CARD_COOLDOWN_S * 1000 + 300);
+  await expectCode(api.claimPrizeCard(tvaan, made.code), "card_not_found");
+  const viaNew = await api.claimPrizeCard(tvaan, rotated.code);
+  assert.equal(await balanceOf(tvaan), WELCOME_BONUS + 2 * tier.amount);
+
+  // Ångra takes the RM back and the claim leaves the feed.
+  await gm.voidPrizeClaim(pw!, viaNew.id);
+  assert.equal(await balanceOf(tvaan), WELCOME_BONUS + tier.amount);
+  assert.ok(!(await api.getPrizeClaims()).some((c) => c.id === viaNew.id));
+  await expectCode(gm.voidPrizeClaim(pw!, viaNew.id), "prize_claim_not_found");
+
+  // Deleting the card kills the code but keeps tonight's payouts in the feed.
+  await gm.deletePrizeCard(pw!, made.id);
+  await expectCode(gm.deletePrizeCard(pw!, made.id), "card_not_found");
+  await expectCode(gm.prizeCardCode(pw!, made.id), "card_not_found");
+  await expectCode(gm.rotatePrizeCard(pw!, made.id), "card_not_found");
+  await sleep(PRIZE_CARD_COOLDOWN_S * 1000 + 300);
+  await expectCode(api.claimPrizeCard(vinnare, rotated.code), "card_not_found");
+  const kept = (await api.getPrizeClaims()).filter((c) => c.label === "Smoke Dart");
+  assert.equal(kept.length, 3, "claims survive their card");
+  assert.ok(kept.every((c) => c.card_id === null));
+});
+
 await step("plånko", async () => {
   const kula = await newPlayer("Smoke Kula");
   const other = await newPlayer("Smoke Annan");
@@ -1018,6 +1114,8 @@ await step("reset night", async () => {
   assert.deepEqual(await api.getPurchases(), []);
   // Plånko drops cascade off the players too.
   assert.deepEqual(await api.getPlinkoDrops(), []);
+  // So do vinstkort claims.
+  assert.deepEqual(await api.getPrizeClaims(), []);
 });
 
 await db.removeAllChannels();

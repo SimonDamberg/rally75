@@ -17,3 +17,19 @@ export const TICKET = {
   once: 'Gäller en (1) inlösning',
   legal: 'Ingen kontant utbetalning. RallyMynt saknar värde utanför festen.',
 } as const
+
+/** Vinstkort tiers, keyed by the tier column in public.prize_cards. */
+export const PRIZE_CARD_TIER_COPY = {
+  1: { name: 'Bronskort', short: 'Brons' },
+  2: { name: 'Silverkort', short: 'Silver' },
+  3: { name: 'Guldkort', short: 'Guld' },
+} as const
+
+/** Everything printed on a vinstkort. Big and few words: it is flashed across a table, then pocketed. */
+export const PRIZE_CARD_PRINT = {
+  brand: 'Mr Green Nätcasino',
+  title: 'Vinstkort',
+  scan: 'Öppna Mr Green och tryck Skanna vinst',
+  rule: 'Visas för vinnaren. Kortet stannar hos lekledaren.',
+  legal: 'Ingen kontant utbetalning. RallyMynt saknar värde utanför festen.',
+} as const
