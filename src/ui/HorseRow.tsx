@@ -60,6 +60,21 @@ export function HorseRow({
   )
 
   const text = tv ? 'text-xl' : 'text-sm leading-snug'
+  const moneyText = pick ? (tv ? 'text-lg' : 'text-xs') : undefined
+  const money = (
+    <>
+      {pool !== undefined && (
+        <span className={cx('whitespace-nowrap text-ink-dim tabular-nums', moneyText)}>
+          {UI_LABELS.pool} {fmtRm(pool)}
+        </span>
+      )}
+      {backed && (
+        <span className={cx('font-bold whitespace-nowrap text-plate tabular-nums', moneyText)}>
+          {UI_LABELS.yours} {fmtRm(mine)}
+        </span>
+      )}
+    </>
+  )
   const body = (
     <>
       <HorseBadge horse={horse} size={tv ? (pick ? 'lg' : 'tv') : pick ? 'sm' : 'md'} />
@@ -79,23 +94,19 @@ export function HorseRow({
       </span>
       <span className="flex shrink-0 flex-col items-end gap-1">
         <OddsValue value={odds} size={tv ? (pick ? 'lg' : 'tv') : pick ? 'sm' : 'md'} label={!pick} />
-        {pool !== undefined && (
-          <span className={cx('whitespace-nowrap text-ink-dim tabular-nums', tv ? 'text-lg' : 'text-xs')}>
-            {UI_LABELS.pool} {fmtRm(pool)}
-          </span>
-        )}
-        {backed && (
-          <span className={cx('font-bold whitespace-nowrap text-plate tabular-nums', tv ? 'text-lg' : 'text-xs')}>
-            {UI_LABELS.yours} {fmtRm(mine)}
-          </span>
-        )}
+        {pick && money}
       </span>
       {!pick && (
         // Details span the whole card so the story is not squeezed beside the odds on a phone.
         <span className={cx('col-span-full flex flex-col', tv ? 'mt-3' : 'mt-2')}>
           {story && <span className={cx('text-ink-dim', text)}>{horse.story}</span>}
           <span className={cx('text-ink-dim/80 italic', story && 'mt-1', text)}>{horse.jnote}</span>
-          <span className={cx('mt-2 text-ink-dim', tv ? 'text-xl' : 'text-xs')}>{horse.note}</span>
+          {/* The pool and the guest's stake sit at the end of the form line on a card, not under the
+              odds: stacked there they made the top row taller than the name and opened a gap. */}
+          <span className={cx('mt-2 flex items-baseline justify-between gap-3', tv ? 'text-xl' : 'text-xs')}>
+            <span className="text-ink-dim">{horse.note}</span>
+            {(pool !== undefined || backed) && <span className="flex shrink-0 gap-3">{money}</span>}
+          </span>
           {children}
         </span>
       )}
