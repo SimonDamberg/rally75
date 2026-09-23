@@ -6,7 +6,6 @@
 // Kuponger already cashed in when the iPad loads are not announced.
 import { useEffect, useEffectEvent, useRef } from 'react'
 import type { CouponRow, PlayerRow } from '../../lib/types'
-import { COUPON_TIER_COPY } from '../../shared/content/coupons'
 import { ATTRACT } from '../../shared/content/ui'
 import { badgedLabel, fmtRm } from '../../shared/game/format'
 import { toast } from '../../ui'
@@ -27,8 +26,7 @@ export function useCouponToasts(
     for (const c of fresh) {
       const player = c.redeemed_by ? players.get(c.redeemed_by) : undefined
       const label = player ? badgedLabel(player) : ATTRACT.someone
-      const tier = COUPON_TIER_COPY[c.tier as 1 | 2 | 3]?.name ?? ''
-      toast({ text: ATTRACT.coupon(label, tier.toLowerCase(), fmtRm(c.amount)), ms: COUPON_TOAST_MS, tone: 'win' })
+      toast({ text: ATTRACT.coupon(label, fmtRm(c.amount)), ms: COUPON_TOAST_MS, tone: 'win' })
     }
   })
 
