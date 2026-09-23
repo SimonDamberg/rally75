@@ -36,7 +36,8 @@ export function Toaster({ size = 'md', className }: { size?: ToasterSize; classN
   return (
     <div
       aria-live="polite"
-      className={cx('pointer-events-none fixed z-40 flex flex-col items-start gap-2', STACK[size], className)}
+      className={cx(// Never on paper: a toast still up when the GM hits print lands on the sheet.
+        'pointer-events-none fixed z-40 flex flex-col items-start gap-2 print:hidden', STACK[size], className)}
     >
       {toasts.map((t) => {
         const look = cx(
