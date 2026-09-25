@@ -509,7 +509,12 @@ function MarkerCard({
     <section className="flex flex-col gap-3 rounded-2xl bg-tote/40 p-4 ring-1 ring-plate/40 ring-inset">
       <div className="flex items-center gap-4">
         {marker && (
-          <ShopImage image={marker.image} name={marker.name} className="size-20 shrink-0 rounded-xl text-4xl" />
+          // object-contain: the chip art is a cut-out on a transparent background, like the box.
+          <ShopImage
+            image={marker.image}
+            name={marker.name}
+            className="size-20 shrink-0 rounded-xl object-contain! text-4xl drop-shadow-[0_0.4rem_0.8rem_rgb(0_0_0/0.45)]"
+          />
         )}
         <div className="flex min-w-0 flex-col gap-0.5 leading-tight">
           <p className="text-xs font-black tracking-wide text-plate uppercase">{MARKER.kicker}</p>
