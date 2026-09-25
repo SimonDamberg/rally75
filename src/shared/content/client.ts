@@ -297,6 +297,8 @@ export const BOARD = {
   net: 'Netto',
   /** The top list counts the debt off, so the number needs saying out loud. */
   worth: 'Efter skuld',
+  houseTitle: 'Huset idag',
+  houseHint: 'Vinst från Rally75, Plånko och Butiken.',
 } as const
 
 export const GUEST_ERRORS = {

@@ -2,7 +2,7 @@
 // förlorare" (how far behind you are, from zero). Butik spending moves you on neither, which is
 // the whole point of it being rank neutral.
 import { useState } from 'react'
-import { useLeaderboard } from '../lib/hooks'
+import { useHouseTake, useLeaderboard } from '../lib/hooks'
 import type { PlayerRow } from '../lib/types'
 import { BOARD } from '../shared/content/client'
 import { UI_LABELS } from '../shared/content/ui'
@@ -19,6 +19,7 @@ const VIEWS: readonly View[] = ['top', 'losers']
 export function Leaderboard() {
   const { identity } = useGuest()
   const { data, error } = useLeaderboard()
+  const { data: houseTake } = useHouseTake()
   const [view, setView] = useState<View>('top')
 
   const list = data ? data[view] : []
@@ -27,6 +28,14 @@ export function Leaderboard() {
 
   return (
     <div className="flex flex-1 flex-col gap-3 p-3">
+      <div className="flex items-center justify-between gap-3 rounded-xl bg-sleaze/15 px-4 py-2.5 ring-1 ring-sleaze ring-inset">
+        <span className="flex flex-col leading-tight">
+          <span className="font-display text-xs font-black tracking-[0.14em] text-sleaze uppercase">{BOARD.houseTitle}</span>
+          <span className="text-[0.65rem] text-ink-dim">{BOARD.houseHint}</span>
+        </span>
+        <span className="shrink-0 font-display text-xl font-black tabular-nums text-plate">{fmtRm(houseTake ?? 0)}</span>
+      </div>
+
       <div className="grid grid-cols-2 gap-1 rounded-xl bg-night-deep p-1 ring-1 ring-white/10 ring-inset">
         {VIEWS.map((v) => (
           <button

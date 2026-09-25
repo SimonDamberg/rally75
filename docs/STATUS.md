@@ -1616,3 +1616,29 @@ and the RM lands. The card is never used up. A guest can claim at most once ever
 - To share it, `OfferPopup` moved from `src/client` to `src/ui`, and the restarting countdown
   (`countdown`, `fmtClock`, `COUNTDOWN_S`, `EXTENDED_MS`) from `src/client/offers.ts` to
   `src/shared/game/countdown.ts`, with its tests.
+
+### Huset idag on Topplista (2026-09-25)
+
+- A "HUSET IDAG" banner sits above the Toppen/Största förlorare toggle on the guest Topplista tab:
+  real RM the house has taken tonight from Rally75, Plånko and Butiken, net of payouts. Excludes the
+  welcome bonus and kuponger by construction, since neither ever touches `bets`, `plinko_drops` or
+  `purchases`: kupong RM is minted straight onto `players.balance` and the bonus never touches a
+  table at all.
+- New RPC `house_take()` (migration `20260925000025_house_take.sql`), aggregated server-side like
+  `night_paid` to dodge PostgREST's 1000-row cap. Formula: `sum(stake - payout)` over settled bets
+  (`status <> 'open'`, so open bets stay in limbo) plus the same over `plinko_drops`, plus
+  `sum(price)` over `purchases` (refunds already delete their row, so `gm_refund_purchase` needs no
+  change). Everything it sums cascades off `gm_reset_night`'s player/race delete, so it resets to 0
+  with the rest of the board.
+- `useHouseTake` (`src/lib/hooks.ts`) refetches on `races`, `plinko_drops` and `purchases` changes,
+  same pattern as `useNightPaid`.
+- Smoke: a new step sums bets/drops/purchases in TS and checks it against `house_take()`, placed
+  after the plånko step so all three sources have data; "reset night" now also asserts it is 0
+  after. Ran the full local smoke suite (`npm run smoke -- --reset`) against a fresh
+  `supabase db reset`, all steps pass.
+- Naming collision while working: the local DB already had `20260925000024_max_odds_cap.sql`
+  applied (from `d7b84c3`, committed to `main` after this session started); this migration is
+  `...025` to avoid the duplicate `schema_migrations` version.
+
+**Manual step:** `npx supabase db push` (migrations 18 to 25 if this is the first push since the
+offer preview stage).
