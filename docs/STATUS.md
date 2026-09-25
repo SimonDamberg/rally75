@@ -1557,3 +1557,20 @@ and the RM lands. The card is never used up. A guest can claim at most once ever
    Set the image field to the file name.
 3. `npx supabase db push` to apply the migration to hosted.
 
+
+### Party numbers (2026-09-25, Simon's calls)
+
+- Welcome bonus **100 RM** (was 1 000) and Snabblån **100 RM** (was 500; the debt stays 1 337).
+  Öl and Cider **500 RM**, Mystery Box **800 RM**. Migration `20260925000019_bonus_and_prices.sql`
+  replaces `create_player` and `take_loan` and sets the prices. Existing players keep their balance
+  and debt.
+- The copy follows `WELCOME_BONUS` / `LOAN_AMOUNT` everywhere (landing, bonus reveal, iPad attract
+  and join fanfare, Snabblån offer); the landing's "Få 100 RM" line is tied to it by a test.
+- `economy.test.ts` now checks the newest migration that defines `create_player` / `take_loan`
+  (`latestDefining`), not the original files.
+- Smoke players are topped up to 1 000 RM by the GM right after the bonus is checked, since 100 RM
+  cannot cover the stakes and prices the steps exercise.
+- Worth knowing: a fresh guest cannot afford a beer or the box without winning first, which is the
+  point.
+
+**Manual step:** `npx supabase db push` (applies migrations 18 and 19).

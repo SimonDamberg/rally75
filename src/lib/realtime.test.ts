@@ -68,7 +68,7 @@ describe('leaderboard sorting', () => {
 
   it('does not treat the untouched welcome bonus as winnings', () => {
     // Sat on the bonus all night, so break even and behind anyone actually up.
-    const players = [p('Vinnare', WELCOME_BONUS + 300), p('Soffliggare', WELCOME_BONUS), p('Förlorare', 400)]
+    const players = [p('Vinnare', WELCOME_BONUS + 300), p('Soffliggare', WELCOME_BONUS), p('Förlorare', WELCOME_BONUS / 2)]
     expect(nightNet(players[1])).toBe(0)
     expect(byLosses(players).map((x) => x.name)).toEqual(['Förlorare', 'Soffliggare', 'Vinnare'])
     expect(byNetWorth(players).map((x) => x.name)).toEqual(['Vinnare', 'Soffliggare', 'Förlorare'])

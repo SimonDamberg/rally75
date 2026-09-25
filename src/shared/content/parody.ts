@@ -241,7 +241,7 @@ export const LANDING = {
     items: [
       ["Ange ett namn", "Vilket som helst. Vi kontrollerar ingenting."],
       // No-break space, as fmtRm writes it; a test ties this to WELCOME_BONUS.
-      ["Få 1\u00a0000\u00a0RM", "Insatt direkt, utan en enda fråga om varför."],
+      ["Få 100\u00a0RM", "Insatt direkt, utan en enda fråga om varför."],
       ["Förlora dem i lugn och ro", "Eller snabbt. Vi dömer ingen."],
     ] as readonly (readonly [string, string])[],
   },

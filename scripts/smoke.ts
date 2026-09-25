@@ -132,8 +132,17 @@ function newCard(): RaceCardInput {
   };
 }
 
+/**
+ * What every smoke player holds after sign-up. The real welcome bonus (100 RM) cannot cover the
+ * stakes and prices the steps exercise, so each new player gets it checked and then topped up.
+ */
+const START = 1000;
+
 async function newPlayer(name: string): Promise<Identity> {
   const p = await api.createPlayer(name);
+  const player = (await api.getPlayer(p.id))!;
+  assert.equal(player.balance, WELCOME_BONUS, "a new player starts on the welcome bonus");
+  await gm.adjustBalance(pw!, p.id, START - WELCOME_BONUS);
   return { playerId: p.id, token: p.token };
 }
 
@@ -205,7 +214,7 @@ await step("create players", async () => {
   const p = await api.getPlayer(anna.playerId);
   assert.ok(p);
   assert.equal(p.name, "Smoke Anna");
-  assert.equal(p.balance, WELCOME_BONUS);
+  assert.equal(p.balance, START);
   assert.ok(p.tag >= 10 && p.tag <= 99);
   await expectCode(api.createPlayer("   "), "name_empty");
   await expectCode(api.createPlayer("x".repeat(25)), "name_too_long");
@@ -220,7 +229,7 @@ await step("RLS: anon cannot write tables or read secrets", async () => {
   await db.from("players").delete().eq("id", anna.playerId);
   assert.equal(
     await balanceOf(anna),
-    WELCOME_BONUS,
+    START,
     "balance unchanged after update/delete attempts",
   );
   const bet = await db.from("bets").insert({
@@ -415,9 +424,9 @@ await step("race lifecycle with ruling none", async () => {
     "player_not_found",
   );
 
-  assert.equal(await balanceOf(anna), WELCOME_BONUS - 110);
-  assert.equal(await balanceOf(bo), WELCOME_BONUS - 275);
-  assert.equal(await balanceOf(cia), WELCOME_BONUS - 50);
+  assert.equal(await balanceOf(anna), START - 110);
+  assert.equal(await balanceOf(bo), START - 275);
+  assert.equal(await balanceOf(cia), START - 50);
   await waitFor("5 realtime bet inserts", () =>
     placed.every((b) => seen.has(b.id)),
   );
@@ -463,13 +472,13 @@ await step("race lifecycle with ruling none", async () => {
   const [a1, b1, , a3] = placed;
   assert.equal(
     await balanceOf(anna),
-    WELCOME_BONUS - 110 + payoutFor(100, a1.odds),
+    START - 110 + payoutFor(100, a1.odds),
   );
   assert.equal(
     await balanceOf(bo),
-    WELCOME_BONUS - 275 + payoutFor(250, b1.odds),
+    START - 275 + payoutFor(250, b1.odds),
   );
-  assert.equal(await balanceOf(cia), WELCOME_BONUS - 50);
+  assert.equal(await balanceOf(cia), START - 50);
   const bets = await api.getRaceBets(race.id);
   for (const b of bets) {
     if (b.horse_n === h1) {
@@ -655,7 +664,7 @@ await step("Snabblån and balance adjustments", async () => {
   await expectCode(api.takeLoan(cia), "loan_not_allowed");
   // One below it is broke enough (a fresh player, so Cia's numbers stay as later steps expect).
   const nastan = await newPlayer("Smoke Nästan");
-  await gm.adjustBalance(pw, nastan.playerId, LOAN_THRESHOLD - 1 - WELCOME_BONUS);
+  await gm.adjustBalance(pw, nastan.playerId, LOAN_THRESHOLD - 1 - START);
   const nearly = await api.takeLoan(nastan);
   assert.equal(nearly.balance, LOAN_THRESHOLD - 1 + LOAN_AMOUNT);
   const balance = await balanceOf(cia);
@@ -825,7 +834,7 @@ await step("butiken", async () => {
   );
 
   // Too poor: a fresh player cannot reach a price above the welcome bonus.
-  const pricey = await gm.upsertShopItem(pw, { ...beer, stock: 5, price: WELCOME_BONUS + 1 });
+  const pricey = await gm.upsertShopItem(pw, { ...beer, stock: 5, price: START + 1 });
   await expectCode(api.buyItem(fattig, pricey.id), "insufficient_balance");
 
   // Ångra puts the RM, the shelf and the receipt back where they were.
@@ -1027,7 +1036,7 @@ await step("kuponger", async () => {
   await expectCode(api.redeemCoupon(tjuv, typed), "coupon_used");
   assert.equal(
     (await api.getPlayer(tjuv.playerId))!.balance,
-    WELCOME_BONUS,
+    START,
     "the second scanner gets nothing",
   );
 
@@ -1104,7 +1113,7 @@ await step("vinstkort", async () => {
   assert.equal(await balanceOf(vinnare), after.balance);
   // The cooldown is per guest: the next winner scans the same card straight away.
   await api.claimPrizeCard(tvaan, made.code);
-  assert.equal(await balanceOf(tvaan), WELCOME_BONUS + tier.amount);
+  assert.equal(await balanceOf(tvaan), START + tier.amount);
 
   // Reusable: after the cooldown, the same guest wins again off the same card.
   await sleep(PRIZE_CARD_COOLDOWN_S * 1000 + 300);
@@ -1123,11 +1132,11 @@ await step("vinstkort", async () => {
   await sleep(PRIZE_CARD_COOLDOWN_S * 1000 + 300);
   await expectCode(api.claimPrizeCard(tvaan, made.code), "card_not_found");
   const viaNew = await api.claimPrizeCard(tvaan, rotated.code);
-  assert.equal(await balanceOf(tvaan), WELCOME_BONUS + 2 * tier.amount);
+  assert.equal(await balanceOf(tvaan), START + 2 * tier.amount);
 
   // Ångra takes the RM back and the claim leaves the feed.
   await gm.voidPrizeClaim(pw!, viaNew.id);
-  assert.equal(await balanceOf(tvaan), WELCOME_BONUS + tier.amount);
+  assert.equal(await balanceOf(tvaan), START + tier.amount);
   assert.ok(!(await api.getPrizeClaims()).some((c) => c.id === viaNew.id));
   await expectCode(gm.voidPrizeClaim(pw!, viaNew.id), "prize_claim_not_found");
 
@@ -1167,7 +1176,7 @@ await step("plånko", async () => {
     staked += stake;
     paid += row.payout;
   }
-  assert.equal(await balanceOf(kula), WELCOME_BONUS - staked + paid, "balance moved by stakes and payouts only");
+  assert.equal(await balanceOf(kula), START - staked + paid, "balance moved by stakes and payouts only");
   const mine = await api.getPlayerPlinkoDrops(kula.playerId);
   assert.equal(mine.reduce((sum, d) => sum + d.payout, 0), paid);
   assert.ok((await api.getPlinkoDrops()).length >= mine.length);

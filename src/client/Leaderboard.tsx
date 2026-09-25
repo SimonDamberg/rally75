@@ -63,7 +63,7 @@ export function Leaderboard() {
 }
 
 function Row({ player, rank, view, mine }: { player: PlayerRow; rank: number; view: View; mine: boolean }) {
-  // Counted from zero: the welcome bonus is not a win, so break even shows as 0, not 1 000 RM.
+  // Counted from zero: the welcome bonus is not a win, so break even shows as 0, not 100 RM.
   const net = nightNet(player)
   // The top list counts the debt against you, so a pile of Snabblån cannot buy a place up there.
   const worth = netWorth(player)
