@@ -1607,3 +1607,12 @@ and the RM lands. The card is never used up. A guest can claim at most once ever
   migration `20260925000023_box_image.sql`.
 
 **Manual step:** `npx supabase db push` (migrations 18 to 23).
+
+### GM offer preview (2026-09-25)
+
+- The control phone's Spelare tab ends with **Förhandsvisa erbjudanden**: one button per parody offer
+  plus "Slumpa ett". It opens the real `OfferPopup` on that phone only (nothing reaches the guests),
+  in Mr Green colours so it looks as it does on a guest's phone.
+- To share it, `OfferPopup` moved from `src/client` to `src/ui`, and the restarting countdown
+  (`countdown`, `fmtClock`, `COUNTDOWN_S`, `EXTENDED_MS`) from `src/client/offers.ts` to
+  `src/shared/game/countdown.ts`, with its tests.

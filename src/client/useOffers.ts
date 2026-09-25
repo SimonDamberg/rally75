@@ -1,16 +1,10 @@
 // Pop-up offer scheduler: one offer at a time, a cooldown after each, and never while another
 // pop-up or a bet in progress needs the screen.
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { OFFERS, type OfferCopy } from '../shared/content/parody'
+import { OFFERS } from '../shared/content/parody'
 import { createRng, randomSeed } from '../shared/game/rng'
+import type { ShownOffer } from '../ui'
 import { nextOfferDelay, OFFER_RESUME_MS, pickOffer } from './offers'
-
-export interface ShownOffer {
-  offer: OfferCopy
-  openedAt: number
-  /** Seeds the restarting countdown. */
-  seed: number
-}
 
 export interface OffersState {
   current: ShownOffer | null

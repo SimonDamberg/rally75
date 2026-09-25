@@ -1,22 +1,36 @@
 // A pop-up offer: sleazy headline, a countdown that restarts when it runs out, one tap to dismiss.
+// Lives in src/ui because two apps draw it: the guest shell (useOffers schedules it) and the GM
+// control phone's preview, which has to show exactly what the guests see.
 import { useEffect, useState } from 'react'
-import { OFFER_UI, STODLINJE } from '../shared/content/parody'
-import { Button, cx, Modal, toast } from '../ui'
-import { countdown, EXTENDED_MS, fmtClock } from './offers'
-import type { ShownOffer } from './useOffers'
+import { OFFER_UI, STODLINJE, type OfferCopy } from '../shared/content/parody'
+import { countdown, EXTENDED_MS, fmtClock } from '../shared/game/countdown'
+import { Button } from './Button'
+import { cx } from './cx'
+import { Modal } from './Modal'
+import { toast } from './toast'
+
+export interface ShownOffer {
+  offer: OfferCopy
+  openedAt: number
+  /** Seeds the restarting countdown. */
+  seed: number
+}
 
 export interface OfferPopupProps {
   shown: ShownOffer | null
   onClose: () => void
   /** For offers whose CTA sends the guest to Spela. */
   onPlay: () => void
+  /** The GM's preview: the CTA only closes, so trying the Stödlinje offer does not ring Axel. */
+  preview?: boolean
 }
 
-export function OfferPopup({ shown, onClose, onPlay }: OfferPopupProps) {
+export function OfferPopup({ shown, onClose, onPlay, preview = false }: OfferPopupProps) {
   const offer = shown?.offer
   const accept = () => {
     if (!offer) return
     onClose()
+    if (preview) return
     if (offer.call) window.location.href = `tel:${STODLINJE.number}`
     else if (offer.accepted === null) onPlay()
     else toast({ text: offer.accepted, tone: 'win' })

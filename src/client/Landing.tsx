@@ -8,7 +8,7 @@ import { fmtRm } from '../shared/game/format'
 import { createRng, randomSeed } from '../shared/game/rng'
 import { BonusBar, Button, cx, Logo, MrGreenLogo, SmallPrint, StodlinjeNote } from '../ui'
 import { CountUp } from './CountUp'
-import { countdown, EXTENDED_MS, fmtClock } from './offers'
+import { countdown, EXTENDED_MS, fmtClock } from '../shared/game/countdown'
 import { fakeWinText } from './proof'
 import { SocialStrip } from './SocialStrip'
 

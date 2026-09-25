@@ -161,6 +161,13 @@ export const GM_PLAYERS = {
   resetDone: "Dagen är nollställd.",
 } as const;
 
+/** The control phone's preview of the guests' pop-up offers (nothing is sent to the guests). */
+export const GM_OFFERS = {
+  title: "Förhandsvisa erbjudanden",
+  hint: "Bara på den här telefonen. Tryck på ett erbjudande för att se det som gästerna ser det.",
+  random: "Slumpa ett",
+} as const;
+
 export const GM_SHOP = {
   title: "Butik",
   hint: "Svarta marknaden. Priser och lager gäller direkt på alla telefoner.",

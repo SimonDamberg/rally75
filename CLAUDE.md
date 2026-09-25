@@ -221,9 +221,12 @@ Mr Green's own arcade game, the second product tab (`src/client/Plinko.tsx` + `P
 
 ## Parody layer (Stage 6)
 
-- Pop-up offers: `useOffers(blocked)` + `OfferPopup` in `ClientShell`; timing and the restarting
-  countdown are pure in `src/client/offers.ts`. Offers are blocked by `blocked`, an open bet slip,
-  being broke and the cookie banner. Offer copy is `OFFERS` in `src/shared/content/parody.ts`.
+- Pop-up offers: `useOffers(blocked)` + `OfferPopup` (in `src/ui`, shared with the GM preview) in
+  `ClientShell`; timing is pure in `src/client/offers.ts`, the restarting countdown in
+  `src/shared/game/countdown.ts`. The control phone's Spelare tab has "Förhandsvisa erbjudanden"
+  (`OfferPreview`): any offer opens on that phone only, in `theme-mrgreen`, and nothing is sent
+  (`OfferPopup preview`: the CTA only closes, so the Stödlinje offer does not ring Axel). Offers are
+  blocked by `blocked`, an open bet slip, being broke and the cookie banner. Offer copy is `OFFERS` in `src/shared/content/parody.ts`.
   Offers never change the balance.
   `pickOffer` draws by `OfferCopy.weight`; the `stodlinje` offer (Axel as the Stödlinje, photo
   `public/offers/stodlinje.jpg`, swap the file for a new picture) has weight 4, so it is about every

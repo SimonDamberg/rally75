@@ -12,6 +12,7 @@ import { BetsTab } from './BetsTab'
 import { KuskarTab } from './KuskarTab'
 import { PlayersTab } from './PlayersTab'
 import { RaceTab } from './RaceTab'
+import { OfferPreview } from './OfferPreview'
 import { ShopTab } from './ShopTab'
 
 type Tab = 'race' | 'bets' | 'players' | 'shop' | 'kuskar'
@@ -59,13 +60,16 @@ export function ControlShell() {
         )}
         {tab === 'bets' && <BetsTab race={race} players={players} plinko={plinko} />}
         {tab === 'players' && (
-          <PlayersTab
-            players={board?.players}
-            onReset={() => {
-              reloadPlayers()
-              reloadRace()
-            }}
-          />
+          <>
+            <PlayersTab
+              players={board?.players}
+              onReset={() => {
+                reloadPlayers()
+                reloadRace()
+              }}
+            />
+            <OfferPreview />
+          </>
         )}
         {tab === 'shop' && <ShopTab items={shopItems} prizes={boxPrizes} purchases={purchases} players={board?.players} />}
         {tab === 'kuskar' && <KuskarTab kusks={kusks} onChange={reloadKusks} />}
