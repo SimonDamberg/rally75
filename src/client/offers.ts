@@ -20,10 +20,16 @@ export function nextOfferDelay(rng: Rng, first: boolean): number {
   return lo + rng.int(hi - lo + 1)
 }
 
-/** A random offer, never the one shown last. */
+/** A random offer by `weight` (default 1), never the one shown last. */
 export function pickOffer(rng: Rng, offers: readonly OfferCopy[], lastId: string | null): OfferCopy {
   const pool = offers.length > 1 ? offers.filter((o) => o.id !== lastId) : offers
-  return rng.pick(pool)
+  const total = pool.reduce((sum, o) => sum + (o.weight ?? 1), 0)
+  let r = rng.float(0, total)
+  for (const o of pool) {
+    r -= o.weight ?? 1
+    if (r < 0) return o
+  }
+  return pool[pool.length - 1]
 }
 
 function cycleSeconds(seed: number, cycle: number): number {

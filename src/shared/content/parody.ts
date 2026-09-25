@@ -56,6 +56,16 @@ export interface OfferCopy {
   /** Toast after accepting. null sends the guest to Spela instead. */
   accepted: string | null;
   smallPrint: string;
+  /** Relative draw weight, default 1. The Stödlinje interruption is hardcoded to come up more. */
+  weight?: number;
+  /** Photo under public/, shown above the text. */
+  image?: string;
+  /** The CTA rings Stödlinjen instead of the toast or Spela. */
+  call?: boolean;
+  /** Overrides OFFER_UI.decline. */
+  decline?: string;
+  /** Overrides OFFER_UI.expires. */
+  expires?: string;
 }
 
 export const OFFERS: readonly OfferCopy[] = [
@@ -114,6 +124,22 @@ export const OFFERS: readonly OfferCopy[] = [
     cta: "Spela på spiken",
     accepted: null,
     smallPrint: "Lena har inte vunnit sedan 1994.",
+  },
+  {
+    // Axel (the kusk) in his Stödlinje costume. Comes up about every other offer on purpose.
+    id: "stodlinje",
+    kicker: "Viktigt meddelande från Stödlinjen",
+    title: "STOP! Är du spelberoende?",
+    text: "Axel har bytt kuskdressen mot headset och sitter redo vid telefonen. Han dömer ingen. Han undrar bara vilken häst du tog.",
+    cta: "Ring Stödlinjen",
+    accepted: null,
+    smallPrint:
+      "Samtalet är gratis. Axel är det inte. Stödlinjen bemannas av en kusk med egna spel på kvällen.",
+    weight: 4,
+    image: "/offers/stodlinje.jpg",
+    call: true,
+    decline: "Nej, jag har full kontroll",
+    expires: "Hjälpen går ut om",
   },
 ];
 

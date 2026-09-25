@@ -225,6 +225,9 @@ Mr Green's own arcade game, the second product tab (`src/client/Plinko.tsx` + `P
   countdown are pure in `src/client/offers.ts`. Offers are blocked by `blocked`, an open bet slip,
   being broke and the cookie banner. Offer copy is `OFFERS` in `src/shared/content/parody.ts`.
   Offers never change the balance.
+  `pickOffer` draws by `OfferCopy.weight`; the `stodlinje` offer (Axel as the Stödlinje, photo
+  `public/offers/stodlinje.jpg`, swap the file for a new picture) has weight 4, so it is about every
+  third pop-up, and its CTA (`call`) rings `STODLINJE.number`.
 - Social proof: `useSocialProof` (fake win toasts, real bet toasts from `raceBets` in `useGuest()`),
   `SocialStrip` (viewer count, "Utbetalt idag"). Pure helpers in `src/client/proof.ts` and
   `src/shared/game/hype.ts`. "Utbetalt idag" is `nightPaidDisplay(now, useNightPaid())` on both apps.
