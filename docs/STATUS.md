@@ -1586,3 +1586,11 @@ and the RM lands. The card is never used up. A guest can claim at most once ever
 - There is still no `ol.jpg`, `cider.jpg` or `box.jpg`: those show the gift tile until added.
 
 **Manual step:** `npx supabase db push` (migrations 18, 19 and 20).
+
+### Mystery Box, second batch (2026-09-25)
+
+- Migration `20260925000022_box_prizes_2.sql`: Mikron, Xbox 360, Laptop (röd), Gamingtangentbord
+  (rosa) and Piratskeppet (guld, with `skepp.mp4` looping in the reveal like the knife). The box now
+  holds 19 prizes, 22 pieces: blå 6, lila 2, rosa 4, röd 5, guld 5 (four knives and the ship).
+
+**Manual step:** `npx supabase db push` (migrations 18 to 22).
