@@ -20,8 +20,9 @@ function makeCoins(count: number, spread: number): Coin[] {
   }))
 }
 
-export function CoinBurst({ big }: { big: boolean }) {
-  const [coins] = useState(() => (big ? makeCoins(48, 3.5) : makeCoins(22, 2.2)))
+/** `loop` keeps it raining until unmounted (the marker claim screen), instead of one burst. */
+export function CoinBurst({ big, loop = false }: { big: boolean; loop?: boolean }) {
+  const [coins] = useState(() => (loop ? makeCoins(70, 2.4) : big ? makeCoins(48, 3.5) : makeCoins(22, 2.2)))
 
   useEffect(() => {
     if ('vibrate' in navigator) navigator.vibrate(big ? [120, 60, 120, 60, 320] : [80, 40, 160])
@@ -41,6 +42,7 @@ export function CoinBurst({ big }: { big: boolean }) {
               fontSize: `${c.size * 0.42}rem`,
               animationDelay: `${c.delay}s`,
               animationDuration: `${c.duration}s`,
+              animationIterationCount: loop ? 'infinite' : undefined,
               '--coin-spin': `${c.spin}deg`,
             } as CSSProperties
           }

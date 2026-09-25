@@ -1642,3 +1642,30 @@ and the RM lands. The card is never used up. A guest can claim at most once ever
 
 **Manual step:** `npx supabase db push` (migrations 18 to 25 if this is the first push since the
 offer preview stage).
+
+### Marker for the physical games (2026-09-25)
+
+- Butik sells **Marker** (chips for triss, roulette and the enarmade banditen) at 10 RM each, any
+  quantity up to 100 in one go. A `shop_items` row of the new `kind = 'marker'` (seeded, sort 25,
+  image `marker.png`), so the GM edits price and Pausa on the control phone like the Öl.
+- Migration `20260925000026_markers.sql`: `purchases.qty` (default 1) and `purchases.claimed_at`;
+  `buy_markers(player, token, item, qty)` (price captured server-side, `price` on the receipt is the
+  total, rank neutral like every Butik purchase); `claim_markers(player, token)` claims every
+  unclaimed marker receipt of the guest at once and returns `{count, claimed_at}`; `buy_item` refuses
+  a marker; `gm_upsert_shop_item` accepts the new kind. New error codes `bad_qty`, `not_markers`,
+  `use_buy_markers`, `nothing_to_claim`.
+- Guest: `MarkerCard` under Baren (stepper, 5/10/20/Max, "Köp 7 marker (70 RM)", clear "gå till
+  Mr Green" instructions). With unclaimed marker, a big "7 marker att hämta" box with **Hämta**,
+  which asks "Står du framför Mr Green?" first. Then `MarkerClaim`: full-screen, endless RM rain
+  (`CoinBurst loop`), hue-cycling background, throbbing count, the guest's name and a clock ticking
+  in seconds. "Mina köp" marks each marker receipt Hämtad hh:mm / Ej hämtad.
+- GM: shelf label "Marker"; "Sålt idag" shows "Marker × 7" plus a Hämtad / Ej hämtad chip; Ångra
+  refunds as before (claimed or not). The iPad toasts "X köpte 7 marker".
+- With reduced motion switched on, the global rule stops the rain after one pass; the ticking clock
+  still proves the screen is live.
+- Verified: build, test, lint; the RPCs exercised against the local DB (buy 3 + 4, balance and spent,
+  `bad_qty`, `insufficient_balance`, `use_buy_markers`, claim 7, second claim `nothing_to_claim`).
+  New smoke step "marker" written but not run (no local smoke credentials set).
+
+**Manual steps:** `npx supabase db push`; drop a picture at `public/butik/marker.png` (until then the
+gift tile shows); set the price on the control phone if 10 RM is not it.

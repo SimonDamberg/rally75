@@ -15,6 +15,7 @@ import {
   type Identity,
   type KuskInputRow,
   type KuskRow,
+  type MarkerClaim,
   type NewPlayer,
   type PlayerRow,
   type PlinkoDropRow,
@@ -229,6 +230,21 @@ export function createApi(db: SupabaseClient) {
     /** Spends RM in the Butik. The server captures the price, so a stale catalogue cannot cheat. */
     buyItem(identity: Identity, itemId: string): Promise<PurchaseRow> {
       return rpc('buy_item', { p_player_id: identity.playerId, p_token: identity.token, p_item_id: itemId })
+    },
+
+    /** Buys `qty` marker at once. The server captures the unit price and writes one receipt. */
+    buyMarkers(identity: Identity, itemId: string, qty: number): Promise<PurchaseRow> {
+      return rpc('buy_markers', {
+        p_player_id: identity.playerId,
+        p_token: identity.token,
+        p_item_id: itemId,
+        p_qty: Math.floor(qty),
+      })
+    },
+
+    /** Claims every unclaimed marker at once. Only ever pressed in front of Mr Green. */
+    claimMarkers(identity: Identity): Promise<MarkerClaim> {
+      return rpc('claim_markers', { p_player_id: identity.playerId, p_token: identity.token })
     },
 
     /**

@@ -76,8 +76,11 @@ export interface KuskRow {
 /** What an item grants beyond the receipt. Never anything that touches the game. */
 export type ShopEffect = "none" | "title" | "badge";
 
-/** 'box' is the Mystery Box: opened with open_box, never bought with buy_item. */
-export type ShopKind = "physical" | "digital" | "box";
+/**
+ * 'box' is the Mystery Box: opened with open_box, never bought with buy_item. 'marker' is the chips
+ * for the physical games: bought by the handful with buy_markers, handed over by Mr Green.
+ */
+export type ShopKind = "physical" | "digital" | "box" | "marker";
 
 export interface ShopItemRow {
   id: string;
@@ -132,12 +135,23 @@ export interface PurchaseRow {
   item_id: string | null;
   item_name: string;
   kind: ShopKind;
+  /** The total paid (price per unit times qty). */
   price: number;
+  /** How many were bought at once; always 1 except for marker. */
+  qty: number;
+  /** Marker only: when the guest claimed them in front of Mr Green; null until then. */
+  claimed_at: string | null;
   /** Set on a Mystery Box opening: what came out of the box (snapshots, like item_name). */
   prize_id: string | null;
   prize_name: string | null;
   prize_rarity: BoxRarity | null;
   created_at: string;
+}
+
+/** What claim_markers hands back: how many Mr Green counts out, and when. */
+export interface MarkerClaim {
+  count: number;
+  claimed_at: string;
 }
 
 /** One Plånko ball: drawn and paid by plinko_drop in one transaction. */

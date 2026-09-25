@@ -270,6 +270,14 @@ track (`ffmpeg -an ... -c:v libx264 -movflags +faststart`), iPhone HEVC does not
   Butik tab has the shelf, the box contents (edit, +1, Slut, chance per prize), the live "Sålt idag"
   feed and Ångra (`gm_refund_purchase`, which also puts a won prize back in the box).
   `gm_reset_night` keeps the catalogue and the prizes (like kuskar) and drops the receipts.
+- **Marker** (chips for triss, roulette and the enarmade banditen) are the `kind = 'marker'` item,
+  sold by the handful: `buy_markers(qty)` writes one receipt with `purchases.qty` and `price` = the
+  total (rank neutral, like the Öl; `MARKER_MAX_QTY` mirrored in `*_markers.sql`); `buy_item` refuses
+  it (`use_buy_markers`). The guest presses Hämta **in front of Mr Green** (a person at the party):
+  `claim_markers` stamps `purchases.claimed_at` on every unclaimed marker receipt at once and returns
+  the count, and `MarkerClaim` shows it under endless RM rain with a ticking clock (proof it is live,
+  not a screenshot). `claimed_at` is the authority; a second press gets `nothing_to_claim`. The GM
+  feed shows Hämtad / Ej hämtad. Copy `MARKER` in `client.ts`; pure helpers in `src/client/buy.ts`.
 - Guest copy is `BUTIK` in `client.ts`, GM copy `GM_SHOP` in `gm.ts`, display copy `ATTRACT`,
   tier names `RARITY_LABELS` in `ui.ts`. Pure logic: `src/client/buy.ts`, `src/shared/game/box.ts`,
   `parsePrice`/`parseStock` in `src/gm/parse.ts`.

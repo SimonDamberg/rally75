@@ -88,7 +88,7 @@ function ItemRow({ item, prizes, onEdit }: { item: ShopItemRow; prizes: readonly
       </div>
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-lg text-ink-dim">
         <span className="rounded-full bg-void px-3 py-0.5 text-base font-bold text-ink uppercase">
-          {isBox ? GM_SHOP.box : item.kind === 'digital' ? GM_SHOP.digital : GM_SHOP.bar}
+          {isBox ? GM_SHOP.box : item.kind === 'marker' ? GM_SHOP.marker : item.kind === 'digital' ? GM_SHOP.digital : GM_SHOP.bar}
         </span>
         {!item.active && (
           <span className="rounded-full bg-void px-3 py-0.5 text-base font-bold text-ink uppercase">
@@ -161,8 +161,20 @@ function SoldFeed({
           <li key={p.id} className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl bg-tote/50 px-4 py-3 ring-1 ring-white/10 ring-inset">
             <div className="flex min-w-0 flex-1 flex-col leading-tight">
               <span className="flex min-w-0 items-center gap-2">
-                <span className="truncate font-extrabold">{p.prize_name ? GM_SHOP.fromBox(p.prize_name) : p.item_name}</span>
+                <span className="truncate font-extrabold">
+                  {p.prize_name ? GM_SHOP.fromBox(p.prize_name) : p.kind === 'marker' ? GM_SHOP.markerReceipt(p.qty) : p.item_name}
+                </span>
                 {p.prize_rarity && <RarityChip rarity={p.prize_rarity} className="shrink-0" />}
+                {p.kind === 'marker' && (
+                  <span
+                    className={cx(
+                      'shrink-0 rounded-full px-2 py-0.5 text-sm font-black uppercase',
+                      p.claimed_at ? 'bg-void text-ink' : 'bg-plate text-night',
+                    )}
+                  >
+                    {p.claimed_at ? GM_SHOP.markerClaimed : GM_SHOP.markerUnclaimed}
+                  </span>
+                )}
               </span>
               <span className="truncate text-xl text-ink-dim">{label(p.player_id)}</span>
             </div>

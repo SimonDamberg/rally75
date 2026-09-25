@@ -54,6 +54,9 @@ export const PRIZE_CARD_TIERS = [
 
 export type PrizeCardTier = (typeof PRIZE_CARD_TIERS)[number]['tier']
 
+/** Most marker (chips for the physical games) one buy_markers call may take. Mirrored in *_markers.sql. */
+export const MARKER_MAX_QTY = 100
+
 /** Seconds a guest waits between two vinstkort claims (any card). Stops a double scan of one flash. */
 export const PRIZE_CARD_COOLDOWN_S = 5
 

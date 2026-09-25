@@ -30,6 +30,7 @@ import {
   COUPON_MAX_BATCH,
   COUPON_TIERS,
   LOAN_AMOUNT,
+  MARKER_MAX_QTY,
   LOAN_DEBT,
   LOAN_THRESHOLD,
   MIN_STAKE,
@@ -924,6 +925,47 @@ await step("mystery box", async () => {
   } finally {
     for (const p of seeded) await gm.upsertBoxPrize(pw, p);
   }
+});
+
+await step("marker", async () => {
+  const guest = await newPlayer("Smoke Markerköpare");
+  const shelf = await api.getShopItems();
+  const marker = shelf.find((i) => i.kind === "marker" && i.active);
+  assert.ok(marker, "the seed has marker on the shelf");
+  const bar = shelf.find((i) => i.kind === "physical")!;
+
+  await expectCode(api.buyItem(guest, marker.id), "use_buy_markers");
+  await expectCode(api.buyMarkers(guest, bar.id, 1), "not_markers");
+  await expectCode(api.buyMarkers(guest, marker.id, 0), "bad_qty");
+  await expectCode(api.buyMarkers(guest, marker.id, MARKER_MAX_QTY + 1), "bad_qty");
+  await expectCode(api.claimMarkers(guest), "nothing_to_claim");
+
+  const before = (await api.getPlayer(guest.playerId))!;
+  const three = await api.buyMarkers(guest, marker.id, 3);
+  const four = await api.buyMarkers(guest, marker.id, 4);
+  assert.equal(three.kind, "marker");
+  assert.equal(three.qty, 3);
+  assert.equal(three.price, marker.price * 3, "the receipt carries the total");
+  assert.equal(three.claimed_at, null);
+  const after = (await api.getPlayer(guest.playerId))!;
+  assert.equal(after.balance, before.balance - marker.price * 7);
+  assert.equal(after.spent, before.spent + marker.price * 7);
+  assert.equal(netWorth(after), netWorth(before), "marker are rank neutral");
+  if (marker.price > 0) {
+    await expectCode(api.buyMarkers(guest, marker.id, Math.floor(after.balance / marker.price) + 1), "insufficient_balance");
+  }
+
+  const claim = await api.claimMarkers(guest);
+  assert.equal(claim.count, 7, "one press claims every unclaimed marker");
+  await expectCode(api.claimMarkers(guest), "nothing_to_claim");
+  const receipts = await api.getPlayerPurchases(guest.playerId);
+  assert.ok(receipts.every((p) => p.claimed_at !== null), "every marker receipt is stamped");
+  await expectCode(api.claimMarkers({ ...guest, token: crypto.randomUUID() }), "invalid_token");
+
+  // Ångra gives the RM back for a single receipt.
+  await gm.refundPurchase(pw, four.id);
+  assert.equal((await api.getPlayer(guest.playerId))!.balance, before.balance - marker.price * 3);
+  await gm.refundPurchase(pw, three.id);
 });
 
 await step("gm butik management", async () => {

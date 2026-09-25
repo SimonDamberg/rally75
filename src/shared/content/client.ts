@@ -269,6 +269,43 @@ export const BUTIK = {
   boxReceipt: (prize: string) => `Mystery Box: ${prize}`,
 } as const
 
+/** Marker: chips for the physical games, bought in the Butik and handed over by Mr Green. */
+export const MARKER = {
+  title: 'Marker',
+  kicker: 'Till bordsspelen',
+  games: 'Triss, roulette och enarmade banditen.',
+  each: (rm: string) => `${rm} styck`,
+  howTo: 'Köp här, gå sedan till Mr Green och hämta dina marker i handen.',
+  claimWarning: 'Tryck på Hämta först när du står framför Mr Green. Hämtade marker kan inte hämtas igen.',
+  qty: 'Antal',
+  less: 'En färre',
+  more: 'En till',
+  quick: [5, 10, 20] as const,
+  max: 'Max',
+  total: (rm: string) => `Totalt ${rm}`,
+  buy: (n: number, rm: string) => `Köp ${n} marker (${rm})`,
+  tooPoor: 'Har inte råd',
+  confirmTitle: (n: number) => `Köpa ${n} marker?`,
+  confirmText: (rm: string) => `${rm} lämnar ditt saldo direkt. Marker växlas aldrig tillbaka.`,
+  confirmOk: (rm: string) => `Köp för ${rm}`,
+  boughtToast: (n: number) => `${n} marker väntar hos Mr Green.`,
+  waiting: (n: number) => (n === 1 ? '1 marker att hämta' : `${n} marker att hämta`),
+  waitingHint: 'Gå till Mr Green. Tryck inte förrän du står där.',
+  claim: 'Hämta',
+  claimTitle: 'Står du framför Mr Green?',
+  claimText: 'Visa skärmen för Mr Green och tryck sedan. Knappen fungerar en gång, sedan är markerna hämtade.',
+  claimOk: 'Ja, hämta nu',
+  claimCancel: 'Inte än',
+  rainKicker: 'Utbetalning av marker',
+  rainUnit: 'marker',
+  rainTo: (who: string) => `till ${who}`,
+  rainHint: 'Mr Green: räkna upp markerna. Skärmen rör sig, en skärmdump gör det inte.',
+  rainDone: 'Klart, jag har dem',
+  receipt: (n: number) => `Marker × ${n}`,
+  claimed: (time: string) => `Hämtad ${time}`,
+  unclaimed: 'Ej hämtad',
+} as const
+
 export const PLINKO = {
   title: 'Plånko',
   stake: 'Insats per kula',

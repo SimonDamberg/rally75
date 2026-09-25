@@ -5,17 +5,33 @@
 //
 // The box is opened, not bought: open_box draws the prize on the server, and CaseOpening spins a
 // reel onto it. Until the reel lands the receipt stays off "Mina köp", or the list would spoil it.
+//
+// Marker (chips for the physical games) are bought by the handful and claimed in person: the guest
+// presses Hämta in front of Mr Green, claim_markers stamps the receipts, and MarkerClaim floods the
+// screen so Mr Green can see from across the counter that it is live.
 import { useEffect, useState } from 'react'
 import { usePlayerPurchases } from '../lib/hooks'
 import type { BoxPrizeRow, PurchaseRow, ShopItemRow } from '../lib/types'
-import { BUTIK } from '../shared/content/client'
+import { BUTIK, MARKER } from '../shared/content/client'
 import { UI_LABELS } from '../shared/content/ui'
 import { BOX_RARITIES, boxLeft, buildReel, prizeChance, type Reel } from '../shared/game/box'
-import { fmtPct, fmtRm } from '../shared/game/format'
+import { fmtPct, fmtRm, playerLabel } from '../shared/game/format'
 import { createRng, randomSeed } from '../shared/game/rng'
 import { Button, cx, Modal, RARITY_COLOR, RarityChip, ShopImage, SmallPrint, toast } from '../ui'
-import { afterBuy, checkBuy, purchaseTotal, shelves, stockLeft, visiblePurchases, type BuyCheck } from './buy'
+import {
+  afterBuy,
+  checkBuy,
+  checkMarkers,
+  maxMarkers,
+  purchaseTotal,
+  shelves,
+  stockLeft,
+  unclaimedMarkers,
+  visiblePurchases,
+  type BuyCheck,
+} from './buy'
 import { CaseOpening } from './CaseOpening'
+import { MarkerClaim } from './MarkerClaim'
 import { useGuest, useGuestAction } from './guest'
 
 interface Opening {
@@ -26,23 +42,29 @@ interface Opening {
 
 export function Butik({ onConfirmChange }: { onConfirmChange: (open: boolean) => void }) {
   const { identity, player, shopItems, boxPrizes } = useGuest()
-  const { data: purchases } = usePlayerPurchases(identity.playerId)
+  const { data: purchases, reload: reloadPurchases } = usePlayerPurchases(identity.playerId)
   const { run, busy } = useGuestAction()
   const [picked, setPicked] = useState<ShopItemRow | null>(null)
   const [receipt, setReceipt] = useState<{ purchase: PurchaseRow; item: ShopItemRow } | null>(null)
   const [opening, setOpening] = useState<Opening | null>(null)
   const [landed, setLanded] = useState(false)
+  const [markerQty, setMarkerQty] = useState(10)
+  const [buyingMarkers, setBuyingMarkers] = useState(false)
+  const [claiming, setClaiming] = useState(false)
+  const [claimed, setClaimed] = useState<number | null>(null)
 
-  // Offers and the Snabblån stay away while a confirm or a reel is on screen.
+  // Offers and the Snabblån stay away while a confirm, a reel or the marker screen is up.
+  const covered = !!picked || !!opening || buyingMarkers || claiming || claimed !== null
   useEffect(() => {
-    onConfirmChange(!!picked || !!opening)
+    onConfirmChange(covered)
     return () => onConfirmChange(false)
-  }, [picked, opening, onConfirmChange])
+  }, [covered, onConfirmChange])
 
   if (!player) return <p className="p-6 text-center text-ink-dim">{UI_LABELS.loading}</p>
 
   const prizes = boxPrizes ?? []
-  const { box, items } = shelves(shopItems ?? [])
+  const { box, marker, items } = shelves(shopItems ?? [])
+  const toClaim = unclaimedMarkers(purchases ?? [])
 
   const buy = async () => {
     if (!picked) return
@@ -71,6 +93,25 @@ export function Butik({ onConfirmChange }: { onConfirmChange: (open: boolean) =>
     if (opening) toast({ text: BUTIK.boxToast(opening.winner.name), tone: 'win' })
   }
 
+  const buyMarkers = async () => {
+    if (!marker) return
+    const qty = markerQty
+    const purchase = await run((api, id) => api.buyMarkers(id, marker.id, qty))
+    if (!purchase) return
+    setBuyingMarkers(false)
+    reloadPurchases()
+    toast({ text: MARKER.boughtToast(purchase.qty), tone: 'win' })
+  }
+
+  const claimMarkers = async () => {
+    const claim = await run((api, id) => api.claimMarkers(id))
+    if (!claim) return
+    setClaiming(false)
+    setClaimed(claim.count)
+    // Realtime brings the stamped receipts too; this just stops Hämta lingering if it is slow.
+    reloadPurchases()
+  }
+
   const againCheck = box ? checkBuy(player, box, prizes) : 'inactive'
   const spinning = opening && !landed ? opening.purchase.id : null
 
@@ -82,10 +123,21 @@ export function Butik({ onConfirmChange }: { onConfirmChange: (open: boolean) =>
         <p className="font-display text-xl font-black text-cash tabular-nums">{BUTIK.spendable(fmtRm(player.balance))}</p>
       </header>
 
-      {shopItems && !box && items.length === 0 && <p className="p-6 text-center text-ink-dim">{BUTIK.empty}</p>}
+      {shopItems && !box && !marker && items.length === 0 && <p className="p-6 text-center text-ink-dim">{BUTIK.empty}</p>}
       {!shopItems && <p className="p-6 text-center text-ink-dim">{UI_LABELS.loading}</p>}
 
       <Bar items={items} balance={player.balance} onBuy={setPicked} />
+      {(marker || toClaim > 0) && (
+        <MarkerCard
+          marker={marker}
+          balance={player.balance}
+          qty={markerQty}
+          onQty={setMarkerQty}
+          toClaim={toClaim}
+          onBuy={() => setBuyingMarkers(true)}
+          onClaim={() => setClaiming(true)}
+        />
+      )}
       {box && <BoxCard box={box} prizes={prizes} check={checkBuy(player, box, prizes)} onOpen={() => setPicked(box)} />}
 
       <Mine purchases={purchases && visiblePurchases(purchases, spinning)} />
@@ -142,6 +194,63 @@ export function Butik({ onConfirmChange }: { onConfirmChange: (open: boolean) =>
           </div>
         )}
       </Modal>
+
+      <Modal
+        open={buyingMarkers && !!marker}
+        onClose={() => setBuyingMarkers(false)}
+        dismissible={!busy}
+        tone="sleaze"
+        title={MARKER.confirmTitle(markerQty)}
+        actions={
+          <>
+            <Button variant="ghost" disabled={busy} onClick={() => setBuyingMarkers(false)}>
+              {BUTIK.cancel}
+            </Button>
+            <Button variant="sleaze" loading={busy} onClick={() => void buyMarkers()}>
+              {MARKER.confirmOk(fmtRm((marker?.price ?? 0) * markerQty))}
+            </Button>
+          </>
+        }
+      >
+        {marker && (
+          <div className="flex flex-col gap-2">
+            <p className="text-lg">{MARKER.howTo}</p>
+            <p className="text-ink-dim">{MARKER.confirmText(fmtRm(marker.price * markerQty))}</p>
+            <p className="font-display text-xl font-black tabular-nums">
+              {BUTIK.confirmAfter(fmtRm(afterBuy(player, marker.price * markerQty).balance))}
+            </p>
+          </div>
+        )}
+      </Modal>
+
+      <Modal
+        open={claiming}
+        onClose={() => setClaiming(false)}
+        dismissible={!busy}
+        tone="sleaze"
+        title={MARKER.claimTitle}
+        actions={
+          <>
+            <Button variant="ghost" disabled={busy} onClick={() => setClaiming(false)}>
+              {MARKER.claimCancel}
+            </Button>
+            <Button variant="sleaze" loading={busy} onClick={() => void claimMarkers()}>
+              {MARKER.claimOk}
+            </Button>
+          </>
+        }
+      >
+        <div className="flex flex-col gap-2">
+          <p className="font-display text-4xl leading-none font-black text-plate uppercase tabular-nums">
+            {MARKER.waiting(toClaim)}
+          </p>
+          <p className="text-lg">{MARKER.claimText}</p>
+        </div>
+      </Modal>
+
+      {claimed !== null && (
+        <MarkerClaim count={claimed} who={playerLabel(player.name, player.tag)} onClose={() => setClaimed(null)} />
+      )}
 
       {opening && (
         <CaseOpening
@@ -345,16 +454,133 @@ function Mine({ purchases }: { purchases: readonly PurchaseRow[] | undefined }) 
           >
             <div className="flex min-w-0 flex-1 flex-col leading-tight">
               <span className="truncate font-bold">
-                {p.prize_name ? BUTIK.boxReceipt(p.prize_name) : p.item_name}
+                {p.prize_name ? BUTIK.boxReceipt(p.prize_name) : p.kind === 'marker' ? MARKER.receipt(p.qty) : p.item_name}
               </span>
-              <span className="text-xs text-ink-dim tabular-nums">
-                {new Date(p.created_at).toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })}
+              <span className="flex items-center gap-2 text-xs text-ink-dim tabular-nums">
+                {clock(p.created_at)}
+                {p.kind === 'marker' && (
+                  <span
+                    className={cx(
+                      'rounded-full px-2 py-0.5 text-[0.65rem] font-black tracking-wide uppercase',
+                      p.claimed_at ? 'bg-void text-ink-dim' : 'bg-plate text-night',
+                    )}
+                  >
+                    {p.claimed_at ? MARKER.claimed(clock(p.claimed_at)) : MARKER.unclaimed}
+                  </span>
+                )}
               </span>
             </div>
             <span className="shrink-0 font-display text-lg font-black text-ink-dim tabular-nums">{fmtRm(p.price)}</span>
           </li>
         ))}
       </ul>
+    </section>
+  )
+}
+
+function clock(iso: string): string {
+  return new Date(iso).toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })
+}
+
+function MarkerCard({
+  marker,
+  balance,
+  qty,
+  onQty,
+  toClaim,
+  onBuy,
+  onClaim,
+}: {
+  /** null when the GM has paused the marker: bought ones can still be claimed. */
+  marker: ShopItemRow | null
+  balance: number
+  qty: number
+  onQty: (qty: number) => void
+  toClaim: number
+  onBuy: () => void
+  onClaim: () => void
+}) {
+  const price = marker?.price ?? 0
+  const max = maxMarkers({ balance }, price)
+  const check = checkMarkers({ balance }, price, qty)
+  const set = (n: number) => onQty(Math.max(1, Math.min(Math.max(1, max), n)))
+
+  return (
+    <section className="flex flex-col gap-3 rounded-2xl bg-tote/40 p-4 ring-1 ring-plate/40 ring-inset">
+      <div className="flex items-center gap-4">
+        {marker && (
+          <ShopImage image={marker.image} name={marker.name} className="size-20 shrink-0 rounded-xl text-4xl" />
+        )}
+        <div className="flex min-w-0 flex-col gap-0.5 leading-tight">
+          <p className="text-xs font-black tracking-wide text-plate uppercase">{MARKER.kicker}</p>
+          <h2 className="font-display text-3xl leading-none font-black uppercase">{marker?.name ?? MARKER.title}</h2>
+          <p className="text-sm text-ink-dim">{marker?.blurb || MARKER.games}</p>
+          {marker && (
+            <p className="font-display text-lg font-black text-plate tabular-nums">{MARKER.each(fmtRm(price))}</p>
+          )}
+        </div>
+      </div>
+
+      <p className="rounded-xl bg-night/60 px-3 py-2 text-sm font-bold">{MARKER.howTo}</p>
+
+      {marker && (
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-xs font-black tracking-wide text-ink-dim uppercase">{MARKER.qty}</span>
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" aria-label={MARKER.less} disabled={qty <= 1} onClick={() => set(qty - 1)} className="min-h-11! w-11! px-0! text-2xl!">
+                −
+              </Button>
+              <span className="w-14 text-center font-display text-4xl leading-none font-black tabular-nums">{qty}</span>
+              <Button variant="ghost" aria-label={MARKER.more} disabled={qty >= max} onClick={() => set(qty + 1)} className="min-h-11! w-11! px-0! text-2xl!">
+                +
+              </Button>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            {MARKER.quick.map((n) => (
+              <button
+                key={n}
+                type="button"
+                disabled={n > max}
+                onClick={() => set(n)}
+                className={cx(
+                  'flex-1 rounded-full py-1.5 text-sm font-black tabular-nums ring-1 ring-inset disabled:opacity-40',
+                  qty === n ? 'bg-plate text-night ring-plate' : 'bg-tote/60 ring-white/15',
+                )}
+              >
+                {n}
+              </button>
+            ))}
+            <button
+              type="button"
+              disabled={max < 1}
+              onClick={() => set(max)}
+              className={cx(
+                'flex-1 rounded-full py-1.5 text-sm font-black uppercase ring-1 ring-inset disabled:opacity-40',
+                qty === max && max > 0 ? 'bg-plate text-night ring-plate' : 'bg-tote/60 ring-white/15',
+              )}
+            >
+              {MARKER.max}
+            </button>
+          </div>
+          <Button variant="sleaze" block disabled={check !== 'ok'} onClick={onBuy}>
+            {check === 'too_poor' ? MARKER.tooPoor : MARKER.buy(qty, fmtRm(price * qty))}
+          </Button>
+        </div>
+      )}
+
+      {toClaim > 0 && (
+        <div className="flex flex-col gap-2 rounded-xl bg-plate/15 p-3 ring-2 ring-plate ring-inset">
+          <p className="font-display text-3xl leading-none font-black text-plate uppercase tabular-nums">
+            {MARKER.waiting(toClaim)}
+          </p>
+          <p className="text-sm">{MARKER.claimWarning}</p>
+          <Button size="lg" block onClick={onClaim}>
+            {MARKER.claim}
+          </Button>
+        </div>
+      )}
     </section>
   )
 }

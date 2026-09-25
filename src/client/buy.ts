@@ -3,6 +3,7 @@
 // have to coexist on a case-insensitive filesystem.
 import type { BoxPrizeRow, PurchaseRow, ShopItemRow } from '../lib/types'
 import { boxLeft } from '../shared/game/box'
+import { MARKER_MAX_QTY } from '../shared/game/economy'
 
 export type BuyCheck = 'ok' | 'inactive' | 'sold_out' | 'too_poor'
 
@@ -34,6 +35,8 @@ export function stockLeft(item: ShopItemRow, prizes: readonly BoxPrizeRow[] = []
 export interface Shelves {
   /** The Mystery Box, shown on top; null when the GM has none active. */
   box: ShopItemRow | null
+  /** The marker for the physical games, sold by the handful; null when the GM has none active. */
+  marker: ShopItemRow | null
   items: ShopItemRow[]
 }
 
@@ -50,7 +53,8 @@ export function shelves(items: readonly ShopItemRow[]): Shelves {
   })
   return {
     box: ordered.find((i) => i.kind === 'box') ?? null,
-    items: ordered.filter((i) => i.kind !== 'box'),
+    marker: ordered.find((i) => i.kind === 'marker') ?? null,
+    items: ordered.filter((i) => i.kind !== 'box' && i.kind !== 'marker'),
   }
 }
 
@@ -77,4 +81,24 @@ export function afterBuy(
 /** Total on the receipts, for the "Spenderat idag" line. */
 export function purchaseTotal(purchases: readonly PurchaseRow[]): number {
   return purchases.reduce((sum, p) => sum + p.price, 0)
+}
+
+export type MarkerCheck = 'ok' | 'bad_qty' | 'too_poor'
+
+/** Whether `qty` marker at `price` each can be bought, mirroring buy_markers. */
+export function checkMarkers(player: { balance: number }, price: number, qty: number): MarkerCheck {
+  if (!Number.isInteger(qty) || qty < 1 || qty > MARKER_MAX_QTY) return 'bad_qty'
+  if (player.balance < price * qty) return 'too_poor'
+  return 'ok'
+}
+
+/** The most marker the balance covers, capped at MARKER_MAX_QTY (0 when not even one). */
+export function maxMarkers(player: { balance: number }, price: number): number {
+  if (price <= 0) return MARKER_MAX_QTY
+  return Math.max(0, Math.min(MARKER_MAX_QTY, Math.floor(player.balance / price)))
+}
+
+/** Marker bought but not yet handed over by Mr Green: what claim_markers would count out. */
+export function unclaimedMarkers(purchases: readonly PurchaseRow[]): number {
+  return purchases.reduce((sum, p) => (p.kind === 'marker' && p.claimed_at === null ? sum + p.qty : sum), 0)
 }

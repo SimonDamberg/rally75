@@ -46,7 +46,10 @@ export function usePurchaseToasts(
     const fresh = all.filter((p) => !p.prize_name)
     if (document.hidden || !fresh.length) return
     if (fresh.length > FOLD_AT) return void toast({ text: ATTRACT.boughtMany(fresh.length), ms: BUY_TOAST_MS })
-    for (const p of fresh) toast({ text: ATTRACT.bought(label(p), p.item_name, fmtRm(p.price)), ms: BUY_TOAST_MS })
+    for (const p of fresh) {
+      const text = p.kind === 'marker' ? ATTRACT.boughtMarkers(label(p), p.qty) : ATTRACT.bought(label(p), p.item_name, fmtRm(p.price))
+      toast({ text, ms: BUY_TOAST_MS })
+    }
   })
 
   useEffect(() => {

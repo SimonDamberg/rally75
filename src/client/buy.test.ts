@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { BoxPrizeRow, PurchaseRow, ShopItemRow } from '../lib/types'
-import { netWorth, nightNet } from '../shared/game/economy'
-import { afterBuy, checkBuy, purchaseTotal, shelves, stockLeft, visiblePurchases } from './buy'
+import { MARKER_MAX_QTY, netWorth, nightNet } from '../shared/game/economy'
+import { afterBuy, checkBuy, checkMarkers, maxMarkers, purchaseTotal, shelves, stockLeft, unclaimedMarkers, visiblePurchases } from './buy'
 
 function item(over: Partial<ShopItemRow> = {}): ShopItemRow {
   return {
@@ -96,6 +96,13 @@ describe('shelves', () => {
     expect(shelves([item(), { ...box, active: false }]).box).toBe(null)
   })
 
+  it('keeps the marker off the bar', () => {
+    const shelf = shelves([item({ id: 'a', name: 'Öl' }), item({ id: 'm', name: 'Marker', kind: 'marker', price: 10 })])
+    expect(shelf.marker?.name).toBe('Marker')
+    expect(shelf.items.map((i) => i.name)).toEqual(['Öl'])
+    expect(shelves([item()]).marker).toBe(null)
+  })
+
   it('keeps the GM order and sinks sold out to the bottom', () => {
     const { items } = shelves([
       item({ id: 'a', name: 'Först', sort: 10, stock: 0 }),
@@ -151,6 +158,8 @@ describe('purchaseTotal', () => {
     item_name: 'En kall öl',
     kind: 'physical',
     price,
+    qty: 1,
+    claimed_at: null,
     prize_id: null,
     prize_name: null,
     prize_rarity: null,
@@ -166,5 +175,56 @@ describe('purchaseTotal', () => {
     const list = [receipt(1000, 'spin'), receipt(500, 'old')]
     expect(visiblePurchases(list, 'spin').map((p) => p.id)).toEqual(['old'])
     expect(visiblePurchases(list, null).map((p) => p.id)).toEqual(['spin', 'old'])
+  })
+})
+
+describe('marker', () => {
+  const receipt = (over: Partial<PurchaseRow>): PurchaseRow => ({
+    id: 'r',
+    player_id: 'p1',
+    item_id: 'm',
+    item_name: 'Marker',
+    kind: 'marker',
+    price: 10,
+    qty: 1,
+    claimed_at: null,
+    prize_id: null,
+    prize_name: null,
+    prize_rarity: null,
+    created_at: '2026-09-25T20:00:00Z',
+    ...over,
+  })
+
+  it('checks the quantity before the wallet, like buy_markers', () => {
+    expect(checkMarkers({ balance: 70 }, 10, 7)).toBe('ok')
+    expect(checkMarkers({ balance: 69 }, 10, 7)).toBe('too_poor')
+    expect(checkMarkers({ balance: 0 }, 10, 0)).toBe('bad_qty')
+    expect(checkMarkers({ balance: 1e6 }, 10, MARKER_MAX_QTY + 1)).toBe('bad_qty')
+    expect(checkMarkers({ balance: 1e6 }, 10, 2.5)).toBe('bad_qty')
+  })
+
+  it('caps the most you can buy at the balance and the SQL limit', () => {
+    expect(maxMarkers({ balance: 75 }, 10)).toBe(7)
+    expect(maxMarkers({ balance: 5 }, 10)).toBe(0)
+    expect(maxMarkers({ balance: 1e6 }, 10)).toBe(MARKER_MAX_QTY)
+  })
+
+  it('counts only marker that Mr Green has not handed over', () => {
+    expect(
+      unclaimedMarkers([
+        receipt({ id: 'a', qty: 3, price: 30 }),
+        receipt({ id: 'b', qty: 4, price: 40 }),
+        receipt({ id: 'c', qty: 9, price: 90, claimed_at: '2026-09-25T20:05:00Z' }),
+        receipt({ id: 'd', kind: 'physical', item_name: 'Öl', price: 500 }),
+      ]),
+    ).toBe(7)
+    expect(unclaimedMarkers([])).toBe(0)
+  })
+
+  it('is rank neutral: a handful of marker is just a purchase', () => {
+    const before = { balance: 400, debt: 0, spent: 0 }
+    const after = afterBuy(before, 10 * 12)
+    expect(after.balance).toBe(280)
+    expect(netWorth(after)).toBe(netWorth(before))
   })
 })

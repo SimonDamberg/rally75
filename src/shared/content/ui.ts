@@ -111,6 +111,7 @@ export const ATTRACT = {
   /** Toasts on the display iPad when someone spends winnings at the black market. */
   bought: (label: string, item: string, amount: string) =>
     `${label} köpte ${item} för ${amount}`,
+  boughtMarkers: (label: string, n: number) => `${label} köpte ${n} marker. Mr Green, gör dig redo!`,
   boughtMany: (n: number) => `${n} köp i butiken. Baren går varm!`,
   /** A Mystery Box opening, after the guest's reel has stopped. */
   unboxed: (label: string, prize: string, rarity: string) =>

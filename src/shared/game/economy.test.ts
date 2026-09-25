@@ -9,6 +9,7 @@ import {
   LOAN_AMOUNT,
   LOAN_DEBT,
   LOAN_THRESHOLD,
+  MARKER_MAX_QTY,
   MAX_NAME_LENGTH,
   MIN_STAKE,
   netWorth,
@@ -49,6 +50,12 @@ describe('economy constants', () => {
     expect(sql).toContain(`balance >= ${LOAN_THRESHOLD} then`)
     expect(sql).toContain(`balance = balance + ${LOAN_AMOUNT}, debt = debt + ${LOAN_DEBT}`)
     expect(LOAN_THRESHOLD).toBeGreaterThanOrEqual(MIN_STAKE)
+  })
+
+  it('match the SQL mirror for the marker', () => {
+    const sql = latestDefining('buy_markers')
+    expect(sql).toContain(`MARKER_MAX_QTY ${MARKER_MAX_QTY}.`)
+    expect(sql).toContain(`p_qty < 1 or p_qty > ${MARKER_MAX_QTY} then`)
   })
 
   /**
