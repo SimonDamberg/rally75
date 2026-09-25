@@ -237,7 +237,9 @@ Mr Green's own arcade game, the second product tab (`src/client/Plinko.tsx` + `P
 
 Three things on sale (Simon's call): the **Mystery Box** on top, then **Öl** and **Cider** ("Baren").
 Photos are file names under `public/butik/` (`shop_items.image`, `box_prizes.image`); a missing
-file draws a gift tile (`ShopImage` in `src/ui/Prize.tsx`).
+file draws a gift tile (`ShopImage` in `src/ui/Prize.tsx`). A prize with `box_prizes.video` (the knife)
+loops it muted in the guest's reveal pop-up instead of the photo; transcode to H.264 with no audio
+track (`ffmpeg -an ... -c:v libx264 -movflags +faststart`), iPhone HEVC does not play everywhere.
 
 - `shop_items` (namn, blurb, pris, `stock` null = obegränsat, `kind` physical/digital/box, `effect`
   none/title/badge, `image`) and `purchases` (a receipt, with the item name and any box prize

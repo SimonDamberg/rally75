@@ -1574,3 +1574,15 @@ and the RM lands. The card is never used up. A guest can claim at most once ever
   point.
 
 **Manual step:** `npx supabase db push` (applies migrations 18 and 19).
+
+### The real Mystery Box (2026-09-25, Simon's list)
+
+- Migration `20260925000020_box_prizes.sql` swaps the placeholders for Simon's 14 prizes (17 pieces):
+  blå: Matlåda (blå), Burgir, Äggpingvinen, Bomull, Matlåda (orange), Glasögonservetter;
+  lila: Glasskål (blå), Glasskål (rosa); rosa: Barbie, Helikopter, Labyrintspelet;
+  röd: Pengar, Ryggkliaren; guld: Kniiiiiv (4 st). The blurbs are mine; edit them on the control phone.
+- Photos in `public/butik/` (resized to 900 px). `box_prizes.video` is new: the knife's clip
+  (`kniv.mp4`, H.264, 406x720, no audio, 257 kB) loops in the winner's reveal pop-up.
+- There is still no `ol.jpg`, `cider.jpg` or `box.jpg`: those show the gift tile until added.
+
+**Manual step:** `npx supabase db push` (migrations 18, 19 and 20).

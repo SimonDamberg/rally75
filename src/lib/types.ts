@@ -104,6 +104,8 @@ export interface BoxPrizeRow {
   blurb: string;
   /** A file name under public/butik/; '' draws the fallback tile. */
   image: string;
+  /** A video under public/butik/, looped muted in the guest's reveal instead of the photo; '' for none. */
+  video: string;
   rarity: BoxRarity;
   stock: number;
   sort: number;

@@ -138,10 +138,28 @@ function Card({ prize, win, dim }: { prize: BoxPrizeRow; win: boolean; dim: bool
 
 function Reveal({ prize }: { prize: BoxPrizeRow }) {
   const color = RARITY_COLOR[prize.rarity]
+  const [videoFailed, setVideoFailed] = useState(false)
+  // A prize with a video (the knife) loops it, muted and inline, where the photo would be.
+  const video = prize.video && !videoFailed ? `/butik/${prize.video}` : ''
   return (
     <div className="flex animate-pop-in flex-col items-center gap-3 pt-5 text-center">
       <div className="rounded-2xl p-1" style={{ boxShadow: `0 0 3rem ${color}`, backgroundColor: color }}>
-        <ShopImage image={prize.image} name={prize.name} rarity={prize.rarity} className="size-40 rounded-xl" />
+        {video ? (
+          <video
+            src={video}
+            poster={prize.image ? `/butik/${prize.image}` : undefined}
+            autoPlay
+            loop
+            muted
+            playsInline
+            disablePictureInPicture
+            onError={() => setVideoFailed(true)}
+            aria-label={prize.name}
+            className="block h-72 max-w-full rounded-xl bg-night-deep object-cover"
+          />
+        ) : (
+          <ShopImage image={prize.image} name={prize.name} rarity={prize.rarity} className="size-40 rounded-xl" />
+        )}
       </div>
       <RarityChip rarity={prize.rarity} className="text-xs" />
       <p className="font-display text-4xl leading-none font-black text-plate uppercase">{prize.name}</p>

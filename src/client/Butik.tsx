@@ -168,6 +168,7 @@ function snapshotPrize(purchase: PurchaseRow): BoxPrizeRow {
     name: purchase.prize_name ?? purchase.item_name,
     blurb: '',
     image: '',
+    video: '',
     rarity: purchase.prize_rarity ?? 'bla',
     stock: 0,
     sort: 0,
