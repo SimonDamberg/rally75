@@ -3,7 +3,7 @@
 // fake social proof.
 import { useMemo, useState } from 'react'
 import type { ScanResult } from '../shared/game/scan'
-import { useActiveRace, useConnection, useLeaderboard, usePlayerBets, useRaceBets, useShopItems } from '../lib/hooks'
+import { useActiveRace, useBoxPrizes, useConnection, useLeaderboard, usePlayerBets, useRaceBets, useShopItems } from '../lib/hooks'
 import type { Identity, PlayerRow } from '../lib/types'
 import { CLIENT_TABS } from '../shared/content/client'
 import { LOAN_THRESHOLD } from '../shared/game/economy'
@@ -49,6 +49,7 @@ export function ClientShell({ identity, player, forget, justJoined, cookiesAccep
   const { data: raceBets } = useRaceBets(race?.id ?? null)
   const { data: board } = useLeaderboard()
   const { data: shopItems } = useShopItems()
+  const { data: boxPrizes } = useBoxPrizes()
   const [tab, setTab] = useState<Tab>('home')
   const [confirming, setConfirming] = useState(false)
   const [slipOpen, setSlipOpen] = useState(false)
@@ -60,8 +61,8 @@ export function ClientShell({ identity, player, forget, justJoined, cookiesAccep
   const dropping = plinkoHold !== undefined
 
   const guest = useMemo<Guest>(
-    () => ({ identity, player, bets, race, raceBets, raceError, shopItems, forget }),
-    [identity, player, bets, race, raceBets, raceError, shopItems, forget],
+    () => ({ identity, player, bets, race, raceBets, raceError, shopItems, boxPrizes, forget }),
+    [identity, player, bets, race, raceBets, raceError, shopItems, boxPrizes, forget],
   )
   const players = useMemo(() => new Map((board?.players ?? []).map((p) => [p.id, p])), [board?.players])
 

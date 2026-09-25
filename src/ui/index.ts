@@ -19,3 +19,5 @@ export { StodlinjeButton, StodlinjeLink, StodlinjeNote, type StodlinjeLinkProps 
 export { StatusBanner, type StatusBannerProps } from './StatusBanner'
 export { toast, toastStore, TOAST_MAX, TOAST_MS, type Toast, type ToastInput, type ToastTone } from './toast'
 export { Toaster, type ToasterSize } from './Toaster'
+export { RarityChip, ShopImage } from './Prize'
+export { RARITY_COLOR } from './rarity'

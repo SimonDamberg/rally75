@@ -8,6 +8,8 @@ import {
   toPlayer,
   toRace,
   type BetRow,
+  type BoxPrizeInputRow,
+  type BoxPrizeRow,
   type CouponBatch,
   type CouponRow,
   type Identity,
@@ -127,6 +129,11 @@ export function createApi(db: SupabaseClient) {
       return query<ShopItemRow[]>(() => db.from('shop_items').select('*').order('sort').order('price'))
     },
 
+    /** The Mystery Box contents, in the order the GM put them in. Empty and inactive prizes come along. */
+    async getBoxPrizes(): Promise<BoxPrizeRow[]> {
+      return query<BoxPrizeRow[]>(() => db.from('box_prizes').select('*').order('sort').order('created_at'))
+    },
+
     /** One player's receipts, newest first. */
     async getPlayerPurchases(playerId: string): Promise<PurchaseRow[]> {
       return query<PurchaseRow[]>(() =>
@@ -214,6 +221,14 @@ export function createApi(db: SupabaseClient) {
     /** Spends RM in the Butik. The server captures the price, so a stale catalogue cannot cheat. */
     buyItem(identity: Identity, itemId: string): Promise<PurchaseRow> {
       return rpc('buy_item', { p_player_id: identity.playerId, p_token: identity.token, p_item_id: itemId })
+    },
+
+    /**
+     * Opens the Mystery Box. The server draws the prize, takes the RM and writes the receipt before
+     * this resolves; the phone's reel only animates towards purchase.prize_id.
+     */
+    openBox(identity: Identity, itemId: string): Promise<PurchaseRow> {
+      return rpc('open_box', { p_player_id: identity.playerId, p_token: identity.token, p_item_id: itemId })
     },
 
     /**
@@ -358,14 +373,33 @@ export function createApi(db: SupabaseClient) {
           p_effect_value: item.effect_value,
           p_sort: item.sort,
           p_active: item.active,
+          p_image: item.image,
         })
+      },
+
+      upsertBoxPrize(password: string, prize: BoxPrizeInputRow): Promise<BoxPrizeRow> {
+        return rpc('gm_upsert_box_prize', {
+          p_password: password,
+          p_id: prize.id,
+          p_name: prize.name,
+          p_blurb: prize.blurb,
+          p_image: prize.image,
+          p_rarity: prize.rarity,
+          p_stock: prize.stock,
+          p_sort: prize.sort,
+          p_active: prize.active,
+        })
+      },
+
+      async deleteBoxPrize(password: string, prizeId: string): Promise<void> {
+        await rpc('gm_delete_box_prize', { p_password: password, p_id: prizeId })
       },
 
       async deleteShopItem(password: string, itemId: string): Promise<void> {
         await rpc('gm_delete_shop_item', { p_password: password, p_id: itemId })
       },
 
-      /** Ångra: refunds the RM, restocks the shelf and deletes the receipt. Keeps any title or badge. */
+      /** Ångra: refunds the RM, restocks the shelf (or puts the prize back in the box) and deletes the receipt. Keeps any title or badge. */
       refundPurchase(password: string, purchaseId: string): Promise<PurchaseRow> {
         return rpc('gm_refund_purchase', { p_password: password, p_id: purchaseId })
       },

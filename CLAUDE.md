@@ -235,22 +235,36 @@ Mr Green's own arcade game, the second product tab (`src/client/Plinko.tsx` + `P
 
 ## Butik (black market)
 
-- `shop_items` (namn, blurb, pris, `stock` null = obegränsat, `kind` physical/digital, `effect`
-  none/title/badge) and `purchases` (a receipt, with the item name snapshotted). Both are public
-  read, written only by `buy_item` / `gm_upsert_shop_item` / `gm_delete_shop_item` /
-  `gm_refund_purchase`, and both are in the Realtime publication so stock drops on every phone.
-- **Buying is rank neutral.** `buy_item` moves the price from `players.balance` to `players.spent`,
-  and `netWorth` adds `spent` back, so nothing bought can move you on Toppen or the förlorarlista.
-  There is no third list: the guest Topplista is Toppen and förlorarlistan only. Asserted in
-  `buy.test.ts`, `economy.test.ts` and smoke.
-- **Digital items are jokes or cosmetics only.** An item may set `players.title` or `players.badge`
-  (shown by `badgedLabel` and on the Topplista) and nothing else. Never odds, bets or free RM.
+Three things on sale (Simon's call): the **Mystery Box** on top, then **Öl** and **Cider** ("Baren").
+Photos are file names under `public/butik/` (`shop_items.image`, `box_prizes.image`); a missing
+file draws a gift tile (`ShopImage` in `src/ui/Prize.tsx`).
+
+- `shop_items` (namn, blurb, pris, `stock` null = obegränsat, `kind` physical/digital/box, `effect`
+  none/title/badge, `image`) and `purchases` (a receipt, with the item name and any box prize
+  snapshotted). Both are public read, written only by the RPCs, and both are in the Realtime
+  publication so stock drops on every phone. The digital shelf is gone from the UI; old titles and
+  badges stay on the players, and the columns remain.
+- **Buying is rank neutral.** `buy_item` and `open_box` move the price from `players.balance` to
+  `players.spent`, and `netWorth` adds `spent` back, so nothing bought can move you on Toppen or the
+  förlorarlista. There is no third list. Asserted in `buy.test.ts`, `economy.test.ts` and smoke.
+- **The Mystery Box** is the `kind = 'box'` item. Its contents are `box_prizes` (physical, counted,
+  `rarity` bla/lila/rosa/rod/guld, public read, Realtime). `open_box` draws on the server with
+  `gen_random_bytes` (a tier by `BOX_TIER_WEIGHTS` over the tiers with stock, then a prize by
+  remaining count), takes one off its stock and writes the receipt in one transaction; `buy_item`
+  refuses a box (`use_open_box`). The box's stock is the sum of its active prizes (`boxLeft`).
+  Weights live in `src/shared/game/box.ts` and in `*_mystery_box.sql`; `box.test.ts` checks the SQL
+  by string. Change both sides.
+- **Never spoil the reel.** The phone already has the prize when `CaseOpening` starts spinning
+  (`buildReel` puts it at `REEL_STOP`). Until it lands, "Mina köp" hides that receipt
+  (`visiblePurchases`), and the iPad holds its toast `BOX_SPIN_MS` plus a beat.
+- Rarity colours are `RARITY_COLOR` (`src/ui/rarity.ts`), not brand tokens: same on every surface.
 - No fulfilment status: a purchase is a receipt the guest shows in the bar. The control phone's
-  Butik tab has the live "Sålt idag" feed and Ångra (`gm_refund_purchase`); the display iPad
-  toasts each purchase (`usePurchaseToasts`). `gm_reset_night` keeps the catalogue (like kuskar) and
-  drops the receipts with the players.
-- Guest copy is `BUTIK` in `client.ts`, GM copy `GM_SHOP` in `gm.ts`, display copy `ATTRACT`.
-  Pure logic: `src/client/buy.ts`, `parsePrice`/`parseStock` in `src/gm/parse.ts`.
+  Butik tab has the shelf, the box contents (edit, +1, Slut, chance per prize), the live "Sålt idag"
+  feed and Ångra (`gm_refund_purchase`, which also puts a won prize back in the box).
+  `gm_reset_night` keeps the catalogue and the prizes (like kuskar) and drops the receipts.
+- Guest copy is `BUTIK` in `client.ts`, GM copy `GM_SHOP` in `gm.ts`, display copy `ATTRACT`,
+  tier names `RARITY_LABELS` in `ui.ts`. Pure logic: `src/client/buy.ts`, `src/shared/game/box.ts`,
+  `parsePrice`/`parseStock` in `src/gm/parse.ts`.
 
 ## Kuponger (printed QR tickets)
 

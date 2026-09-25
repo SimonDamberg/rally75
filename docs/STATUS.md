@@ -1521,3 +1521,39 @@ and the RM lands. The card is never used up. A guest can claim at most once ever
 - The result card on the phone lists the whole field, all four places, and wraps long names.
 - `StatusBanner`'s title is `leading-[1.15]` instead of `leading-none`: `truncate` clipped the dots
   off the Ö in "Spelet öppet". It is shared with the GM surfaces, whose banners get a hair taller.
+
+### Butik: Öl, Cider and a Mystery Box (2026-09-25, Simon's calls)
+
+**Done**
+
+- The catalogue is three items. Migration `20260925000018_mystery_box.sql` deletes everything but
+  the öl and the cider (renamed Öl / Cider, with photo names), adds the Mystery Box and seeds
+  **placeholder** prizes. Titles and badges already bought stay on the players.
+- Mystery Box: CS-style case opening. `open_box` draws a rarity tier (blå 60, lila 25, rosa 10,
+  röd 4, guld 1, renormalised over the tiers with stock), then a prize by remaining count, takes it
+  off the stock, charges the box (rank neutral, like `buy_item`) and writes the receipt with the prize
+  snapshotted. 5 000 local draws came out 59 / 26 / 10 / 4 / 1 %.
+- Guest: box card on top with contents, "x kvar" and the live chance per prize; a reel
+  (`CaseOpening`) that decelerates onto the prize, a rarity-glow reveal and "En till". The receipt
+  stays off "Mina köp" until the reel stops. No sound; reduced motion spins for 1.2 s.
+- Control phone: the Butik tab edits prizes (name, blurb, rarity, count, image, active), with
+  +1 / Slut shortcuts and the chance per prize. The feed reads "Mystery Box: <prize>". Ångra puts the
+  prize back in the box.
+- iPad: a box opening toasts with the prize and tier, held back until the guest's reel has stopped.
+- Smoke has a new "mystery box" step, which passes against the local stack.
+
+**Deviations**
+
+- `ShopImage` / `RarityChip` / `RARITY_COLOR` sit in `src/ui` (shared by the guest and the control
+  phone) rather than inside `CaseOpening`.
+- The tier weights are a party tuning, not CS's real table (where gold is 0.26 %).
+
+**Manual steps for Simon**
+
+1. Drop photos into `public/butik/`: `ol.jpg`, `cider.jpg`, `box.jpg` and one per prize. Square
+   crops look best; anything missing shows a gift tile.
+2. Real prize list: either edit the placeholder `insert into public.box_prizes` in the migration
+   **before** `db push`, or push as is and edit on the control phone (Butik tab, Lådans innehåll).
+   Set the image field to the file name.
+3. `npx supabase db push` to apply the migration to hosted.
+

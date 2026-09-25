@@ -51,6 +51,15 @@ export const OFFLINE_BANNER = "Ingen anslutning. Försöker igen...";
  */
 export const GM_LOADING = "Laddar spelledaren";
 
+/** Mystery Box rarity tiers, CS style, commonest first. */
+export const RARITY_LABELS = {
+  bla: "Vardaglig",
+  lila: "Ovanlig",
+  rosa: "Hemligstämplad",
+  rod: "Förbjuden",
+  guld: "Extremt sällsynt",
+} as const
+
 export const UI_LABELS = {
   race: "Lopp",
   live: "Live",
@@ -103,6 +112,9 @@ export const ATTRACT = {
   bought: (label: string, item: string, amount: string) =>
     `${label} köpte ${item} för ${amount}`,
   boughtMany: (n: number) => `${n} köp i butiken. Baren går varm!`,
+  /** A Mystery Box opening, after the guest's reel has stopped. */
+  unboxed: (label: string, prize: string, rarity: string) =>
+    `${label} öppnade en Mystery Box och fick ${prize} (${rarity})`,
   /** Toasts on the display iPad when a printed kupong is cashed in. */
   coupon: (label: string, amount: string, game: string) =>
     `${label} löste in en kupong på ${amount}${game ? ` från ${game}` : ''}`,

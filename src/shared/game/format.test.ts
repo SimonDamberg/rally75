@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { distMeters, fmtInt, fmtRm, fmtOdds, playerLabel } from './format'
+import { distMeters, fmtInt, fmtPct, fmtRm, fmtOdds, playerLabel } from './format'
 
 const NBSP = '\u00a0'
 
@@ -32,3 +32,17 @@ describe('format', () => {
     expect(distMeters('okänd distans')).toBe(2140)
   })
 })
+
+describe("fmtPct", () => {
+  it("rounds to whole percent from ten, one decimal below", () => {
+    expect(fmtPct(0.6)).toBe("60\u00a0%");
+    expect(fmtPct(0.254)).toBe("25\u00a0%");
+    expect(fmtPct(0.015)).toBe("1,5\u00a0%");
+    expect(fmtPct(0.01)).toBe("1\u00a0%");
+  });
+
+  it("never rounds a live chance down to zero", () => {
+    expect(fmtPct(0.0001)).toBe("0,1\u00a0%");
+    expect(fmtPct(0)).toBe("0\u00a0%");
+  });
+});

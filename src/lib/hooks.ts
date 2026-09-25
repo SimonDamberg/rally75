@@ -19,6 +19,7 @@ import {
   type PrizeCardRow,
   type PrizeClaimRow,
   type PurchaseRow,
+  type BoxPrizeRow,
   type RaceRow,
   type ShopItemRow,
 } from './types'
@@ -289,6 +290,19 @@ export function useShopItems(): LiveResult<ShopItemRow[]> {
     apply: (prev, change) => {
       const next = applyChange(prev, change, (row) => row as unknown as ShopItemRow)
       return next === prev ? prev : next.slice().sort((a, b) => a.sort - b.sort || a.price - b.price)
+    },
+  })
+}
+
+/** The Mystery Box contents, Realtime so a won prize leaves every phone's list at once. */
+export function useBoxPrizes(): LiveResult<BoxPrizeRow[]> {
+  return useLive({
+    key: 'box-prizes',
+    load: () => getApi().getBoxPrizes(),
+    tables: ['box_prizes'],
+    apply: (prev, change) => {
+      const next = applyChange(prev, change, (row) => row as unknown as BoxPrizeRow)
+      return next === prev ? prev : next.slice().sort((a, b) => a.sort - b.sort || a.created_at.localeCompare(b.created_at))
     },
   })
 }

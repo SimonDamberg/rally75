@@ -27,6 +27,17 @@ export function fmtOdds(n: number): string {
   return n.toFixed(2).replace(".", ",");
 }
 
+/**
+ * A chance, 0..1, as a Swedish percentage. Whole percent from 10 %, one decimal below, so a rare
+ * prize reads "1,5 %" and not "2 %": 0.6 -> "60 %", 0.015 -> "1,5 %". Never "0 %" for a live chance.
+ */
+export function fmtPct(p: number): string {
+  const pct = p * 100;
+  if (pct <= 0) return `0${NBSP}%`;
+  const text = pct >= 10 ? Math.round(pct).toString() : Math.max(0.1, Math.round(pct * 10) / 10).toString().replace(".", ",");
+  return `${text}${NBSP}%`;
+}
+
 /** Duplicate names are allowed, so players are shown with their tag: "Simon #42". */
 export function playerLabel(name: string, tag: number): string {
   return `${name} #${tag}`;

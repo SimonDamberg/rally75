@@ -1,28 +1,35 @@
-// The black market, from behind the counter. Two things Simon needs mid-party: the shelf (prices
-// and stock, editable while the room is watching) and the feed of what has just been bought, so he
-// knows there is a beer to pour. There is no delivery status to keep in sync: a purchase is a
-// receipt, and Ångra is there for when the tap runs dry.
+// The black market, from behind the counter. Three things Simon needs mid-party: the shelf (prices
+// and stock, editable while the room is watching), what is left in the Mystery Box, and the feed
+// of what has just been bought or won, so he knows there is a beer to pour or a prize to hand
+// over. There is no delivery status to keep in sync: a purchase is a receipt, and Ångra is there
+// for when the tap runs dry.
 import { useState } from 'react'
-import type { PlayerRow, PurchaseRow, ShopEffect, ShopItemRow, ShopKind } from '../../lib/types'
+import type { BoxPrizeRow, PlayerRow, PurchaseRow, ShopItemRow } from '../../lib/types'
 import { GM_SHOP } from '../../shared/content/gm'
-import { badgedLabel, fmtRm } from '../../shared/game/format'
-import { Button, cx, Modal, toast } from '../../ui'
+import { RARITY_LABELS } from '../../shared/content/ui'
+import { BOX_RARITIES, boxLeft, prizeChance, type BoxRarity } from '../../shared/game/box'
+import { badgedLabel, fmtPct, fmtRm } from '../../shared/game/format'
+import { Button, cx, Modal, RARITY_COLOR, RarityChip, ShopImage, toast } from '../../ui'
 import { useGmAction } from '../gmAuth'
 import { parsePrice, parseStock } from '../parse'
 import { Field, TextArea, TextInput } from './form'
 
 type Editing = { item: ShopItemRow | null } | null
+type EditingPrize = { prize: BoxPrizeRow | null } | null
 
 export function ShopTab({
   items,
+  prizes,
   purchases,
   players,
 }: {
   items: readonly ShopItemRow[] | undefined
+  prizes: readonly BoxPrizeRow[] | undefined
   purchases: readonly PurchaseRow[] | undefined
   players: readonly PlayerRow[] | undefined
 }) {
   const [editing, setEditing] = useState<Editing>(null)
+  const [editingPrize, setEditingPrize] = useState<EditingPrize>(null)
 
   return (
     <div className="flex flex-col gap-4 p-4">
@@ -36,20 +43,31 @@ export function ShopTab({
       {items && items.length === 0 && <p className="text-ink-dim">{GM_SHOP.empty}</p>}
       <ul className="flex flex-col gap-2">
         {items?.map((item) => (
-          <ItemRow key={item.id} item={item} onEdit={() => setEditing({ item })} />
+          <ItemRow key={item.id} item={item} prizes={prizes ?? []} onEdit={() => setEditing({ item })} />
         ))}
       </ul>
+
+      <BoxPrizes prizes={prizes} onEdit={(prize) => setEditingPrize({ prize })} />
 
       <SoldFeed purchases={purchases} players={players} />
 
       {editing && <EditItem key={editing.item?.id ?? 'new'} item={editing.item} onClose={() => setEditing(null)} />}
+      {editingPrize && (
+        <EditPrize
+          key={editingPrize.prize?.id ?? 'new'}
+          prize={editingPrize.prize}
+          onClose={() => setEditingPrize(null)}
+        />
+      )}
     </div>
   )
 }
 
-function ItemRow({ item, onEdit }: { item: ShopItemRow; onEdit: () => void }) {
+function ItemRow({ item, prizes, onEdit }: { item: ShopItemRow; prizes: readonly BoxPrizeRow[]; onEdit: () => void }) {
   const { run, busy } = useGmAction()
-  const soldOut = item.stock !== null && item.stock < 1
+  const isBox = item.kind === 'box'
+  const left = isBox ? boxLeft(prizes) : item.stock
+  const soldOut = left !== null && left < 1
 
   // Mid-party shortcuts: one more off the shelf, or "that was the last one".
   const setStock = (stock: number) =>
@@ -63,13 +81,14 @@ function ItemRow({ item, onEdit }: { item: ShopItemRow; onEdit: () => void }) {
         !item.active && 'opacity-55',
       )}
     >
-      <div className="flex min-w-0 items-baseline gap-3">
+      <div className="flex min-w-0 items-center gap-3">
+        <ShopImage image={item.image} name={item.name} className="size-12 shrink-0 rounded-lg text-2xl" />
         <span className="min-w-0 flex-1 truncate font-extrabold">{item.name}</span>
         <span className="shrink-0 font-display text-xl font-black text-plate tabular-nums">{fmtRm(item.price)}</span>
       </div>
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-lg text-ink-dim">
         <span className="rounded-full bg-void px-3 py-0.5 text-base font-bold text-ink uppercase">
-          {item.kind === 'physical' ? GM_SHOP.physical : GM_SHOP.digital}
+          {isBox ? GM_SHOP.box : item.kind === 'digital' ? GM_SHOP.digital : GM_SHOP.bar}
         </span>
         {!item.active && (
           <span className="rounded-full bg-void px-3 py-0.5 text-base font-bold text-ink uppercase">
@@ -77,11 +96,17 @@ function ItemRow({ item, onEdit }: { item: ShopItemRow; onEdit: () => void }) {
           </span>
         )}
         <span className={cx('tabular-nums', soldOut && 'text-drift')}>
-          {item.stock === null ? GM_SHOP.unlimited : soldOut ? GM_SHOP.soldOut : GM_SHOP.stock(item.stock)}
+          {left === null
+            ? GM_SHOP.unlimited
+            : soldOut
+              ? GM_SHOP.soldOut
+              : isBox
+                ? GM_SHOP.boxLeft(left)
+                : GM_SHOP.stock(left)}
         </span>
       </div>
       <div className="flex flex-wrap gap-2">
-        {item.stock !== null && (
+        {!isBox && item.stock !== null && (
           <>
             <Button variant="ghost" disabled={busy} onClick={() => setStock(item.stock! + 1)}>
               {GM_SHOP.addStock}
@@ -117,7 +142,7 @@ function SoldFeed({
 
   const refund = async () => {
     if (!undoing || !(await run((gm, pw) => gm.refundPurchase(pw, undoing.id)))) return
-    toast({ text: GM_SHOP.refunded(undoing.item_name) })
+    toast({ text: GM_SHOP.refunded(undoing.prize_name ?? undoing.item_name) })
     setUndoing(null)
   }
 
@@ -135,7 +160,10 @@ function SoldFeed({
         {purchases?.map((p) => (
           <li key={p.id} className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl bg-tote/50 px-4 py-3 ring-1 ring-white/10 ring-inset">
             <div className="flex min-w-0 flex-1 flex-col leading-tight">
-              <span className="truncate font-extrabold">{p.item_name}</span>
+              <span className="flex min-w-0 items-center gap-2">
+                <span className="truncate font-extrabold">{p.prize_name ? GM_SHOP.fromBox(p.prize_name) : p.item_name}</span>
+                {p.prize_rarity && <RarityChip rarity={p.prize_rarity} className="shrink-0" />}
+              </span>
               <span className="truncate text-xl text-ink-dim">{label(p.player_id)}</span>
             </div>
             <span className="shrink-0 font-display text-xl font-black text-plate tabular-nums">{fmtRm(p.price)}</span>
@@ -150,7 +178,7 @@ function SoldFeed({
         open={!!undoing}
         onClose={() => setUndoing(null)}
         tone="danger"
-        title={undoing ? GM_SHOP.refundConfirmTitle(undoing.item_name) : ''}
+        title={undoing ? GM_SHOP.refundConfirmTitle(undoing.prize_name ?? undoing.item_name) : ''}
         actions={
           <>
             <Button variant="ghost" onClick={() => setUndoing(null)}>
@@ -168,33 +196,21 @@ function SoldFeed({
   )
 }
 
-const KINDS: readonly { value: ShopKind; label: string }[] = [
-  { value: 'physical', label: GM_SHOP.physical },
-  { value: 'digital', label: GM_SHOP.digital },
-]
-
-const EFFECTS: readonly { value: ShopEffect; label: string }[] = [
-  { value: 'none', label: GM_SHOP.effectNone },
-  { value: 'title', label: GM_SHOP.effectTitle },
-  { value: 'badge', label: GM_SHOP.effectBadge },
-]
-
 function EditItem({ item, onClose }: { item: ShopItemRow | null; onClose: () => void }) {
   const { run, busy } = useGmAction()
   const [name, setName] = useState(item?.name ?? '')
   const [blurb, setBlurb] = useState(item?.blurb ?? '')
   const [price, setPrice] = useState(item ? String(item.price) : '')
   const [stock, setStock] = useState(item?.stock == null ? '' : String(item.stock))
-  const [kind, setKind] = useState<ShopKind>(item?.kind ?? 'physical')
-  const [effect, setEffect] = useState<ShopEffect>(item?.effect ?? 'none')
-  const [effectValue, setEffectValue] = useState(item?.effect_value ?? '')
+  const [image, setImage] = useState(item?.image ?? '')
   const [active, setActive] = useState(item?.active ?? true)
   const [confirmDelete, setConfirmDelete] = useState(false)
 
+  const isBox = item?.kind === 'box'
   const parsedPrice = parsePrice(price)
   const parsedStock = parseStock(stock)
   const priceError = price !== '' && parsedPrice === null
-  const stockError = parsedStock === null
+  const stockError = !isBox && parsedStock === null
 
   const save = async () => {
     if (parsedPrice === null || parsedStock === null) return
@@ -204,13 +220,16 @@ function EditItem({ item, onClose }: { item: ShopItemRow | null; onClose: () => 
         name,
         blurb,
         price: parsedPrice,
-        stock: parsedStock ?? null,
-        kind,
-        effect,
-        effect_value: effect === 'none' ? '' : effectValue,
+        stock: isBox ? null : (parsedStock ?? null),
+        // The shop sells bar items and the box now. The kind and any old effect stay as they are;
+        // a new item is always something from the bar.
+        kind: item?.kind ?? 'physical',
+        effect: item?.effect ?? 'none',
+        effect_value: item?.effect_value ?? '',
         // New items land at the end of the shelf; existing ones keep their place.
         sort: item?.sort ?? 1000,
         active,
+        image,
       }),
     )
     if (!row) return
@@ -270,42 +289,20 @@ function EditItem({ item, onClose }: { item: ShopItemRow | null; onClose: () => 
               onChange={(e) => setPrice(e.target.value)}
             />
           </Field>
-          <Field label={GM_SHOP.stockLabel} hint={stockError ? GM_SHOP.stockError : GM_SHOP.stockHint}>
-            <TextInput
-              inputMode="numeric"
-              aria-invalid={stockError || undefined}
-              value={stock}
-              onChange={(e) => setStock(e.target.value)}
-            />
-          </Field>
-          <Field label={GM_SHOP.kindLabel}>
-            <Choice options={KINDS} value={kind} onPick={setKind} />
-          </Field>
-          <Field label={GM_SHOP.effectLabel}>
-            <Choice options={EFFECTS} value={effect} onPick={setEffect} />
-          </Field>
-          {effect !== 'none' && (
-            <Field label={GM_SHOP.effectValueLabel} hint={GM_SHOP.effectValueHint}>
-              <TextInput maxLength={40} value={effectValue} onChange={(e) => setEffectValue(e.target.value)} />
+          {!isBox && (
+            <Field label={GM_SHOP.stockLabel} hint={stockError ? GM_SHOP.stockError : GM_SHOP.stockHint}>
+              <TextInput
+                inputMode="numeric"
+                aria-invalid={stockError || undefined}
+                value={stock}
+                onChange={(e) => setStock(e.target.value)}
+              />
             </Field>
           )}
-          <button
-            type="button"
-            role="switch"
-            aria-checked={active}
-            onClick={() => setActive(!active)}
-            className="flex items-center gap-4 self-start rounded-xl py-2 text-2xl font-bold"
-          >
-            <span className={cx('relative h-10 w-18 rounded-full transition-colors', active ? 'bg-cash' : 'bg-void')}>
-              <span
-                className={cx(
-                  'absolute top-1 left-1 size-8 rounded-full bg-white transition-transform',
-                  active && 'translate-x-8',
-                )}
-              />
-            </span>
-            {GM_SHOP.activeLabel}
-          </button>
+          <Field label={GM_SHOP.imageLabel} hint={GM_SHOP.imageHint}>
+            <TextInput maxLength={80} autoCapitalize="off" value={image} onChange={(e) => setImage(e.target.value)} />
+          </Field>
+          <ActiveSwitch active={active} onToggle={() => setActive(!active)} />
         </form>
       </Modal>
 
@@ -331,29 +328,236 @@ function EditItem({ item, onClose }: { item: ShopItemRow | null; onClose: () => 
   )
 }
 
-function Choice<T extends string>({
-  options,
-  value,
-  onPick,
+function ActiveSwitch({ active, onToggle }: { active: boolean; onToggle: () => void }) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={active}
+      onClick={onToggle}
+      className="flex items-center gap-4 self-start rounded-xl py-2 text-2xl font-bold"
+    >
+      <span className={cx('relative h-10 w-18 rounded-full transition-colors', active ? 'bg-cash' : 'bg-void')}>
+        <span
+          className={cx('absolute top-1 left-1 size-8 rounded-full bg-white transition-transform', active && 'translate-x-8')}
+        />
+      </span>
+      {GM_SHOP.activeLabel}
+    </button>
+  )
+}
+
+function BoxPrizes({
+  prizes,
+  onEdit,
 }: {
-  options: readonly { value: T; label: string }[]
-  value: T
-  onPick: (value: T) => void
+  prizes: readonly BoxPrizeRow[] | undefined
+  onEdit: (prize: BoxPrizeRow | null) => void
 }) {
   return (
-    <div className="flex gap-2">
-      {options.map((o) => (
-        <button
-          key={o.value}
-          type="button"
-          aria-pressed={value === o.value}
-          onClick={() => onPick(o.value)}
-          className={cx(
-            'min-h-14 flex-1 rounded-xl font-display text-xl font-extrabold uppercase',
-            value === o.value ? 'bg-plate text-night' : 'bg-tote/60 text-ink-dim ring-2 ring-tote-hi/60 ring-inset',
-          )}
+    <section className="flex flex-col gap-3 border-t border-white/10 pt-4">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+        <h2 className="font-display text-2xl font-black text-plate uppercase">{GM_SHOP.prizesTitle}</h2>
+        <span className="flex-1" />
+        <Button onClick={() => onEdit(null)}>{GM_SHOP.newPrize}</Button>
+      </div>
+      <p className="text-ink-dim">{GM_SHOP.prizesHint}</p>
+      {prizes && boxLeft(prizes) === 0 && <p className="text-drift">{GM_SHOP.prizesEmpty}</p>}
+      <ul className="flex flex-col gap-2">
+        {prizes?.map((prize) => (
+          <PrizeRow key={prize.id} prize={prize} prizes={prizes} onEdit={() => onEdit(prize)} />
+        ))}
+      </ul>
+    </section>
+  )
+}
+
+function PrizeRow({
+  prize,
+  prizes,
+  onEdit,
+}: {
+  prize: BoxPrizeRow
+  prizes: readonly BoxPrizeRow[]
+  onEdit: () => void
+}) {
+  const { run, busy } = useGmAction()
+  const gone = prize.stock < 1
+  const setStock = (stock: number) => void run((gm, pw) => gm.upsertBoxPrize(pw, { ...prize, stock }))
+
+  return (
+    <li
+      className={cx(
+        'flex flex-col gap-2 rounded-xl bg-tote/60 px-4 py-3 ring-1 ring-white/10 ring-inset',
+        !prize.active && 'opacity-55',
+      )}
+      style={{ boxShadow: `inset 4px 0 0 ${RARITY_COLOR[prize.rarity]}` }}
+    >
+      <div className="flex min-w-0 items-center gap-3">
+        <ShopImage image={prize.image} name={prize.name} rarity={prize.rarity} className="size-12 shrink-0 rounded-lg text-2xl" />
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
+          <span className="truncate font-extrabold">{prize.name}</span>
+          <RarityChip rarity={prize.rarity} className="text-xs" />
+        </div>
+        <span className="shrink-0 font-display text-xl font-black text-plate tabular-nums">
+          {fmtPct(prizeChance(prize, prizes))}
+        </span>
+      </div>
+      <div className="flex flex-wrap items-center gap-2">
+        {!prize.active && (
+          <span className="rounded-full bg-void px-3 py-0.5 text-base font-bold text-ink uppercase">{GM_SHOP.inactive}</span>
+        )}
+        <span className={cx('text-lg tabular-nums', gone ? 'text-drift' : 'text-ink-dim')}>
+          {gone ? GM_SHOP.soldOut : GM_SHOP.stock(prize.stock)}
+        </span>
+        <span className="flex-1" />
+        <Button variant="ghost" disabled={busy} onClick={() => setStock(prize.stock + 1)}>
+          {GM_SHOP.addStock}
+        </Button>
+        <Button variant="ghost" disabled={busy || gone} onClick={() => setStock(0)}>
+          {GM_SHOP.markSoldOut}
+        </Button>
+        <Button variant="ghost" onClick={onEdit}>
+          {GM_SHOP.edit}
+        </Button>
+      </div>
+    </li>
+  )
+}
+
+function EditPrize({ prize, onClose }: { prize: BoxPrizeRow | null; onClose: () => void }) {
+  const { run, busy } = useGmAction()
+  const [name, setName] = useState(prize?.name ?? '')
+  const [blurb, setBlurb] = useState(prize?.blurb ?? '')
+  const [image, setImage] = useState(prize?.image ?? '')
+  const [rarity, setRarity] = useState<BoxRarity>(prize?.rarity ?? 'bla')
+  const [count, setCount] = useState(prize ? String(prize.stock) : '1')
+  const [active, setActive] = useState(prize?.active ?? true)
+  const [confirmDelete, setConfirmDelete] = useState(false)
+
+  // A count is a whole number, zero or more: the same shape as a price.
+  const parsedCount = parsePrice(count)
+  const countError = parsedCount === null
+
+  const save = async () => {
+    if (parsedCount === null) return
+    const row = await run((gm, pw) =>
+      gm.upsertBoxPrize(pw, {
+        id: prize?.id ?? null,
+        name,
+        blurb,
+        image,
+        rarity,
+        stock: parsedCount,
+        sort: prize?.sort ?? 1000,
+        active,
+      }),
+    )
+    if (!row) return
+    toast({ text: GM_SHOP.saved(row.name) })
+    onClose()
+  }
+
+  const remove = async () => {
+    if (!prize || !(await run(async (gm, pw) => (await gm.deleteBoxPrize(pw, prize.id), true)))) return
+    toast({ text: GM_SHOP.deleted(prize.name) })
+    onClose()
+  }
+
+  return (
+    <>
+      <Modal
+        open
+        onClose={onClose}
+        title={prize ? prize.name : GM_SHOP.newPrize}
+        className="w-[min(52rem,calc(100vw-2rem))]"
+        actions={
+          <>
+            {prize && (
+              <Button variant="danger" disabled={busy} onClick={() => setConfirmDelete(true)}>
+                {GM_SHOP.delete}
+              </Button>
+            )}
+            <span className="flex-1" />
+            <Button variant="ghost" onClick={onClose}>
+              {GM_SHOP.cancel}
+            </Button>
+            <Button type="submit" form="prize-form" loading={busy} disabled={countError}>
+              {GM_SHOP.save}
+            </Button>
+          </>
+        }
+      >
+        <form
+          id="prize-form"
+          className="flex flex-col gap-5"
+          onSubmit={(e) => {
+            e.preventDefault()
+            void save()
+          }}
         >
-          {o.label}
+          <Field label={GM_SHOP.nameLabel}>
+            <TextInput maxLength={60} value={name} onChange={(e) => setName(e.target.value)} />
+          </Field>
+          <Field label={GM_SHOP.blurbLabel}>
+            <TextArea rows={2} maxLength={160} value={blurb} onChange={(e) => setBlurb(e.target.value)} />
+          </Field>
+          <Field label={GM_SHOP.rarityLabel}>
+            <RarityPicker value={rarity} onPick={setRarity} />
+          </Field>
+          <Field label={GM_SHOP.countLabel} hint={countError ? GM_SHOP.countError : undefined}>
+            <TextInput
+              inputMode="numeric"
+              aria-invalid={countError || undefined}
+              value={count}
+              onChange={(e) => setCount(e.target.value)}
+            />
+          </Field>
+          <Field label={GM_SHOP.imageLabel} hint={GM_SHOP.imageHint}>
+            <TextInput maxLength={80} autoCapitalize="off" value={image} onChange={(e) => setImage(e.target.value)} />
+          </Field>
+          <ActiveSwitch active={active} onToggle={() => setActive(!active)} />
+        </form>
+      </Modal>
+
+      <Modal
+        open={confirmDelete}
+        onClose={() => setConfirmDelete(false)}
+        tone="danger"
+        title={prize ? GM_SHOP.prizeDeleteConfirmTitle(prize.name) : ''}
+        actions={
+          <>
+            <Button variant="ghost" onClick={() => setConfirmDelete(false)}>
+              {GM_SHOP.cancel}
+            </Button>
+            <Button variant="danger" loading={busy} onClick={() => void remove()}>
+              {GM_SHOP.deleteConfirmOk}
+            </Button>
+          </>
+        }
+      >
+        <p className="text-xl">{GM_SHOP.prizeDeleteConfirmText}</p>
+      </Modal>
+    </>
+  )
+}
+
+function RarityPicker({ value, onPick }: { value: BoxRarity; onPick: (value: BoxRarity) => void }) {
+  return (
+    <div className="flex flex-wrap gap-2">
+      {BOX_RARITIES.map((r) => (
+        <button
+          key={r}
+          type="button"
+          aria-pressed={value === r}
+          onClick={() => onPick(r)}
+          className={cx(
+            'min-h-12 rounded-xl px-4 font-display text-lg font-extrabold text-white uppercase',
+            value === r ? 'ring-4 ring-plate' : 'opacity-60',
+          )}
+          style={{ backgroundColor: RARITY_COLOR[r] }}
+        >
+          {RARITY_LABELS[r]}
         </button>
       ))}
     </div>

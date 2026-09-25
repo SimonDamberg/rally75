@@ -1,5 +1,6 @@
 // Row types for the Supabase tables and RPC results. Hand-written (not generated) so the jsonb
 // columns carry the real shared game types. Keep in sync with supabase/migrations/.
+import type { BoxRarity } from "../shared/game/box";
 import type {
   BetStatus,
   HorsePublic,
@@ -75,7 +76,8 @@ export interface KuskRow {
 /** What an item grants beyond the receipt. Never anything that touches the game. */
 export type ShopEffect = "none" | "title" | "badge";
 
-export type ShopKind = "physical" | "digital";
+/** 'box' is the Mystery Box: opened with open_box, never bought with buy_item. */
+export type ShopKind = "physical" | "digital" | "box";
 
 export interface ShopItemRow {
   id: string;
@@ -90,7 +92,35 @@ export interface ShopItemRow {
   effect_value: string;
   sort: number;
   active: boolean;
+  /** A file name under public/butik/; '' draws the fallback tile. */
+  image: string;
   created_at: string;
+}
+
+/** One prize in the Mystery Box. Physical, counted, and gone from the box once won. */
+export interface BoxPrizeRow {
+  id: string;
+  name: string;
+  blurb: string;
+  /** A file name under public/butik/; '' draws the fallback tile. */
+  image: string;
+  rarity: BoxRarity;
+  stock: number;
+  sort: number;
+  active: boolean;
+  created_at: string;
+}
+
+export interface BoxPrizeInputRow {
+  /** null creates a new prize. */
+  id: string | null;
+  name: string;
+  blurb: string;
+  image: string;
+  rarity: BoxRarity;
+  stock: number;
+  sort: number;
+  active: boolean;
 }
 
 export interface PurchaseRow {
@@ -101,6 +131,10 @@ export interface PurchaseRow {
   item_name: string;
   kind: ShopKind;
   price: number;
+  /** Set on a Mystery Box opening: what came out of the box (snapshots, like item_name). */
+  prize_id: string | null;
+  prize_name: string | null;
+  prize_rarity: BoxRarity | null;
   created_at: string;
 }
 
@@ -134,6 +168,7 @@ export interface ShopItemInputRow {
   effect_value: string;
   sort: number;
   active: boolean;
+  image: string;
 }
 
 /**

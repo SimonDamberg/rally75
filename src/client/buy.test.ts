@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import type { PurchaseRow, ShopItemRow } from '../lib/types'
+import type { BoxPrizeRow, PurchaseRow, ShopItemRow } from '../lib/types'
 import { netWorth, nightNet } from '../shared/game/economy'
-import { afterBuy, checkBuy, purchaseTotal, shelves, stockLeft } from './buy'
+import { afterBuy, checkBuy, purchaseTotal, shelves, stockLeft, visiblePurchases } from './buy'
 
 function item(over: Partial<ShopItemRow> = {}): ShopItemRow {
   return {
@@ -15,10 +15,28 @@ function item(over: Partial<ShopItemRow> = {}): ShopItemRow {
     effect_value: '',
     sort: 10,
     active: true,
+    image: '',
     created_at: '2026-09-16T18:00:00Z',
     ...over,
   }
 }
+
+function prize(over: Partial<BoxPrizeRow> = {}): BoxPrizeRow {
+  return {
+    id: 'p1',
+    name: 'Nyckelring',
+    blurb: '',
+    image: '',
+    rarity: 'bla',
+    stock: 1,
+    sort: 10,
+    active: true,
+    created_at: '2026-09-16T18:00:00Z',
+    ...over,
+  }
+}
+
+const box = item({ id: 'box', name: 'Mystery Box', kind: 'box', price: 1000 })
 
 const rich = { balance: 5000 }
 
@@ -50,35 +68,49 @@ describe('stockLeft', () => {
     expect(stockLeft(item({ stock: 3 }))).toBe(3)
     expect(stockLeft(item({ stock: 0 }))).toBe(0)
   })
+
+  it('counts a box in its active prizes', () => {
+    expect(stockLeft(box, [prize({ stock: 3 }), prize({ id: 'p2', stock: 2 }), prize({ id: 'p3', stock: 9, active: false })])).toBe(5)
+    expect(stockLeft(box)).toBe(0)
+  })
+})
+
+describe('the box', () => {
+  it('is sold out when every prize is won', () => {
+    expect(checkBuy(rich, box, [prize({ stock: 0 })])).toBe('sold_out')
+    expect(checkBuy(rich, box, [prize({ stock: 1 })])).toBe('ok')
+    expect(checkBuy({ balance: 999 }, box, [prize()])).toBe('too_poor')
+  })
 })
 
 describe('shelves', () => {
-  it('splits on kind and drops inactive items', () => {
-    const { physical, digital } = shelves([
+  it('puts the box on top and drops inactive items', () => {
+    const shelf = shelves([
       item({ id: 'a', name: 'Öl', kind: 'physical' }),
-      item({ id: 'b', name: 'NFT', kind: 'digital' }),
+      box,
       item({ id: 'c', name: 'Gömd', kind: 'physical', active: false }),
     ])
-    expect(physical.map((i) => i.name)).toEqual(['Öl'])
-    expect(digital.map((i) => i.name)).toEqual(['NFT'])
+    expect(shelf.box?.name).toBe('Mystery Box')
+    expect(shelf.items.map((i) => i.name)).toEqual(['Öl'])
+    expect(shelves([item(), { ...box, active: false }]).box).toBe(null)
   })
 
   it('keeps the GM order and sinks sold out to the bottom', () => {
-    const { physical } = shelves([
+    const { items } = shelves([
       item({ id: 'a', name: 'Först', sort: 10, stock: 0 }),
       item({ id: 'b', name: 'Sedan', sort: 20 }),
       item({ id: 'c', name: 'Sist', sort: 30 }),
     ])
-    expect(physical.map((i) => i.name)).toEqual(['Sedan', 'Sist', 'Först'])
+    expect(items.map((i) => i.name)).toEqual(['Sedan', 'Sist', 'Först'])
   })
 
   it('breaks ties by price and then by name', () => {
-    const { digital } = shelves([
-      item({ id: 'a', name: 'Beta', kind: 'digital', sort: 0, price: 100 }),
-      item({ id: 'b', name: 'Alfa', kind: 'digital', sort: 0, price: 100 }),
-      item({ id: 'c', name: 'Billig', kind: 'digital', sort: 0, price: 50 }),
+    const { items } = shelves([
+      item({ id: 'a', name: 'Beta', sort: 0, price: 100 }),
+      item({ id: 'b', name: 'Alfa', sort: 0, price: 100 }),
+      item({ id: 'c', name: 'Billig', sort: 0, price: 50 }),
     ])
-    expect(digital.map((i) => i.name)).toEqual(['Billig', 'Alfa', 'Beta'])
+    expect(items.map((i) => i.name)).toEqual(['Billig', 'Alfa', 'Beta'])
   })
 })
 
@@ -118,11 +150,20 @@ describe('purchaseTotal', () => {
     item_name: 'En kall öl',
     kind: 'physical',
     price,
+    prize_id: null,
+    prize_name: null,
+    prize_rarity: null,
     created_at: '2026-09-16T18:00:00Z',
   })
 
   it('sums the receipts', () => {
     expect(purchaseTotal([])).toBe(0)
     expect(purchaseTotal([receipt(500, 'a'), receipt(750, 'b')])).toBe(1250)
+  })
+
+  it('keeps a spinning box off the list until the reel lands', () => {
+    const list = [receipt(1000, 'spin'), receipt(500, 'old')]
+    expect(visiblePurchases(list, 'spin').map((p) => p.id)).toEqual(['old'])
+    expect(visiblePurchases(list, null).map((p) => p.id)).toEqual(['spin', 'old'])
   })
 })

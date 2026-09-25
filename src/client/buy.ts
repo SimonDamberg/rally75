@@ -1,31 +1,45 @@
 // Pure shop maths for the Butik tab: what is on the shelves, what you can afford, and what the
 // balance looks like after. Mirrors repay.ts. Named for the action, since buy.ts and Butik.tsx
 // have to coexist on a case-insensitive filesystem.
-import type { PurchaseRow, ShopItemRow } from '../lib/types'
+import type { BoxPrizeRow, PurchaseRow, ShopItemRow } from '../lib/types'
+import { boxLeft } from '../shared/game/box'
 
 export type BuyCheck = 'ok' | 'inactive' | 'sold_out' | 'too_poor'
 
-/** Why the Köp button is dead, in the order the guest should hear about it. */
-export function checkBuy(player: { balance: number }, item: ShopItemRow): BuyCheck {
+/**
+ * Why the Köp button is dead, in the order the guest should hear about it. A box counts its
+ * stock in the prizes, so pass them for a box.
+ */
+export function checkBuy(
+  player: { balance: number },
+  item: ShopItemRow,
+  prizes: readonly BoxPrizeRow[] = [],
+): BuyCheck {
   if (!item.active) return 'inactive'
-  if (item.stock !== null && item.stock < 1) return 'sold_out'
+  const left = stockLeft(item, prizes)
+  if (left !== null && left < 1) return 'sold_out'
   if (player.balance < item.price) return 'too_poor'
   return 'ok'
 }
 
-/** null when the shelf is not counted at all; otherwise how many are left. */
-export function stockLeft(item: ShopItemRow): number | null {
+/**
+ * null when the shelf is not counted at all; otherwise how many are left. A box is never
+ * uncounted: it holds exactly the prizes that are left in it.
+ */
+export function stockLeft(item: ShopItemRow, prizes: readonly BoxPrizeRow[] = []): number | null {
+  if (item.kind === 'box') return boxLeft(prizes)
   return item.stock === null ? null : Math.max(0, item.stock)
 }
 
 export interface Shelves {
-  physical: ShopItemRow[]
-  digital: ShopItemRow[]
+  /** The Mystery Box, shown on top; null when the GM has none active. */
+  box: ShopItemRow | null
+  items: ShopItemRow[]
 }
 
 /**
- * The catalogue split in two, in the order the GM put it in. Sold out sinks to the bottom of its
- * shelf so the things you can actually have stay at the top; inactive items are dropped entirely
+ * The box on top, everything else below in the order the GM put it in. Sold out sinks to the
+ * bottom so the things you can actually have stay at the top; inactive items are dropped entirely
  * (the GM turns an item off to take it out of the shop, not to grey it out for the room).
  */
 export function shelves(items: readonly ShopItemRow[]): Shelves {
@@ -35,9 +49,17 @@ export function shelves(items: readonly ShopItemRow[]): Shelves {
     return soldOut || a.sort - b.sort || a.price - b.price || a.name.localeCompare(b.name, 'sv')
   })
   return {
-    physical: ordered.filter((i) => i.kind === 'physical'),
-    digital: ordered.filter((i) => i.kind === 'digital'),
+    box: ordered.find((i) => i.kind === 'box') ?? null,
+    items: ordered.filter((i) => i.kind !== 'box'),
   }
+}
+
+/**
+ * The receipts the guest may see: an opening whose reel is still spinning stays off the list,
+ * or "Mina köp" would read the prize out before the reel lands on it.
+ */
+export function visiblePurchases(purchases: readonly PurchaseRow[], spinning: string | null): PurchaseRow[] {
+  return spinning ? purchases.filter((p) => p.id !== spinning) : purchases.slice()
 }
 
 /**

@@ -762,6 +762,7 @@ await step("butiken", async () => {
     effect_value: "",
     sort: 900,
     active: true,
+    image: "",
   });
   const crown = await gm.upsertShopItem(pw, {
     id: null,
@@ -774,6 +775,7 @@ await step("butiken", async () => {
     effect_value: "👑",
     sort: 901,
     active: true,
+    image: "",
   });
   const shelved = await gm.upsertShopItem(pw, {
     id: null,
@@ -786,6 +788,7 @@ await step("butiken", async () => {
     effect_value: "",
     sort: 902,
     active: false,
+    image: "",
   });
 
   await expectCode(api.buyItem(rik, crypto.randomUUID()), "item_not_found");
@@ -843,6 +846,77 @@ await step("butiken", async () => {
   assert.equal((await api.getShopItems()).length, shelf.length);
 });
 
+await step("mystery box", async () => {
+  const opener = await newPlayer("Smoke Lådöppnare");
+  const shelf = await api.getShopItems();
+  const box = shelf.find((i) => i.kind === "box" && i.active);
+  assert.ok(box, "the seed has a Mystery Box on the shelf");
+  const bar = shelf.find((i) => i.kind !== "box")!;
+  assert.ok(
+    (await db.from("box_prizes").insert({ name: "Gratis kniv", stock: 1 })).error,
+    "insert box_prizes must fail",
+  );
+
+  await expectCode(api.buyItem(opener, box.id), "use_open_box");
+  await expectCode(api.openBox(opener, bar.id), "not_a_box");
+
+  // A private box for this run: the seeded prizes are switched off and put back at the end.
+  const seeded = await api.getBoxPrizes();
+  for (const p of seeded) await gm.upsertBoxPrize(pw, { ...p, active: false });
+  try {
+    await expectCode(api.openBox(opener, box.id), "box_empty");
+    const only = await gm.upsertBoxPrize(pw, {
+      id: null,
+      name: "  Smoke Vinst  ",
+      blurb: "",
+      image: "",
+      rarity: "rosa",
+      stock: 1,
+      sort: 999,
+      active: true,
+    });
+    assert.equal(only.name, "Smoke Vinst");
+
+    const before = (await api.getPlayer(opener.playerId))!;
+    const opened = await api.openBox(opener, box.id);
+    assert.equal(opened.kind, "box");
+    assert.equal(opened.price, box.price);
+    assert.equal(opened.prize_id, only.id);
+    assert.equal(opened.prize_name, "Smoke Vinst");
+    assert.equal(opened.prize_rarity, "rosa");
+    const after = (await api.getPlayer(opener.playerId))!;
+    assert.equal(after.balance, before.balance - box.price);
+    assert.equal(after.spent, before.spent + box.price);
+    assert.equal(netWorth(after), netWorth(before), "opening a box is rank neutral");
+    assert.equal((await api.getBoxPrizes()).find((p) => p.id === only.id)!.stock, 0, "the prize left the box");
+    await expectCode(api.openBox(opener, box.id), "box_empty");
+
+    // Ångra puts the RM back and the prize back in the box.
+    await gm.refundPurchase(pw, opened.id);
+    assert.equal((await api.getPlayer(opener.playerId))!.balance, before.balance);
+    assert.equal((await api.getBoxPrizes()).find((p) => p.id === only.id)!.stock, 1, "the refund restocks the prize");
+
+    // Too poor: a second guest spends the bonus on one box and cannot afford the next.
+    const other = await newPlayer("Smoke Lådöppnare 2");
+    await gm.upsertBoxPrize(pw, { ...only, stock: 2 });
+    const first = await api.openBox(other, box.id);
+    if ((await api.getPlayer(other.playerId))!.balance < box.price) {
+      await expectCode(api.openBox(other, box.id), "insufficient_balance");
+    }
+    await gm.refundPurchase(pw, first.id);
+
+    await expectCode(gm.upsertBoxPrize(pw, { ...only, rarity: "regnbage" as never }), "bad_rarity");
+    await expectCode(gm.upsertBoxPrize(pw, { ...only, stock: -1 }), "bad_stock");
+    await expectCode(gm.upsertBoxPrize(pw, { ...only, name: " " }), "name_empty");
+    await expectCode(gm.upsertBoxPrize("fel lösenord", { ...only }), "gm_unauthorized");
+    await gm.deleteBoxPrize(pw, only.id);
+    await expectCode(gm.deleteBoxPrize(pw, only.id), "prize_not_found");
+    await expectCode(gm.upsertBoxPrize(pw, { ...only }), "prize_not_found");
+  } finally {
+    for (const p of seeded) await gm.upsertBoxPrize(pw, p);
+  }
+});
+
 await step("gm butik management", async () => {
   const before = (await api.getShopItems()).length;
   const created = await gm.upsertShopItem(pw, {
@@ -856,6 +930,7 @@ await step("gm butik management", async () => {
     effect_value: "",
     sort: 950,
     active: true,
+    image: "",
   });
   assert.equal(created.name, "Smoke Vara");
   assert.equal(created.blurb, "Text.");

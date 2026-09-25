@@ -2,7 +2,7 @@
 // app, because this is now a device Simon holds rather than an iPad on a stand. It never takes over
 // the screen for a race; the room watches /gm/display for that.
 import { useMemo, useState } from 'react'
-import { useActiveRace, useConnection, useKusks, useLeaderboard, usePlinkoDrops, usePurchases, useShopItems } from '../../lib/hooks'
+import { useActiveRace, useBoxPrizes, useConnection, useKusks, useLeaderboard, usePlinkoDrops, usePurchases, useShopItems } from '../../lib/hooks'
 import type { PlayerRow } from '../../lib/types'
 import { GM_TABS } from '../../shared/content/gm'
 import { Button, ConnectionBadge, cx, Logo } from '../../ui'
@@ -25,6 +25,7 @@ export function ControlShell() {
   const { data: kusks, reload: reloadKusks } = useKusks()
   const { data: board, reload: reloadPlayers } = useLeaderboard()
   const { data: shopItems } = useShopItems()
+  const { data: boxPrizes } = useBoxPrizes()
   const { data: purchases } = usePurchases()
   const { data: plinko } = usePlinkoDrops()
   const control = useRaceControl(kusks, reloadRace)
@@ -66,7 +67,7 @@ export function ControlShell() {
             }}
           />
         )}
-        {tab === 'shop' && <ShopTab items={shopItems} purchases={purchases} players={board?.players} />}
+        {tab === 'shop' && <ShopTab items={shopItems} prizes={boxPrizes} purchases={purchases} players={board?.players} />}
         {tab === 'kuskar' && <KuskarTab kusks={kusks} onChange={reloadKusks} />}
       </main>
 
