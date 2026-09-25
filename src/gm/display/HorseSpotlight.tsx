@@ -102,7 +102,7 @@ export function Spotlight({
           </span>
         </div>
 
-        <p className="line-clamp-3 text-[min(1.4rem,2.1vw)] leading-snug text-ink-dim">
+        <p className="line-clamp-3 text-[min(2.1rem,3.2vw)] leading-snug font-bold text-ink-dim">
           {horse.jnote}
         </p>
         {/* <p className="line-clamp-1 text-[min(1.2rem,1.9vw)] leading-snug text-ink-dim/80 italic">{horse.jnote}</p> */}
