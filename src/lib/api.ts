@@ -110,6 +110,14 @@ export function createApi(db: SupabaseClient) {
       return Number(await rpc<number | string>('night_paid', {}))
     },
 
+    /**
+     * "Huset idag": real RM the house has taken tonight from Rally75, Plånko and Butiken, net of
+     * payouts. Aggregated server-side for the same reason as getNightPaid.
+     */
+    async getHouseTake(): Promise<number> {
+      return Number(await rpc<number | string>('house_take', {}))
+    },
+
     async getPlayer(playerId: string): Promise<PlayerRow | null> {
       const row = await query<Row | null>(() => db.from('players').select('*').eq('id', playerId).maybeSingle())
       return row ? toPlayer(row) : null

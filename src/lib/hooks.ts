@@ -213,6 +213,15 @@ export function useNightPaid(): LiveResult<number> {
   return useLive({ key: 'night-paid', load: () => getApi().getNightPaid(), tables: ['races'] })
 }
 
+/** "Huset idag": real RM the house has taken tonight from Rally75, Plånko and Butiken. */
+export function useHouseTake(): LiveResult<number> {
+  return useLive({
+    key: 'house-take',
+    load: () => getApi().getHouseTake(),
+    tables: ['races', 'plinko_drops', 'purchases'],
+  })
+}
+
 export interface PlayerState extends LiveResult<PlayerRow | null> {
   identity: Identity | null
   /** Creates the account, stores {playerId, token} and returns the new identity. */
