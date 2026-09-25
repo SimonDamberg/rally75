@@ -180,7 +180,10 @@ export interface CouponRow {
   id: string;
   /** 1 brons, 2 silver, 3 guld. */
   tier: number;
+  /** What the guest is paid. */
   amount: number;
+  /** What the ticket says when it says more than it pays (the bonuskupong prank), else null. */
+  face: number | null;
   /** Which game handed it out ("Dart"); '' when the GM left it blank. */
   label: string;
   /** One print run. */

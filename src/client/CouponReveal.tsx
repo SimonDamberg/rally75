@@ -4,7 +4,7 @@
 import type { CouponRow } from '../lib/types'
 import { KUPONG } from '../shared/content/client'
 import { COUPON_TIER_COPY } from '../shared/content/coupons'
-import { formatCode } from '../shared/game/coupon'
+import { feeLines, formatCode, isShortchanged, printedValue } from '../shared/game/coupon'
 import { fmtRm } from '../shared/game/format'
 import { Button, Modal } from '../ui'
 import { CoinBurst } from './CoinBurst'
@@ -28,6 +28,8 @@ export function CouponReveal({
 }) {
   const open = !!pending || !!claimed
   const tier = claimed ? COUPON_TIER_COPY[claimed.tier as 1 | 2 | 3] : undefined
+  // The bonuskupong prank: the printed value crossed out, a receipt of made-up fees, then the truth.
+  const prank = !!claimed && isShortchanged(claimed)
 
   return (
     <>
@@ -37,7 +39,7 @@ export function CouponReveal({
         onClose={onClose}
         dismissible={!busy}
         tone="sleaze"
-        title={claimed ? KUPONG.wonTitle : KUPONG.waitingTitle}
+        title={claimed ? (prank ? KUPONG.prankTitle : KUPONG.wonTitle) : KUPONG.waitingTitle}
         actions={
           claimed ? (
             <Button size="lg" block onClick={onClose}>
@@ -62,6 +64,21 @@ export function CouponReveal({
                 {tier?.name}
               </p>
               <div className="bulbs w-full rounded-xl bg-night-deep px-4 py-6">
+                {prank && (
+                  <div className="mb-4 flex flex-col gap-1">
+                    <p className="font-display text-4xl leading-none font-black text-ink-dim tabular-nums line-through decoration-drift decoration-4">
+                      {fmtRm(printedValue(claimed))}
+                    </p>
+                    <ul className="mt-2 flex flex-col gap-0.5 text-left text-sm">
+                      {feeLines(claimed, KUPONG.prankFees.length).map((fee, i) => (
+                        <li key={KUPONG.prankFees[i]} className="flex justify-between gap-3">
+                          <span className="text-ink-dim">{KUPONG.prankFees[i]}</span>
+                          <span className="font-bold text-drift tabular-nums">-{fmtRm(fee)}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
                 <CountUp
                   to={claimed.amount}
                   format={fmtRm}
@@ -69,7 +86,7 @@ export function CouponReveal({
                 />
               </div>
               {claimed.label && <p className="text-lg text-ink-dim">{KUPONG.from(claimed.label)}</p>}
-              <p className="text-ink-dim">{KUPONG.wonText}</p>
+              <p className="text-ink-dim">{prank ? KUPONG.prankText : KUPONG.wonText}</p>
             </>
           ) : (
             <>

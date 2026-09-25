@@ -29,3 +29,30 @@ export function formatCode(code: string): string {
   const half = Math.ceil(COUPON_CODE_LENGTH / 2)
   return code.length === COUPON_CODE_LENGTH ? `${code.slice(0, half)}-${code.slice(half)}` : code
 }
+
+/** Anything with a kupong's `amount` (what it pays) and nullable `face` (what the paper says). */
+interface Valued {
+  amount: number
+  face: number | null
+}
+
+/** The value printed on the ticket: `face` when the paper promises more, else what it pays. */
+export function printedValue(c: Valued): number {
+  return c.face ?? c.amount
+}
+
+/** The bonuskupong prank (`*_coupon_face.sql`): the ticket says more than lands in the balance. */
+export function isShortchanged(c: Valued): boolean {
+  return printedValue(c) > c.amount
+}
+
+/**
+ * The prank's receipt: the shortfall split into `n` fee lines that sum to it exactly. Even shares,
+ * the remainder on the last line, so 900 over four fees reads 225, 225, 225, 225.
+ */
+export function feeLines(c: Valued, n: number): number[] {
+  const gap = printedValue(c) - c.amount
+  if (gap <= 0 || n < 1) return []
+  const share = Math.floor(gap / n)
+  return Array.from({ length: n }, (_, i) => (i === n - 1 ? gap - share * (n - 1) : share))
+}
