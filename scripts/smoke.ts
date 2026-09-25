@@ -1187,6 +1187,27 @@ await step("plånko", async () => {
   await expectCode(api.plinkoDrop(kula, 10), "insufficient_balance");
 });
 
+await step("house_take is Rally75 + Plånko + Butiken, net of payouts", async () => {
+  const bets = await Promise.all(
+    (await api.getRaces()).map((r) => api.getRaceBets(r.id)),
+  );
+  const betsTake = bets
+    .flat()
+    .reduce(
+      (sum, b) => (b.status === "open" ? sum : sum + b.stake - (b.payout ?? 0)),
+      0,
+    );
+  const plinkoTake = (await api.getPlinkoDrops()).reduce(
+    (sum, d) => sum + d.stake - d.payout,
+    0,
+  );
+  const shopTake = (await api.getPurchases()).reduce(
+    (sum, p) => sum + p.price,
+    0,
+  );
+  assert.equal(await api.getHouseTake(), betsTake + plinkoTake + shopTake);
+});
+
 await step("reset night", async () => {
   await gm.resetNight(pw);
   assert.equal(await api.getActiveRace(), null);
@@ -1200,6 +1221,8 @@ await step("reset night", async () => {
   assert.deepEqual(await api.getPlinkoDrops(), []);
   // So do vinstkort claims.
   assert.deepEqual(await api.getPrizeClaims(), []);
+  // Everything house_take sums from cascades off the deleted players and races.
+  assert.equal(await api.getHouseTake(), 0);
 });
 
 await db.removeAllChannels();
