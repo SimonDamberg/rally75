@@ -61,7 +61,6 @@ export const NAMED_KUSKAR: readonly KuskInput[] = [
       "Emma har förberett sig för allt utom själva loppet.",
       "Emma vägrar ligga bakom andra hästar. Hon är rädd för deras chemtrails.",
       "Emma dejtar bara män som minns när travet var på riktigt.",
-      "Emmas pojkvän kom till banan med rollator. Han var ändå snabbare än hennes häst.",
       'Emma kallar sin dejt för "en man med erfarenhet". Han var med när Solvalla byggdes.',
     ],
   },
@@ -75,10 +74,8 @@ export const NAMED_KUSKAR: readonly KuskInput[] = [
       "Axel har samma piska som sin far och exakt samma åsikter.",
       "Axel bojkottar det nya banunderlaget och kallar det för nymodigheter.",
       "Axel bugar för publiken innan han kommer sist.",
-      "Axel håller upp dörren för sina motståndare. Även i upploppet.",
-      "Axel bär manschettknappar i sulkyn. Han kommer sist, men snyggt.",
       'Axel anmälde en omkörning som "oerhört ohyfsad". Det var han själv som körde om.',
-      "Axel tycker att det enda som blivit bättre sedan femtiotalet är hans egen hållning.",
+      "Axel tycker att det enda som blivit bättre sedan 1918 är hans egen hållning.",
     ],
   },
   {
@@ -94,8 +91,6 @@ export const NAMED_KUSKAR: readonly KuskInput[] = [
       'Erik kallar lukten "arbetarklass". Hästen kallar den något annat.',
       "Erik jobbar med papper men har aldrig läst ett regelverk.",
       'Erik gör "vad som helst" för ett tidsavdrag. Domaren har bett honom sluta erbjuda.',
-      "Erik spelar musik på sulkyn, på hjälmen och en gång på hästen.",
-      "Erik plockade svamp bakom stallet och såg sedan loppet i färg.",
     ],
   },
   {
@@ -113,7 +108,7 @@ export const NAMED_KUSKAR: readonly KuskInput[] = [
       "Kajsas fötter luktar häst. Hästen tar illa upp.",
       "Kajsa vill göra det tydligt att hon inte är en hästtjej. Hon sa det medan hon flätade manen.",
       "Kajsa är inte en hästtjej. Hon har bara sju rallyn, en sadel och hästens födelsedag i kalendern.",
-      'Kajsa har bett speakern presentera henne som "inte en hästtjej". Hästen har inte kommenterat.',
+      'Kajsa har bett speakern presentera henne som "inte en hästtjej".',
     ],
   },
   {
@@ -131,9 +126,6 @@ export const NAMED_KUSKAR: readonly KuskInput[] = [
       "Simon tror att tempo är en IPA och att upplopp är en lambic.",
       'Simon kallar varje öl ett "produkttest". Testet pågår.',
       "Simon har fler Magic-kort än vänner, och korten är mer värda.",
-      "Simon odlade en mustasch och kallar sig nu serbisk. Serbien har inte bekräftat det.",
-      "Simons mustasch går i mål en halv sekund före honom.",
-      "Simon kör med mustaschen i vinden och ber om att bli kallad Simonović.",
     ],
   },
   {
