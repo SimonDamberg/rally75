@@ -13,26 +13,6 @@ export function GagProps({ kind, toward }: { kind: GagKind; toward?: 'up' | 'dow
   switch (kind) {
     case 'galopp':
       return <span className={`${SPRITE} top-[0.15em] -right-[0.4em] text-[0.45em]`}>💥</span>
-    case 'backwards':
-      return <span className={`${SPRITE} -top-[0.4em] left-1/2 -translate-x-1/2 text-[0.45em]`}>❓</span>
-    case 'selfie':
-      return (
-        <>
-          <span className={`${SPRITE} top-[0.1em] -right-[0.45em] text-[0.45em]`}>🤳</span>
-          <span className={`${SPRITE} inset-[-0.2em] animate-blink rounded-full bg-white/80 blur-md`} />
-        </>
-      )
-    case 'turbo':
-      return (
-        <>
-          <Streaks />
-          <span className={`${SPRITE} top-[0.25em] -left-[0.5em] -scale-x-100 text-[0.5em]`}>🔥</span>
-        </>
-      )
-    case 'nap':
-      return <Rising glyph="💤" />
-    case 'banana':
-      return <span className={`${SPRITE} -bottom-[0.1em] -left-[0.2em] rotate-[-30deg] text-[0.45em]`}>🍌</span>
     case 'snabblan':
       return <Rising glyph="💸" />
     case 'husvagn':
@@ -134,6 +114,36 @@ export function GagProps({ kind, toward }: { kind: GagKind; toward?: 'up' | 'dow
         <>
           <Streaks />
           <span className={`${SPRITE} top-[0.2em] -right-[0.45em] text-[0.48em]`}>👺</span>
+        </>
+      )
+    case 'snostorm':
+      return (
+        <>
+          <span className={`${SPRITE} top-[0.1em] -right-[0.45em] text-[0.45em]`}>🌨️</span>
+          <span className={`${SPRITE} inset-[-0.2em] animate-blink rounded-full bg-white/70 blur-md`} />
+        </>
+      )
+    case 'gulsno':
+      return (
+        <>
+          <span className={`${SPRITE} top-[0.3em] -right-[0.45em] text-[0.45em]`}>🟡</span>
+          <span className={`${SPRITE} -top-[0.4em] left-1/2 -translate-x-1/2 text-[0.45em]`}>🤢</span>
+        </>
+      )
+    case 'artsoppa':
+      return (
+        <>
+          <Streaks />
+          <span className={`${SPRITE} top-[0.25em] -left-[0.5em] text-[0.5em]`}>🍲</span>
+        </>
+      )
+    case 'chicane':
+      return <span className={`${SPRITE} top-[0.2em] -right-[0.45em] animate-rock text-[0.45em]`}>🚧</span>
+    case 'vaxlaupp':
+      return (
+        <>
+          <Streaks />
+          <span className={`${SPRITE} top-[0.2em] -left-[0.5em] text-[0.5em]`}>⚡</span>
         </>
       )
   }

@@ -67,6 +67,7 @@
   --animate-wobble: wobble 0.3s ease-in-out infinite;
   --animate-rock: rock 0.3s ease-in-out infinite;
   --animate-trot: trot 0.34s ease-in-out infinite alternate;
+  --animate-jump: jump 0.5s cubic-bezier(0.3, 0.7, 0.3, 1) infinite;
   --animate-rail: rail 0.7s linear infinite;
   --animate-fanfare: fanfare 3.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
   --animate-count-pop: count-pop 0.6s cubic-bezier(0.3, 1.6, 0.5, 1);
@@ -103,6 +104,12 @@
   }
   @keyframes trot {
     to { transform: translateY(-0.4rem); }
+  }
+  /* Växla upp: a comic hop with a squash-and-stretch on the way down. */
+  @keyframes jump {
+    0%, 100% { transform: translateY(0) scaleY(1); }
+    40% { transform: translateY(-1.1rem) scaleY(1.05); }
+    60% { transform: translateY(-1.1rem) scaleY(0.95); }
   }
   /* Rail posts and lane dashes share a 120px period so the track scrolls as one piece. */
   @keyframes rail {

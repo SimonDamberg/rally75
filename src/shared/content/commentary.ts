@@ -82,26 +82,6 @@ export const COMMENTARY = {
 /** What the commentator shouts when a gag starts. Galopp keeps its original line first. */
 export const GAG_LINES: Record<Exclude<GagKind, 'kommitte'>, readonly Line[]> = {
   galopp: [COMMENTARY.galopp, (h) => `Galopp för ${h.name}! ${h.jockey} håller i sig för livet!`],
-  backwards: [
-    (h) => `${h.name} har vänt och springer åt fel håll! ${h.jockey} skriker!`,
-    (h) => `FEL HÅLL! ${h.name} verkar vilja hem till stallet!`,
-  ],
-  selfie: [
-    (h) => `Tar ${h.jockey} en selfie? ${h.jockey} tar en selfie.`,
-    (h) => `${h.jockey} fotar sig själv i full fart. Det här hamnar på Instagram.`,
-  ],
-  turbo: [
-    (h) => `TURBO! Någon har fyllt ${h.name} med energidryck!`,
-    (h) => `${h.name} har hittat en turboknapp! Är det ens lagligt?`,
-  ],
-  nap: [
-    (h) => `${h.name} har somnat mitt i loppet! ${h.jockey} försöker väcka den med en visselpipa.`,
-    (h) => `Zzz. ${h.name} tar en tupplur. Det här var inte planen.`,
-  ],
-  banana: [
-    (h) => `${h.name} halkar på ett bananskal! Vem slänger bananer på en travbana?`,
-    (h) => `Bananskal! ${h.name} snurrar runt som en piruett!`,
-  ],
   snabblan: [
     (h) => `${h.jockey} tar ett Snabblån mitt i loppet för att satsa på sig själv!`,
     (h) => `${h.jockey} swishar huset i full fart. Räntan är 400 procent.`,
@@ -150,6 +130,26 @@ export const GAG_LINES: Record<Exclude<GagKind, 'kommitte'>, readonly Line[]> = 
     (h) => `${h.name} går in i goblin mode! Inga manér kvar i den sulkyn!`,
     (h) => `GOBLIN MODE! ${h.jockey} morrar och ${h.name} drar ifrån.`,
   ],
+  snostorm: [
+    (h) => `Snöstorm mitt i loppet! ${h.name} ser ingenting!`,
+    (h) => `SNÖSTORM! ${h.jockey} tappar bort både bana och ${h.name}.`,
+  ],
+  gulsno: [
+    (h) => `${h.name} stannar för att äta gul snö! ${h.jockey} orkar inte ens protestera.`,
+    (h) => `Gul snö! ${h.name} tuggar i sig av okänt ursprung.`,
+  ],
+  artsoppa: [
+    (h) => `${h.jockey} häller i sig ärtsoppa på språng och hittar en extra växel!`,
+    (h) => `ÄRTSOPPA! ${h.name} far iväg med ${h.jockey} och en gul stänk på hakan.`,
+  ],
+  chicane: [
+    (h) => `Chicane på banan! ${h.name} slalomar mellan konerna!`,
+    (h) => `${h.jockey} styr ${h.name} genom en chicane ingen bad om.`,
+  ],
+  vaxlaupp: [
+    (h) => `${h.jockey} växlar upp! ${h.name} hoppar till och rusar iväg!`,
+    (h) => `VÄXLA UPP! ${h.name} tar ett skutt och hittar en helt ny växel!`,
+  ],
 }
 
 /** Kommitté-incest: two kuskar in adjacent lanes, so it takes a pair. */
@@ -164,10 +164,7 @@ export const KOMMITTE_LINES: readonly Pair[] = [
  */
 export const GAG_WIN: Partial<Record<GagKind, (h: NamedRunner) => string>> = {
   galopp: (h) => `${h.name} galopperade och vann ändå!`,
-  selfie: (h) => `${h.jockey} tog en selfie och vann ändå! Bilden säljs i Butiken.`,
-  turbo: (h) => `${h.name} vinner på ren turbo! Dopingprov bokat.`,
   husvagn: (h) => `${h.name} sprang ifrån husvagnen och vann loppet!`,
-  banana: (h) => `${h.name} halkade på en banan och vann ändå!`,
   snabblan: (h) => `${h.jockey} vinner och kan betala tillbaka Snabblånet. Nästan.`,
   rallyhafte: (h) => `${h.jockey} läste aldrig rallyhäftet och vann ändå!`,
   hjalprebus: (h) => `${h.jockey} behövde en hjälprebus och vann ändå!`,
@@ -175,6 +172,10 @@ export const GAG_WIN: Partial<Record<GagKind, (h: NamedRunner) => string>> = {
   sankaskepp: (h) => `${h.jockey} fick aldrig någon motspelare och vann i stället.`,
   olvisvep: (h) => `${h.name} vinner på en Olvi. Dopingprovet skummar.`,
   goblin: (h) => `${h.name} vinner i goblin mode! Ingen vågade stå i vägen.`,
+  gulsno: (h) => `${h.name} åt gul snö och vann ändå! Smaklökarna mår sämre än formen.`,
+  artsoppa: (h) => `${h.name} vinner på ärtsoppa! Torsdag var alltid segerdagen.`,
+  chicane: (h) => `${h.name} tog sig igenom chicanen och vann ändå!`,
+  vaxlaupp: (h) => `${h.name} växlade upp och vann loppet!`,
 }
 
 /** Finish line when the upplopp gag stopped the horse in front and handed the race over. */

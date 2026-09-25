@@ -23,9 +23,6 @@ const PLACE_LOOKBACK = 4
 const BANNER_TICKS = 8
 /** How the badge itself moves while a gag runs; the props around it are GagProps. */
 const GAG_MOTION: Partial<Record<GagKind, string>> = {
-  backwards: '-scale-x-100',
-  nap: 'rotate-[-20deg] brightness-75',
-  banana: 'animate-spin-fast',
   husvagn: 'animate-shake',
   serverkrasch: 'animate-glitch',
   eckero: 'opacity-40 grayscale',
@@ -34,17 +31,20 @@ const GAG_MOTION: Partial<Record<GagKind, string>> = {
   vaniljsas: 'animate-rock',
   olvisvep: 'animate-rock',
   goblin: 'animate-shake',
+  snostorm: 'opacity-50 grayscale',
+  gulsno: 'animate-rock',
+  vaxlaupp: 'animate-jump',
 }
 /** Gags where the horse is not trotting, so it kicks up no dust. */
 const STANDING: readonly GagKind[] = [
-  'backwards',
-  'nap',
   'serverkrasch',
   'fatbyte',
   'eckero',
   'hjalprebus',
   'vaniljsas',
   'sankaskepp',
+  'snostorm',
+  'gulsno',
 ]
 /** Kommitte: the two badges lean into each other across the lane line. */
 const LEAN = { up: '-translate-y-[0.22em] rotate-[-10deg]', down: 'translate-y-[0.22em] rotate-[10deg]' } as const

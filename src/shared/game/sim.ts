@@ -113,11 +113,6 @@ export const SCRIPT_WEIGHTS: Record<RaceScript, number> = {
   pack: 0.2,
 };
 export const COMIC_GAGS: readonly GagKind[] = [
-  "backwards",
-  "selfie",
-  "turbo",
-  "nap",
-  "banana",
   "snabblan",
   "husvagn",
   "kommitte",
@@ -131,33 +126,38 @@ export const COMIC_GAGS: readonly GagKind[] = [
   "sankaskepp",
   "olvisvep",
   "goblin",
+  "snostorm",
+  "gulsno",
+  "artsoppa",
+  "chicane",
+  "vaxlaupp",
 ];
 /** Gags a horse can run off: they cost ground, but not the race. */
 export const LIGHT_GAGS: readonly GagKind[] = [
   "galopp",
-  "banana",
-  "selfie",
   "snabblan",
   "rallyhafte",
   "hjalprebus",
   "frossa",
   "sankaskepp",
+  "gulsno",
+  "chicane",
 ];
 /** Gags that end a horse's race, so they only ever go to a horse that was losing anyway. */
 export const HARD_GAGS: readonly GagKind[] = [
-  "backwards",
-  "nap",
   "serverkrasch",
   "fatbyte",
   "eckero",
   "vaniljsas",
+  "snostorm",
 ];
 /** Gags that speed a horse up. They keep what they gain, so they go to a horse that finishes well. */
 export const BOOSTS: readonly GagKind[] = [
-  "turbo",
   "husvagn",
   "olvisvep",
   "goblin",
+  "artsoppa",
+  "vaxlaupp",
 ];
 /**
  * Every race gets a comic gag; these are the chances of a second and a third on top. Galopp comes
@@ -176,11 +176,6 @@ const MAX_GAG_SLOTS = 4;
  */
 const GAG_DRAG: Record<GagKind, number> = {
   galopp: 0.7,
-  backwards: 2.0,
-  selfie: 0.55,
-  turbo: -0.72,
-  nap: 1.6,
-  banana: 0.85,
   snabblan: 0.6,
   husvagn: -0.6,
   kommitte: 1.3,
@@ -194,6 +189,11 @@ const GAG_DRAG: Record<GagKind, number> = {
   sankaskepp: 0.95,
   olvisvep: -0.65,
   goblin: -0.78,
+  snostorm: 2.1,
+  gulsno: 0.8,
+  artsoppa: -0.7,
+  chicane: 0.9,
+  vaxlaupp: -0.75,
 };
 /** Every gag lasts 7 ticks (2.1 s), long enough for the room to read the sticker and the line. */
 const GAG_TICKS = 7;
@@ -631,15 +631,15 @@ function pickGags(
     }
     place(victim(kind), kind);
   }
-  // A comeback winner may light a turbo for the surge, on the turn line ("här kommer ..."). It is a
-  // real boost now: the plan draws the winner further back and the turbo is where it takes over.
+  // A comeback winner may växla upp for the surge, on the turn line ("här kommer ..."). It is a
+  // real boost now: the plan draws the winner further back and the shift-up is where it takes over.
   if (
     script === "comeback" &&
     r.next() < 0.5 &&
     alone([order[0]], COMEBACK_TURBO_TICK, GAG_TICKS)
   ) {
     picks.push(
-      gag(order[0], "turbo", {
+      gag(order[0], "vaxlaupp", {
         tick: COMEBACK_TURBO_TICK,
         ticks: GAG_TICKS,
       }),
@@ -741,11 +741,10 @@ export function simulateRace({
   }
   const gagAt = (i: number, t: number) =>
     rawGags.find((g) => g.i === i && t > g.tick && t <= g.tick + g.ticks);
-  // Only a horse running the wrong way moves backwards.
+  // Nobody ever runs backwards.
   for (let t = 1; t <= TICKS; t++) {
     for (let i = 0; i < n; i++) {
-      if (gagAt(i, t)?.kind !== "backwards")
-        pos[t][i] = Math.max(pos[t][i], pos[t - 1][i]);
+      pos[t][i] = Math.max(pos[t][i], pos[t - 1][i]);
     }
   }
   // The line is exact: the drawn order with the drawn margins, whatever the wobble and the gags

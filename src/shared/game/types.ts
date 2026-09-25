@@ -89,11 +89,6 @@ export interface RunnerFrame {
 /** Slapstick events. galopp is the real one; the rest are Rally75's own contribution to trotting. */
 export type GagKind =
   | "galopp"
-  | "backwards"
-  | "selfie"
-  | "turbo"
-  | "nap"
-  | "banana"
   | "snabblan"
   | "husvagn"
   | "kommitte"
@@ -106,7 +101,12 @@ export type GagKind =
   | "vaniljsas"
   | "sankaskepp"
   | "olvisvep"
-  | "goblin";
+  | "goblin"
+  | "snostorm"
+  | "gulsno"
+  | "artsoppa"
+  | "chicane"
+  | "vaxlaupp";
 
 /** The race's storyline, drawn after the result. */
 export type RaceScript = "wire" | "comeback" | "collapse" | "duel" | "pack";

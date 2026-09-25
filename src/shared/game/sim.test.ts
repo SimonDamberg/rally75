@@ -61,10 +61,10 @@ describe('simulateRace', () => {
       for (let t = 1; t <= TICKS; t++) {
         expect(frames[t].meters).toBeGreaterThanOrEqual(frames[t - 1].meters)
         frames[t].runners.forEach((x, i) => {
-          // Only a horse running the wrong way ever loses ground. Over the line everyone takes a
-          // real stride: the finish is force-set clear of the last tick, so it needs no clamp.
+          // Nobody ever loses ground. Over the line everyone takes a real stride: the finish is
+          // force-set clear of the last tick, so it needs no clamp.
           if (t === TICKS) expect(x.pos).toBeGreaterThan(frames[t - 1].runners[i].pos)
-          else if (x.gag !== 'backwards') expect(x.pos).toBeGreaterThanOrEqual(frames[t - 1].runners[i].pos)
+          else expect(x.pos).toBeGreaterThanOrEqual(frames[t - 1].runners[i].pos)
           expect(x.broke).toBe(x.gag === 'galopp')
         })
       }
