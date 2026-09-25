@@ -235,7 +235,7 @@ Mr Green's own arcade game, the second product tab (`src/client/Plinko.tsx` + `P
 
 ## Butik (black market)
 
-Three things on sale (Simon's call): the **Mystery Box** on top, then **Öl** and **Cider** ("Baren").
+Three things on sale (Simon's call): **Öl** and **Cider** ("Baren") on top, then the **Mystery Box**.
 Photos are file names under `public/butik/` (`shop_items.image`, `box_prizes.image`); a missing
 file draws a gift tile (`ShopImage` in `src/ui/Prize.tsx`). A prize with `box_prizes.video` (the knife)
 loops it muted in the guest's reveal pop-up instead of the photo; transcode to H.264 with no audio

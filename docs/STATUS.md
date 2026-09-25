@@ -1594,3 +1594,16 @@ and the RM lands. The card is never used up. A guest can claim at most once ever
   holds 19 prizes, 22 pieces: blå 6, lila 2, rosa 4, röd 5, guld 5 (four knives and the ship).
 
 **Manual step:** `npx supabase db push` (migrations 18 to 22).
+
+### Reel fix, Baren first, case art (2026-09-25)
+
+- **Fixed: the reel stopped on the wrong card.** `CaseOpening` measured the viewport width in a
+  layout effect that runs before the `<dialog>` opens, so it read 0 px and parked the winner at the
+  left edge instead of under the marker. The strip is now pinned at `left: 50%` (the marker) and
+  slides by the winner's offset alone, with nothing measured. Checked in a browser: four openings in
+  a row, the card under the marker was the prize each time.
+- Baren (Öl, Cider) is above the Mystery Box.
+- The box card shows a CS-style case (`public/butik/box.png`, uncropped with `object-contain`), via
+  migration `20260925000023_box_image.sql`.
+
+**Manual step:** `npx supabase db push` (migrations 18 to 23).
