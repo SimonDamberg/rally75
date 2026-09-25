@@ -1705,3 +1705,15 @@ gift tile shows); set the price on the control phone if 10 RM is not it.
   `20260926000029_box_prize_book.sql`, checked against the local DB.
 
 **Manual step:** `npx supabase db push`, and deploy so the photo is served.
+
+### Party-eve reset (2026-09-26)
+
+- Checked: build, test (275), lint pass; all 29 migrations on the hosted project; production deploy
+  is current `main` and serves the Butik photos and videos.
+- Hosted DB wiped of rehearsal data: players, bets, races, Plånko drops, purchases, vinstkort
+  claims (and their secrets). Night paid and house take read 0.
+- Restocked: Öl 24, Cider 12, every box prize 1 except Kniiiiiv 4 (23 in the box). Marker and the
+  box itself stay unlimited.
+- **Kept:** all 120 printed kuponger (batch MUTA) with their codes, the 9 vinstkort with their codes
+  (all active), the catalogue, kuskar, GM password. The one kupong redeemed in rehearsal was reset
+  to unredeemed so every printed ticket pays at the party.
