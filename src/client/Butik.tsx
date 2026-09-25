@@ -1,5 +1,5 @@
-// "Butik": the black market. Three things on sale: the Mystery Box on top, then Öl and Cider from
-// the bar. Simon hands every one of them over in the kitchen. Buying moves RM from balance to
+// "Butik": the black market. Three things on sale: Öl and Cider from the bar on top, then the
+// Mystery Box. Simon hands every one of them over in the kitchen. Buying moves RM from balance to
 // spent, and netWorth adds spent back, so nothing bought here can cost you a place on the
 // Topplista (see buy.test.ts). The small print says so out loud.
 //
@@ -85,8 +85,8 @@ export function Butik({ onConfirmChange }: { onConfirmChange: (open: boolean) =>
       {shopItems && !box && items.length === 0 && <p className="p-6 text-center text-ink-dim">{BUTIK.empty}</p>}
       {!shopItems && <p className="p-6 text-center text-ink-dim">{UI_LABELS.loading}</p>}
 
-      {box && <BoxCard box={box} prizes={prizes} check={checkBuy(player, box, prizes)} onOpen={() => setPicked(box)} />}
       <Bar items={items} balance={player.balance} onBuy={setPicked} />
+      {box && <BoxCard box={box} prizes={prizes} check={checkBuy(player, box, prizes)} onOpen={() => setPicked(box)} />}
 
       <Mine purchases={purchases && visiblePurchases(purchases, spinning)} />
 
@@ -168,6 +168,7 @@ function snapshotPrize(purchase: PurchaseRow): BoxPrizeRow {
     name: purchase.prize_name ?? purchase.item_name,
     blurb: '',
     image: '',
+    video: '',
     rarity: purchase.prize_rarity ?? 'bla',
     stock: 0,
     sort: 0,
@@ -197,7 +198,13 @@ function BoxCard({
     <section className="flex flex-col gap-3 rounded-2xl bg-tote/40 p-4 shadow-[0_0_2rem] shadow-sleaze/25 ring-2 ring-sleaze/70 ring-inset">
       <p className="text-xs font-black tracking-wide text-sleaze uppercase">{BUTIK.boxKicker}</p>
       <div className="flex items-center gap-4">
-        <ShopImage image={box.image} name={box.name} rarity="guld" className="size-28 shrink-0 rounded-xl text-5xl" />
+        {/* object-contain: the case art is a cut-out on a transparent background, not a photo to crop. */}
+        <ShopImage
+          image={box.image}
+          name={box.name}
+          rarity="guld"
+          className="size-28 shrink-0 rounded-xl object-contain! text-5xl drop-shadow-[0_0.6rem_1rem_rgb(0_0_0/0.5)]"
+        />
         <div className="flex min-w-0 flex-col gap-1">
           <h2 className="font-display text-3xl leading-none font-black uppercase">{box.name}</h2>
           {box.blurb && <p className="text-sm text-ink-dim">{box.blurb}</p>}

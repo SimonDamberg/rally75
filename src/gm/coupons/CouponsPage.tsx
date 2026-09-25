@@ -63,7 +63,7 @@ export function CouponsPage() {
   const reprint = async (b: BatchSummary) => {
     const got = await run((gm, pw) => gm.batchCodes(pw, b.batch))
     if (!got) return
-    setSheet({ coupons: got.coupons, tier: b.tier, amount: b.amount, label: b.label, base: base.trim() })
+    setSheet({ coupons: got.coupons, tier: b.tier, amount: b.face, label: b.label, base: base.trim() })
   }
 
   const remove = async () => {
@@ -157,7 +157,10 @@ export function CouponsPage() {
                 <span className="font-display text-xl font-black text-plate uppercase">
                   {COUPON_TIER_COPY[b.tier as 1 | 2 | 3]?.name}
                 </span>
-                <span className="font-display text-xl font-black tabular-nums">{fmtRm(b.amount)}</span>
+                <span className="font-display text-xl font-black tabular-nums">{fmtRm(b.face)}</span>
+                {b.face > b.amount && (
+                  <span className="text-sm font-bold text-drift tabular-nums">{GM_COUPONS.batchPays(fmtRm(b.amount))}</span>
+                )}
                 <span className="rounded-full bg-void px-3 py-0.5 text-sm font-bold uppercase">
                   {b.label || GM_COUPONS.batchNoLabel}
                 </span>

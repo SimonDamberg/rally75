@@ -6,6 +6,7 @@ function coupon(over: Partial<CouponRow> & { id: string; batch: string }): Coupo
   return {
     tier: 3,
     amount: 1000,
+    face: null,
     label: 'Dart',
     created_at: '2026-09-18T20:00:00Z',
     redeemed_by: null,
@@ -37,6 +38,13 @@ describe('batchSummaries', () => {
     ]
     expect(batchSummaries(rows).map((b) => b.batch)).toEqual(['new', 'old'])
     expect(batchSummaries(rows).map((b) => b.amount)).toEqual([500, 250])
+    expect(batchSummaries(rows).map((b) => b.face)).toEqual([500, 250])
+  })
+
+  it('reprints the prank run at its printed value, not its payout', () => {
+    const [only] = batchSummaries([coupon({ id: 'a', batch: 'muta', amount: 100, face: 1000 })])
+    expect(only.face).toBe(1000)
+    expect(only.amount).toBe(100)
   })
 
   it('reports nothing redeemed as nothing redeemed', () => {

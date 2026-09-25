@@ -20,26 +20,31 @@ import {
 
 const MIGRATIONS = join(import.meta.dirname, '..', '..', '..', 'supabase', 'migrations')
 
+/** The newest migration that (re)defines a function: that one is live. */
+function latestDefining(fn: string): string {
+  const file = readdirSync(MIGRATIONS)
+    .sort()
+    .filter((f) => readFileSync(join(MIGRATIONS, f), 'utf8').includes(`function public.${fn}(`))
+    .at(-1)!
+  return readFileSync(join(MIGRATIONS, file), 'utf8')
+}
+
 describe('economy constants', () => {
   it('match the SQL mirror header', () => {
     const file = readdirSync(MIGRATIONS).find((f) => f.endsWith('_rpc_client.sql'))!
     const sql = readFileSync(join(MIGRATIONS, file), 'utf8')
-    expect(sql).toContain(
+    // create_player and take_loan have been replaced since (Simon's party numbers).
+    const bonusSql = latestDefining('create_player')
+    expect(bonusSql).toContain(
       `WELCOME_BONUS ${WELCOME_BONUS}, MIN_STAKE ${MIN_STAKE}, LOAN_AMOUNT ${LOAN_AMOUNT}, LOAN_DEBT ${LOAN_DEBT}, MAX_NAME_LENGTH ${MAX_NAME_LENGTH}.`,
     )
-    expect(sql).toContain(`values (v_name, v_tag, ${WELCOME_BONUS})`)
+    expect(bonusSql).toContain(`values (v_name, v_tag, ${WELCOME_BONUS})`)
     expect(sql).toContain(`p_stake < ${MIN_STAKE}`)
-    expect(sql).toContain(`balance >= ${MIN_STAKE}`)
-    expect(sql).toContain(`balance = balance + ${LOAN_AMOUNT}, debt = debt + ${LOAN_DEBT}`)
     expect(sql).toContain(`char_length(v) > ${MAX_NAME_LENGTH}`)
   })
 
-  it('match the SQL mirror for the Snabblån threshold', () => {
-    const file = readdirSync(MIGRATIONS)
-      .filter((f) => f.endsWith('_loan_threshold.sql'))
-      .sort()
-      .at(-1)!
-    const sql = readFileSync(join(MIGRATIONS, file), 'utf8')
+  it('match the SQL mirror for the Snabblån', () => {
+    const sql = latestDefining('take_loan')
     expect(sql).toContain(`LOAN_THRESHOLD ${LOAN_THRESHOLD}.`)
     expect(sql).toContain(`balance >= ${LOAN_THRESHOLD} then`)
     expect(sql).toContain(`balance = balance + ${LOAN_AMOUNT}, debt = debt + ${LOAN_DEBT}`)

@@ -1,11 +1,15 @@
 // Pure grouping for /gm/kuponger: turns the flat coupons list into the two things Simon looks at,
 // what is left of each print run and who has cashed one in.
 import type { CouponRow } from '../../lib/types'
+import { printedValue } from '../../shared/game/coupon'
 
 export interface BatchSummary {
   batch: string
   tier: number
+  /** Paid per ticket. */
   amount: number
+  /** Printed on the ticket, so a reprint matches (more than `amount` for the prank run). */
+  face: number
   label: string
   /** Newest coupon in the run, which is what the list sorts on. */
   created_at: string
@@ -29,6 +33,7 @@ export function batchSummaries(coupons: readonly CouponRow[]): BatchSummary[] {
         batch: c.batch,
         tier: c.tier,
         amount: c.amount,
+        face: printedValue(c),
         label: c.label,
         created_at: c.created_at,
         total: 0,

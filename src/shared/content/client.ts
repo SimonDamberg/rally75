@@ -181,6 +181,16 @@ export const KUPONG = {
   wonText: 'Pengarna ligger på kontot. Ingen handläggningstid, ingen motprestation, ingen ånger.',
   from: (label: string) => `Från ${label}`,
   smallPrint: 'En kupong gäller en gång. Den som skannar först får pengarna.',
+  // The bonuskupong prank: the ticket says 1 000, the balance gets 100.
+  prankTitle: 'Inlöst! Typ.',
+  prankFees: [
+    'Hanteringsavgift',
+    'Kupongskatt',
+    'Grodans provision',
+    'Administrativt påslag för att du läste kupongen',
+  ],
+  prankText:
+    'Kupongen var värd det som står på den, före avgifter. Efter avgifter är den värd det här. Det står i villkoren, som du inte läste.',
 } as const
 
 /** The in-app QR scanner: vinstkort, and kuponger for guests already in the app. */

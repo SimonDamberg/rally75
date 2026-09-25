@@ -7,6 +7,7 @@
 import { useEffect, useEffectEvent, useRef } from 'react'
 import type { CouponRow, PlayerRow } from '../../lib/types'
 import { ATTRACT } from '../../shared/content/ui'
+import { isShortchanged, printedValue } from '../../shared/game/coupon'
 import { badgedLabel, fmtRm } from '../../shared/game/format'
 import { toast } from '../../ui'
 
@@ -26,7 +27,10 @@ export function useCouponToasts(
     for (const c of fresh) {
       const player = c.redeemed_by ? players.get(c.redeemed_by) : undefined
       const label = player ? badgedLabel(player) : ATTRACT.someone
-      toast({ text: ATTRACT.coupon(label, fmtRm(c.amount), c.label), ms: COUPON_TOAST_MS, tone: 'win' })
+      const text = isShortchanged(c)
+        ? ATTRACT.couponShort(label, fmtRm(printedValue(c)), fmtRm(c.amount))
+        : ATTRACT.coupon(label, fmtRm(c.amount), c.label)
+      toast({ text, ms: COUPON_TOAST_MS, tone: 'win' })
     }
   })
 

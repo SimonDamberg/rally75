@@ -104,6 +104,8 @@ export interface BoxPrizeRow {
   blurb: string;
   /** A file name under public/butik/; '' draws the fallback tile. */
   image: string;
+  /** A video under public/butik/, looped muted in the guest's reveal instead of the photo; '' for none. */
+  video: string;
   rarity: BoxRarity;
   stock: number;
   sort: number;
@@ -180,7 +182,10 @@ export interface CouponRow {
   id: string;
   /** 1 brons, 2 silver, 3 guld. */
   tier: number;
+  /** What the guest is paid. */
   amount: number;
+  /** What the ticket says when it says more than it pays (the bonuskupong prank), else null. */
+  face: number | null;
   /** Which game handed it out ("Dart"); '' when the GM left it blank. */
   label: string;
   /** One print run. */

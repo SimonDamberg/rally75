@@ -27,6 +27,7 @@ function prize(over: Partial<BoxPrizeRow> = {}): BoxPrizeRow {
     name: 'Nyckelring',
     blurb: '',
     image: '',
+    video: '',
     rarity: 'bla',
     stock: 1,
     sort: 10,

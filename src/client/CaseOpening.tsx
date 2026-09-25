@@ -58,8 +58,8 @@ export function CaseOpening({
 }
 
 function Strip({ reel, landed, onLanded }: { reel: Reel<BoxPrizeRow>; landed: boolean; onLanded: () => void }) {
-  const viewport = useRef<HTMLDivElement>(null)
-  const [pos, setPos] = useState<{ x: number; ms: number } | null>(null)
+  // Starts parked; CaseOpening is keyed per opening, so every reel mounts fresh.
+  const [pos, setPos] = useState({ x: -2.5 * STEP, ms: 0 })
   const done = useRef(false)
   const finish = () => {
     if (done.current) return
@@ -68,15 +68,16 @@ function Strip({ reel, landed, onLanded }: { reel: Reel<BoxPrizeRow>; landed: bo
   }
   const finishLate = useEffectEvent(finish)
 
-  // Park the strip with a few cards showing, then on the next frame send it to the winner. The
-  // winner's centre plus the landing offset ends under the marker, which sits mid-viewport.
+  // The strip's left edge is pinned to the middle of the viewport, where the marker is, so x is
+  // simply how far the strip has slid past the marker: no measuring. (Measuring was the bug: this
+  // runs before the <dialog> opens, while the viewport is still 0 px wide, so the winner landed on
+  // the left edge instead of under the marker.) The strip starts parked with a couple of cards past
+  // the marker; on the next frame it slides until the winner, plus the landing offset, sits under it.
   useLayoutEffect(() => {
-    const width = viewport.current?.clientWidth ?? 360
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     const ms = reduced ? REDUCED_MS : BOX_SPIN_MS
-    setPos({ x: width / 2 - 2.5 * STEP, ms: 0 })
     let raf = requestAnimationFrame(() => {
-      raf = requestAnimationFrame(() => setPos({ x: width / 2 - (reel.stop * STEP + reel.offset * CARD), ms }))
+      raf = requestAnimationFrame(() => setPos({ x: -(reel.stop * STEP + reel.offset * CARD), ms }))
     })
     // transitionend can go missing (a backgrounded tab); the reveal must not.
     const fallback = window.setTimeout(finishLate, ms + 400)
@@ -87,16 +88,14 @@ function Strip({ reel, landed, onLanded }: { reel: Reel<BoxPrizeRow>; landed: bo
   }, [reel])
 
   return (
-    <div
-      ref={viewport}
-      className="relative -mx-5 h-44 overflow-hidden bg-night-deep ring-1 ring-white/10 ring-inset"
+    <div className="relative -mx-5 h-44 overflow-hidden bg-night-deep ring-1 ring-white/10 ring-inset"
     >
       <div
-        className="absolute top-4 left-0 flex will-change-transform"
+        className="absolute top-4 left-1/2 flex will-change-transform"
         style={{
           gap: GAP,
-          transform: `translateX(${pos?.x ?? 0}px)`,
-          transition: pos?.ms ? `transform ${pos.ms}ms ${EASE}` : 'none',
+          transform: `translateX(${pos.x}px)`,
+          transition: pos.ms ? `transform ${pos.ms}ms ${EASE}` : 'none',
         }}
         onTransitionEnd={(e) => {
           if (e.target === e.currentTarget && e.propertyName === 'transform') finish()
@@ -138,10 +137,28 @@ function Card({ prize, win, dim }: { prize: BoxPrizeRow; win: boolean; dim: bool
 
 function Reveal({ prize }: { prize: BoxPrizeRow }) {
   const color = RARITY_COLOR[prize.rarity]
+  const [videoFailed, setVideoFailed] = useState(false)
+  // A prize with a video (the knife) loops it, muted and inline, where the photo would be.
+  const video = prize.video && !videoFailed ? `/butik/${prize.video}` : ''
   return (
     <div className="flex animate-pop-in flex-col items-center gap-3 pt-5 text-center">
       <div className="rounded-2xl p-1" style={{ boxShadow: `0 0 3rem ${color}`, backgroundColor: color }}>
-        <ShopImage image={prize.image} name={prize.name} rarity={prize.rarity} className="size-40 rounded-xl" />
+        {video ? (
+          <video
+            src={video}
+            poster={prize.image ? `/butik/${prize.image}` : undefined}
+            autoPlay
+            loop
+            muted
+            playsInline
+            disablePictureInPicture
+            onError={() => setVideoFailed(true)}
+            aria-label={prize.name}
+            className="block h-72 max-w-full rounded-xl bg-night-deep object-cover"
+          />
+        ) : (
+          <ShopImage image={prize.image} name={prize.name} rarity={prize.rarity} className="size-40 rounded-xl" />
+        )}
       </div>
       <RarityChip rarity={prize.rarity} className="text-xs" />
       <p className="font-display text-4xl leading-none font-black text-plate uppercase">{prize.name}</p>

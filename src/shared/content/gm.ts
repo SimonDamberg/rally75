@@ -273,6 +273,8 @@ export const GM_COUPONS = {
     `${total} st, ${redeemed} inlösta`,
   batchLeft: (n: number) => (n === 1 ? "1 kvar" : `${n} kvar`),
   batchNoLabel: "Utan etikett",
+  /** The bonuskupong prank: printed value on the chip, the real payout next to it. */
+  batchPays: (rm: string) => `betalar ut ${rm}`,
   reprint: "Skriv ut igen",
   deleteBatch: "Radera",
   cancel: "Avbryt",

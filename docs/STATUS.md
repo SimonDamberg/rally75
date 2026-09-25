@@ -1557,3 +1557,53 @@ and the RM lands. The card is never used up. A guest can claim at most once ever
    Set the image field to the file name.
 3. `npx supabase db push` to apply the migration to hosted.
 
+
+### Party numbers (2026-09-25, Simon's calls)
+
+- Welcome bonus **100 RM** (was 1 000) and Snabblån **100 RM** (was 500; the debt stays 1 337).
+  Öl and Cider **500 RM**, Mystery Box **800 RM**. Migration `20260925000019_bonus_and_prices.sql`
+  replaces `create_player` and `take_loan` and sets the prices. Existing players keep their balance
+  and debt.
+- The copy follows `WELCOME_BONUS` / `LOAN_AMOUNT` everywhere (landing, bonus reveal, iPad attract
+  and join fanfare, Snabblån offer); the landing's "Få 100 RM" line is tied to it by a test.
+- `economy.test.ts` now checks the newest migration that defines `create_player` / `take_loan`
+  (`latestDefining`), not the original files.
+- Smoke players are topped up to 1 000 RM by the GM right after the bonus is checked, since 100 RM
+  cannot cover the stakes and prices the steps exercise.
+- Worth knowing: a fresh guest cannot afford a beer or the box without winning first, which is the
+  point.
+
+**Manual step:** `npx supabase db push` (applies migrations 18 and 19).
+
+### The real Mystery Box (2026-09-25, Simon's list)
+
+- Migration `20260925000020_box_prizes.sql` swaps the placeholders for Simon's 14 prizes (17 pieces):
+  blå: Matlåda (blå), Burgir, Äggpingvinen, Bomull, Matlåda (orange), Glasögonservetter;
+  lila: Glasskål (blå), Glasskål (rosa); rosa: Barbie, Helikopter, Labyrintspelet;
+  röd: Pengar, Ryggkliaren; guld: Kniiiiiv (4 st). The blurbs are mine; edit them on the control phone.
+- Photos in `public/butik/` (resized to 900 px). `box_prizes.video` is new: the knife's clip
+  (`kniv.mp4`, H.264, 406x720, no audio, 257 kB) loops in the winner's reveal pop-up.
+- There is still no `ol.jpg`, `cider.jpg` or `box.jpg`: those show the gift tile until added.
+
+**Manual step:** `npx supabase db push` (migrations 18, 19 and 20).
+
+### Mystery Box, second batch (2026-09-25)
+
+- Migration `20260925000022_box_prizes_2.sql`: Mikron, Xbox 360, Laptop (röd), Gamingtangentbord
+  (rosa) and Piratskeppet (guld, with `skepp.mp4` looping in the reveal like the knife). The box now
+  holds 19 prizes, 22 pieces: blå 6, lila 2, rosa 4, röd 5, guld 5 (four knives and the ship).
+
+**Manual step:** `npx supabase db push` (migrations 18 to 22).
+
+### Reel fix, Baren first, case art (2026-09-25)
+
+- **Fixed: the reel stopped on the wrong card.** `CaseOpening` measured the viewport width in a
+  layout effect that runs before the `<dialog>` opens, so it read 0 px and parked the winner at the
+  left edge instead of under the marker. The strip is now pinned at `left: 50%` (the marker) and
+  slides by the winner's offset alone, with nothing measured. Checked in a browser: four openings in
+  a row, the card under the marker was the prize each time.
+- Baren (Öl, Cider) is above the Mystery Box.
+- The box card shows a CS-style case (`public/butik/box.png`, uncropped with `object-contain`), via
+  migration `20260925000023_box_image.sql`.
+
+**Manual step:** `npx supabase db push` (migrations 18 to 23).
