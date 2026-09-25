@@ -1,9 +1,8 @@
--- Seed: new notes for seven of the eight friends, copied from NAMED_KUSKAR
--- (src/shared/content/kuskar.ts). src/shared/content/kuskSeed.test.ts checks that the newest seed
--- file stays in sync.
+-- Seed: the stable, copied from NAMED_KUSKAR (src/shared/content/kuskar.ts).
+-- src/shared/content/kuskSeed.test.ts checks that the newest seed file stays in sync.
 --
--- Old notes are kept for now so Simon can prune the boring ones in a later seed. Deleting by name
--- rather than truncating leaves any kusk Simon added by hand in the GM app untouched.
+-- New notes for every friend, with the boring old ones pruned. Deleting by name rather than
+-- truncating leaves any kusk Simon added by hand in the GM app untouched.
 
 delete from public.kusks
 where name in ('Jesper', 'GP', 'Emma', 'Axel', 'Erik', 'Kajsa', 'Simon', 'Palm');
@@ -16,59 +15,44 @@ insert into public.kusks (name, title, notes) values
     'Jesper tar en tupplur mellan varven. Det har aldrig kostat honom ett lopp, säger han.',
     'Jesper kallar alla under sextio för "grabben". Det inkluderar hästen.',
     'Jesper har gett alla hästarna syfilis. Veterinären har slutat fråga hur.',
-    'Jesper kör som en pitbull: biter sig fast i ryggen och släpper aldrig.',
-    'Jesper ropar "droppa slak" i varje kurva. Ingen vet vad det betyder, allra minst hästen.',
+    'Jesper ropar "droppar slak" i varje kurva. Ingen vet vad det betyder.',
     'Jesper kastade handkontrollen i väggen 2021. Nu kastar han tömmarna.',
     'Jesper skyller varje förlust på lagg.',
-    'Jesper förlorade mot en häst utan kusk och krävde en rematch.',
-    'Jesper har tryckt Alt+F4 i tre lopp. Hästen stängdes inte av.',
     'Jesper skrek "gg ez" efter att ha kommit sist.',
     'Jesper har anmälts för toxiskt beteende av sin egen häst.',
-    'Jesper skyller på handkontrollen. Han kör sulky.',
-    'Jesper har i snitt ett ragequit per lopp. Loppen är tre minuter långa.',
     'Veterinären bokar in hela stallet för provtagning efter varje besök från Jesper.',
-    'Jesper låter som en pitbull, luktar som en pitbull och har ungefär samma omdöme.',
-    'Jesper ropar "droppa slak" även i baren. Bartendern har slutat fråga.'
+    'Jesper låter som en pitbull, luktar som en pitbull och har ungefär samma utseende som Pitbull.'
   ]),
   ('GP', 'intensiteten själv', array[
-    'GP laddade i två veckor och glömde sedan bort vilket lopp det var.',
+    'GP laddade i två veckor och glum sedan vilket lopp det var.',
     'GP har glömt piskan, hjälmen och loppets namn, men inte att vinna.',
     'GP lovade att ta det lugnt idag. Det höll i elva sekunder.',
     'GP kom först till banan i morse och letar fortfarande efter stallet.',
     'GP kör varje lopp som om det vore final. Det är det aldrig.',
     'GP svarar "jag glum" på alla frågor, även "vem vann?".',
-    'GP har ett enda resultat i karriären: 1x0. Ingen vet åt vilket håll.',
-    'GP har pysslat ihop en aerodräkt av sopsäckar och silvertejp. Den ger tre hundradelar.',
-    'GP har frågat förbundet om han får köra nästa lopp i omloppsbana.',
-    'GP tittar mer upp än fram. Han letar efter satelliter.',
+    'GP har ett enda resultat i karriären: 1x0. Ingen vet varför.',
+    'GP har frågat förbundet om hon får köra nästa lopp i omloppsbana.',
+    'GP tittar mer upp än fram. Hon letar efter satelliter.',
     'GP har byggt en rymdhjälm av en glasskål. Den är fortfarande kladdig.',
-    'GP bad NASA sponsra sulkyn. NASA svarade inte, men det gjorde polisen.',
     'GP sa "jag glum" om starten. Och om målet. Och om hästen.',
-    'GP vann en gång med 1x0. Motståndaren hade inte dykt upp.',
-    'GP har pysslat mer på dräkten än han har tränat. Det syns.',
-    'GP tror att hästen når flykthastighet med rätt sockerbit.',
-    'GP har läst allt om Mars och ingenting om travreglerna.',
-    'GP räknade bort luftmotståndet i aerodräkten. Och hästen.'
+    'GP har pysslat mer på dräkten än hon har tränat. Det syns.',
+    'GP hävdar att hon vunnit om man försummar luftmotståndet.',
+    'GP har inte alla hästar hemma. Två av dem står på fel bana.',
+    'GP räknade sina hästar inför loppet och kom fram till fyra. Hon har en.',
+    'GP har inte alla hästar hemma. Den här har hon lånat.'
   ]),
   ('Emma', 'kör med slutna ögon', array[
-    'Emma kör hela loppet med slutna ögon och hävdar att det går fortare så.',
-    'Emma har inte sett en målkamera på fyra år.',
-    'Emma blinkade 2023 och missade hela upploppet.',
     'Emma kör i foliehatt så att startbilen inte kan läsa hennes tankar.',
-    'Emma har tre månaders torrvaror nedgrävda bakom stallet. För säkerhets skull.',
-    'Emma tror att målkameran jobbar för staten.',
+    'Emma tror att målkameran jobbar för deep state.',
     'Emma kärnar sitt eget smör och syr sin egen dräkt. Hästen är det enda moderna hon godkänt.',
     'Emma har så tjocka glasögon att hon såg målgången innan starten gick.',
-    'Emma tappade glasögonen i andra kurvan och körde resten på hörsel.',
     'Emma vägrar skanna QR-koder. Det är så de chippar en.',
-    'Emma betalar sina spel i konserver.',
     'Emma kallar startbilen för "deras bil" och vägrar säga vilka "de" är.',
-    'Emma har en bunker, tre hinkar ris och noll koll på var mållinjen ligger.',
     'Emma läser startlistan på tre centimeters avstånd.',
-    'Emma tycker att sulkyn är en onödig modernitet och drar helst själv.',
     'Emma har förberett sig för allt utom själva loppet.',
-    'Emma vann en gång. Hon trodde att det var uppvärmningen.',
-    'Emma har inte sett banan sedan 2019. Glasögonen var på lagning.'
+    'Emma vägrar ligga bakom andra hästar. Hon är rädd för deras chemtrails.',
+    'Emma kör alltid i ledning. Längre bak andas man in det de sprayar.',
+    'Emma dejtar bara män som minns när travet var på riktigt. Den senaste mindes första världskriget.'
   ]),
   ('Axel', 'gentlemannen', array[
     'Axel anser att omkörningar är ohyfsat och undviker dem när det går.',
@@ -85,81 +69,56 @@ insert into public.kusks (name, title, notes) values
   ('Erik', 'avstängd på tre banor', array[
     'Erik har blivit avstängd på tre banor och inbjuden tillbaka till två.',
     'Erik kör stående. Det finns inget regelverk för det.',
-    'Erik lovade att ta det försiktigt och skrattade sedan i fyra minuter.',
     'Erik blir lättdistraherad av sand. En gång fastnade han i tre veckor.',
-    'Erik kastades ut ur paddocken i morse och är redan tillbaka.',
     'Erik köpte hästen med sin oskuld som pant. Den har aldrig lösts ut, och ingen har budat.',
-    'Erik kommer direkt från pappersbruket. Läktaren märker det före startskottet.',
-    'Erik luktar så illa att motståndarna håller avstånd. Det är hela hans taktik.',
-    'Erik har ett pappersbruk i ryggen och en doft som når målet före honom.',
+    'Erik kommer direkt från pappersbruket. Lukten gör att hästen springer utan honom.',
     'Pantbanken värderade Eriks oskuld till en hel häst. Det är den mest optimistiska värderingen i Sveriges historia.',
-    'Erik lämnade oskulden i pant eftersom den ändå inte användes till något.',
-    'Erik har ett doftträd i sulkyn. Det har gett upp.',
     'Erik kallar lukten "arbetarklass". Hästen kallar den något annat.',
-    'Erik hävdar att han luktar skog. Skogen har gått ut med ett pressmeddelande.',
-    'Erik tvättade ridkläderna tre gånger. Sedan fick tvättmaskinen tvätta sig själv.',
     'Erik jobbar med papper men har aldrig läst ett regelverk.',
-    'Erik kom tvåa en gång. Ettan var den enda i fältet med förkylning.'
+    'Erik gör "vad som helst" för ett tidsavdrag. Domaren har bett honom sluta erbjuda.',
+    'Erik spelar musik på sulkyn, på hjälmen och en gång på hästen.',
+    'Erik plockade svamp bakom stallet och såg sedan loppet i färg.'
   ]),
   ('Kajsa', 'hästexpert av annat slag', array[
-    'Kajsa avgör en hästs form genom att titta på marken i boxen.',
-    'Kajsa höll ett tjugominuters föredrag om hästspillning i paddocken.',
     'Kajsa vägrar satsa på en häst innan hon inspekterat gödselstacken.',
     'Kajsa ringde sin egen telefon för att hitta den. Den låg i hennes ficka.',
     'Kajsa har en väska med allt hon behöver. Hon vet bara aldrig var väskan är.',
-    'Kajsa kör utan skor. Hon säger att hon känner banan bättre genom fotsulorna.',
     'Kajsa är inne på sitt sjunde rally. Arrangörerna har slutat skicka inbjudan, hon kommer ändå.',
-    'Kajsa har fler rallyn i benen än skor i hallen.',
-    'Kajsa lämnade skorna i stallet 2019 och har inte saknat dem sedan.',
-    'Kajsa har kört sju rallyn. Hon vill helst inte prata om det.',
-    'Kajsa har kört sju rallyn och kan fortfarande inte skilja på vänster och höger töm.',
+    'Kajsa har kört sju rallyn och aldrig vunnit. Hon vill inte prata om det.',
     'Kajsa tappade skorna på första rallyt och värdigheten på det tredje.',
-    'Kajsa är barfota av princip. Principen är att hon tappade skorna.',
     'Kajsa kallar det tradition. Alla andra kallar det ett problem.',
-    'Kajsa har varit med så många gånger att stallet räknar henne som inventarie.',
-    'Kajsa har fler rallypins än vänner som vill åka med henne.',
-    'Ingen har bjudit in Kajsa sedan rally fyra. Hon ser det som en stående inbjudan.',
-    'Kajsas fötter luktar häst. Hästen tar illa upp.'
+    'Kajsa har fler rallymärken än vänner som vill åka med henne.',
+    'Kajsas fötter luktar häst. Hästen tar illa upp.',
+    'Kajsa vill göra det tydligt att hon inte är en hästtjej. Hon sa det medan hon flätade manen.',
+    'Kajsa är inte en hästtjej. Hon har bara sju rallyn, en sadel och hästens födelsedag i kalendern.',
+    'Kajsa har bett speakern presentera henne som "inte en hästtjej". Hästen har inte kommenterat.'
   ]),
   ('Simon', 'webbansvarig', array[
     'Simon lovar att oddsen uppdateras i realtid. Det gör de ibland.',
-    'Simon kör med en hand och felsöker med den andra.',
+    'Simon piskar med en hand och felsöker med den andra.',
     'Simon kom för sent till förra starten efter att ha fastnat i hissen.',
-    'Simon har inte sovit sedan sajten gick live.',
     'Simon har en öl i handen och kallar det teknisk support.',
     'Simon byggde sajten, sätter oddsen och kör själv. Han ser ingen jävssituation.',
-    'Simon gav sig själv uppdraget att bygga sajten. Upphandlingen tog fyra sekunder.',
     'Simon tror att galopp är en suröl och har beställt två.',
-    'Simon har en öl i sulkyn, en i handen och en på väg.',
-    'Simon tappade en Black Lotus i sulkyn och vägrar köra förrän han hittat den.',
     'Simon tappar hästen efter varje lopp. Det är så man gör i Magic, säger han.',
     'Simon har gett sig själv bäst odds på sajten. Det är en slump, säger koden.',
-    'Simon har granskat sajten och godkänt sig själv.',
-    'Simon hittade en bugg i oddsen. Den gynnar honom, så den får vara kvar.',
-    'Simon läser alltid villkoren. Han skrev dem.',
     'Simon tror att tempo är en IPA och att upplopp är en lambic.',
     'Simon kallar varje öl ett "produkttest". Testet pågår.',
     'Simon har fler Magic-kort än vänner, och korten är mer värda.',
-    'Simon förlorar, drar ett kort och skyller på mana screw.',
-    'Simon kör hellre Magic än trav. Hästen tycker likadant om honom.'
+    'Simon odlade en mustasch och kallar sig nu serbisk. Serbien har inte bekräftat det.',
+    'Simons mustasch går i mål en halv sekund före honom.',
+    'Simon kör med mustaschen i vinden och ber om att bli kallad Simonović.'
   ]),
   ('Palm', 'ekonomiansvarig', array[
-    'Palm har räknat ut exakt vad det här loppet är värt och tänker inte berätta.',
     'Palm vägrar starta innan startpengen ligger på kontot.',
-    'Palm äger tre procent av hästen och nittio procent av åsikterna.',
     'Palm har hedgat sig genom att satsa på alla utom sin egen häst.',
     'Palm frågade vad andraplatsen ger. Det var ett dåligt tecken.',
     'Palm har stämt tre medtävlande för förtal. Två av dem hade bara hälsat.',
     'Palm kallar varje dåligt odds för förtal.',
-    'Palm "bokade 3 hästar" och fick en. Hans advokat är kontaktad.',
+    'Palm bokade 3 hästar och fick en. Hans advokat är kontaktad.',
     'Palm fick sin licens genom en bekant på departementet. Han kallar det nätverkande.',
-    'Palm har en farbror i regeringskansliet och länsstyrelsen på kortnummer.',
-    'Palm har bokat tre hästar, två advokater och en journalist som ska skriva om det.',
     'Palm hotade startbilen med förtal. Den svarade inte, vilket han tar som ett erkännande.',
     'Palm har aldrig förlorat ett lopp. Han har blivit förtalad av resultatlistan.',
     'Palm kallar lobbying för "att umgås" och mutor för "att bjuda".',
-    'Palm bokade tre hästar och avbokade två när han såg oddsen.',
-    'Palm röstar på det parti som har bäst odds.',
-    'Palm vill att hans uttalande läses upp före varje start. Det är fyra sidor.',
     'Palm har en kontakt på Rosenbad som alltid svarar. Det är hans mamma.'
   ]);
