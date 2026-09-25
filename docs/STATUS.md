@@ -1694,3 +1694,6 @@ gift tile shows); set the price on the control phone if 10 RM is not it.
 
 **Manual step:** `npx supabase db push` **before** the new client deploys (the Hämta buttons call
 `claim_purchase`).
+- Follow-up: the marker claim moved out of the Marker card into the same "Att hämta" section as
+  the bar items (one row for all unclaimed marker, on top). When the list mixes counters, each row
+  says where it is picked up ("Hämtas framför Mr Green", "Hämtas i baren").

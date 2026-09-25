@@ -5,7 +5,7 @@
 // thing. No sound; one tap closes it.
 import { useEffect, useState } from 'react'
 import type { PurchaseRow } from '../lib/types'
-import { PICKUP } from '../shared/content/client'
+import { MARKER, PICKUP } from '../shared/content/client'
 import { UI_LABELS } from '../shared/content/ui'
 import { fmtRm } from '../shared/game/format'
 import { Button, cx, RARITY_COLOR, ShopImage } from '../ui'
@@ -96,20 +96,40 @@ export function ToCollect({
   receipts,
   kind,
   onClaim,
+  markers,
 }: {
   receipts: readonly PurchaseRow[]
   kind: 'physical' | 'box'
   onClaim: (p: PurchaseRow) => void
+  /** Butik only: every unclaimed marker as one row on top, claimed all at once from Mr Green. */
+  markers?: { count: number; onClaim: () => void }
 }) {
   const { shopItems, boxPrizes } = useGuest()
-  if (receipts.length === 0) return null
+  const markerCount = markers?.count ?? 0
+  if (receipts.length === 0 && markerCount === 0) return null
+  const mixed = markerCount > 0 && receipts.length > 0
+  const markerImage = shopItems?.find((i) => i.kind === 'marker')?.image ?? ''
   return (
     <section className="flex flex-col gap-3 rounded-2xl bg-plate/15 p-4 ring-2 ring-plate ring-inset">
       <div className="flex flex-col gap-0.5">
         <h2 className="font-display text-3xl leading-none font-black text-plate uppercase">{PICKUP.title}</h2>
-        <p className="text-sm">{PICKUP.warning(PICKUP.at[kind])}</p>
+        <p className="text-sm">
+          {mixed ? PICKUP.warningMixed : PICKUP.warning(PICKUP.at[markerCount > 0 ? 'marker' : kind])}
+        </p>
       </div>
       <ul className="flex flex-col gap-2">
+        {markers && markerCount > 0 && (
+          <li className="flex items-center gap-3 rounded-xl bg-night/50 p-2 pr-3">
+            <ShopImage image={markerImage} name={MARKER.title} className="size-12 shrink-0 rounded-lg object-contain! text-2xl" />
+            <div className="flex min-w-0 flex-1 flex-col leading-tight">
+              <span className="truncate font-bold">{PICKUP.markers(markerCount)}</span>
+              <span className="text-xs text-ink-dim">{PICKUP.where(PICKUP.at.marker)}</span>
+            </div>
+            <Button onClick={markers.onClaim} className="min-h-12! px-5! text-xl!">
+              {PICKUP.claim}
+            </Button>
+          </li>
+        )}
         {receipts.map((p) => (
           <li
             key={p.id}
@@ -124,7 +144,9 @@ export function ToCollect({
             />
             <div className="flex min-w-0 flex-1 flex-col leading-tight">
               <span className="truncate font-bold">{p.prize_name ?? p.item_name}</span>
-              <span className="text-xs text-ink-dim tabular-nums">{clock(p.created_at)}</span>
+              <span className="text-xs text-ink-dim tabular-nums">
+                {mixed ? `${PICKUP.where(PICKUP.at[kind])} · ${clock(p.created_at)}` : clock(p.created_at)}
+              </span>
             </div>
             <Button onClick={() => onClaim(p)} className="min-h-12! px-5! text-xl!">
               {PICKUP.claim}

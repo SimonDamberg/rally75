@@ -8,7 +8,7 @@
 import { useEffect, useState } from 'react'
 import { usePlayerPurchases } from '../lib/hooks'
 import type { PurchaseRow, ShopItemRow } from '../lib/types'
-import { BUTIK, MARKER, PICKUP } from '../shared/content/client'
+import { BUTIK, MARKER } from '../shared/content/client'
 import { UI_LABELS } from '../shared/content/ui'
 import { fmtRm } from '../shared/game/format'
 import { Button, cx, Modal, ShopImage, SmallPrint, toast } from '../ui'
@@ -71,17 +71,20 @@ export function Butik({ onConfirmChange }: { onConfirmChange: (open: boolean) =>
       {shopItems && !marker && items.length === 0 && <p className="p-6 text-center text-ink-dim">{BUTIK.empty}</p>}
       {!shopItems && <p className="p-6 text-center text-ink-dim">{UI_LABELS.loading}</p>}
 
-      <ToCollect receipts={toCollect(mine ?? [], 'physical')} kind="physical" onClaim={(p) => claim.ask({ kind: 'receipt', purchase: p })} />
+      <ToCollect
+        receipts={toCollect(mine ?? [], 'physical')}
+        kind="physical"
+        onClaim={(p) => claim.ask({ kind: 'receipt', purchase: p })}
+        markers={{ count: toClaim, onClaim: () => claim.ask({ kind: 'marker', count: toClaim }) }}
+      />
 
-      {(marker || toClaim > 0) && (
+      {marker && (
         <MarkerCard
           marker={marker}
           balance={player.balance}
           qty={markerQty}
           onQty={setMarkerQty}
-          toClaim={toClaim}
           onBuy={() => setBuyingMarkers(true)}
-          onClaim={() => claim.ask({ kind: 'marker', count: toClaim })}
         />
       )}
       <Bar items={items} balance={player.balance} onBuy={setPicked} />
@@ -237,20 +240,15 @@ function MarkerCard({
   balance,
   qty,
   onQty,
-  toClaim,
   onBuy,
-  onClaim,
 }: {
-  /** null when the GM has paused the marker: bought ones can still be claimed. */
-  marker: ShopItemRow | null
+  marker: ShopItemRow
   balance: number
   qty: number
   onQty: (qty: number) => void
-  toClaim: number
   onBuy: () => void
-  onClaim: () => void
 }) {
-  const price = marker?.price ?? 0
+  const price = marker.price
   const max = maxMarkers({ balance }, price)
   const check = checkMarkers({ balance }, price, qty)
   const set = (n: number) => onQty(Math.max(1, Math.min(Math.max(1, max), n)))
@@ -258,84 +256,66 @@ function MarkerCard({
   return (
     <section className="flex flex-col gap-3 rounded-2xl bg-tote/40 p-4 ring-1 ring-plate/40 ring-inset">
       <div className="flex items-center gap-4">
-        {marker && (
-          // object-contain: the chip art is a cut-out on a transparent background, like the box.
-          <ShopImage
-            image={marker.image}
-            name={marker.name}
-            className="size-20 shrink-0 rounded-xl object-contain! text-4xl drop-shadow-[0_0.4rem_0.8rem_rgb(0_0_0/0.45)]"
-          />
-        )}
+        {/* object-contain: the chip art is a cut-out on a transparent background, like the box. */}
+        <ShopImage
+          image={marker.image}
+          name={marker.name}
+          className="size-20 shrink-0 rounded-xl object-contain! text-4xl drop-shadow-[0_0.4rem_0.8rem_rgb(0_0_0/0.45)]"
+        />
         <div className="flex min-w-0 flex-col gap-0.5 leading-tight">
           <p className="text-xs font-black tracking-wide text-plate uppercase">{MARKER.kicker}</p>
-          <h2 className="font-display text-3xl leading-none font-black uppercase">{marker?.name ?? MARKER.title}</h2>
-          <p className="text-sm text-ink-dim">{marker?.blurb || MARKER.games}</p>
-          {marker && (
-            <p className="font-display text-lg font-black text-plate tabular-nums">{MARKER.each(fmtRm(price))}</p>
-          )}
+          <h2 className="font-display text-3xl leading-none font-black uppercase">{marker.name}</h2>
+          <p className="text-sm text-ink-dim">{marker.blurb || MARKER.games}</p>
+          <p className="font-display text-lg font-black text-plate tabular-nums">{MARKER.each(fmtRm(price))}</p>
         </div>
       </div>
 
       <p className="rounded-xl bg-night/60 px-3 py-2 text-sm font-bold">{MARKER.howTo}</p>
 
-      {marker && (
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center justify-between gap-3">
-            <span className="text-xs font-black tracking-wide text-ink-dim uppercase">{MARKER.qty}</span>
-            <div className="flex items-center gap-2">
-              <Button variant="ghost" aria-label={MARKER.less} disabled={qty <= 1} onClick={() => set(qty - 1)} className="min-h-11! w-11! px-0! text-2xl!">
-                −
-              </Button>
-              <span className="w-14 text-center font-display text-4xl leading-none font-black tabular-nums">{qty}</span>
-              <Button variant="ghost" aria-label={MARKER.more} disabled={qty >= max} onClick={() => set(qty + 1)} className="min-h-11! w-11! px-0! text-2xl!">
-                +
-              </Button>
-            </div>
+      <div className="flex flex-col gap-2">
+        <div className="flex items-center justify-between gap-3">
+          <span className="text-xs font-black tracking-wide text-ink-dim uppercase">{MARKER.qty}</span>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" aria-label={MARKER.less} disabled={qty <= 1} onClick={() => set(qty - 1)} className="min-h-11! w-11! px-0! text-2xl!">
+              −
+            </Button>
+            <span className="w-14 text-center font-display text-4xl leading-none font-black tabular-nums">{qty}</span>
+            <Button variant="ghost" aria-label={MARKER.more} disabled={qty >= max} onClick={() => set(qty + 1)} className="min-h-11! w-11! px-0! text-2xl!">
+              +
+            </Button>
           </div>
-          <div className="flex gap-2">
-            {MARKER.quick.map((n) => (
-              <button
-                key={n}
-                type="button"
-                disabled={n > max}
-                onClick={() => set(n)}
-                className={cx(
-                  'flex-1 rounded-full py-1.5 text-sm font-black tabular-nums ring-1 ring-inset disabled:opacity-40',
-                  qty === n ? 'bg-plate text-night ring-plate' : 'bg-tote/60 ring-white/15',
-                )}
-              >
-                {n}
-              </button>
-            ))}
+        </div>
+        <div className="flex gap-2">
+          {MARKER.quick.map((n) => (
             <button
+              key={n}
               type="button"
-              disabled={max < 1}
-              onClick={() => set(max)}
+              disabled={n > max}
+              onClick={() => set(n)}
               className={cx(
-                'flex-1 rounded-full py-1.5 text-sm font-black uppercase ring-1 ring-inset disabled:opacity-40',
-                qty === max && max > 0 ? 'bg-plate text-night ring-plate' : 'bg-tote/60 ring-white/15',
+                'flex-1 rounded-full py-1.5 text-sm font-black tabular-nums ring-1 ring-inset disabled:opacity-40',
+                qty === n ? 'bg-plate text-night ring-plate' : 'bg-tote/60 ring-white/15',
               )}
             >
-              {MARKER.max}
+              {n}
             </button>
-          </div>
-          <Button variant="sleaze" block disabled={check !== 'ok'} onClick={onBuy}>
-            {check === 'too_poor' ? MARKER.tooPoor : MARKER.buy(qty, fmtRm(price * qty))}
-          </Button>
+          ))}
+          <button
+            type="button"
+            disabled={max < 1}
+            onClick={() => set(max)}
+            className={cx(
+              'flex-1 rounded-full py-1.5 text-sm font-black uppercase ring-1 ring-inset disabled:opacity-40',
+              qty === max && max > 0 ? 'bg-plate text-night ring-plate' : 'bg-tote/60 ring-white/15',
+            )}
+          >
+            {MARKER.max}
+          </button>
         </div>
-      )}
-
-      {toClaim > 0 && (
-        <div className="flex flex-col gap-2 rounded-xl bg-plate/15 p-3 ring-2 ring-plate ring-inset">
-          <p className="font-display text-3xl leading-none font-black text-plate uppercase tabular-nums">
-            {MARKER.waiting(toClaim)}
-          </p>
-          <p className="text-sm">{PICKUP.warning(PICKUP.at.marker)}</p>
-          <Button size="lg" block onClick={onClaim}>
-            {PICKUP.claim}
-          </Button>
-        </div>
-      )}
+        <Button variant="sleaze" block disabled={check !== 'ok'} onClick={onBuy}>
+          {check === 'too_poor' ? MARKER.tooPoor : MARKER.buy(qty, fmtRm(price * qty))}
+        </Button>
+      </div>
     </section>
   )
 }

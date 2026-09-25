@@ -306,6 +306,10 @@ export const PICKUP = {
   by: { marker: 'Mr Green', physical: 'Baren', box: 'Simon' },
   ask: { marker: 'Står du framför Mr Green?', physical: 'Står du i baren?', box: 'Står du framför Simon?' },
   warning: (at: string) => `Tryck på Hämta först när du står ${at}. Knappen fungerar en gång.`,
+  /** When the list mixes counters (marker from Mr Green, a beer from the bar). */
+  warningMixed: 'Tryck på Hämta först när du står där det lämnas ut. Knappen fungerar en gång.',
+  where: (at: string) => `Hämtas ${at}`,
+  markers: (n: number) => (n === 1 ? '1 marker' : `${n} marker`),
   askText: 'Visa skärmen och tryck sedan. Knappen fungerar en gång, sedan är det hämtat.',
   ok: 'Ja, hämta nu',
   cancel: 'Inte än',
