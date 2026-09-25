@@ -56,9 +56,9 @@ export const RARITY_LABELS = {
   bla: "Vardaglig",
   lila: "Ovanlig",
   rosa: "Hemligstämplad",
-  rod: "Förbjuden",
+  rod: "RALLY",
   guld: "Extremt sällsynt",
-} as const
+} as const;
 
 export const UI_LABELS = {
   race: "Lopp",
@@ -117,14 +117,16 @@ export const ATTRACT = {
     `${label} öppnade en Mystery Box och fick ${prize} (${rarity})`,
   /** Toasts on the display iPad when a printed kupong is cashed in. */
   coupon: (label: string, amount: string, game: string) =>
-    `${label} löste in en kupong på ${amount}${game ? ` från ${game}` : ''}`,
+    `${label} löste in en kupong på ${amount}${game ? ` från ${game}` : ""}`,
   /** The bonuskupong prank: a ticket that said more than it paid. */
   couponShort: (label: string, face: string, amount: string) =>
     `${label} löste in en kupong på ${face} och fick ${amount}. Välkommen till Mr Green!`,
-  couponMany:(n: number) => `${n} kuponger inlösta. Utbetalningarna rullar!`,
+  couponMany: (n: number) => `${n} kuponger inlösta. Utbetalningarna rullar!`,
   /** Toasts on the display iPad when a vinstkort is scanned. */
   prizeCard: (label: string, amount: string, game: string) =>
-    game ? `${label} vann ${amount} från ${game}` : `${label} vann ${amount} på ett vinstkort`,
+    game
+      ? `${label} vann ${amount} från ${game}`
+      : `${label} vann ${amount} på ett vinstkort`,
   prizeCardMany: (n: number) => `${n} vinstkort skannade. Lekarna betalar ut!`,
   /** Toasts on the display iPad when a Plånko ball lands on a big multiplier. */
   plinko: (label: string, mult: string, amount: string) =>
