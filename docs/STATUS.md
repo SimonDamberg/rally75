@@ -1697,3 +1697,11 @@ gift tile shows); set the price on the control phone if 10 RM is not it.
 - Follow-up: the marker claim moved out of the Marker card into the same "Att hämta" section as
   the bar items (one row for all unclaimed marker, on top). When the list mixes counters, each row
   says where it is picked up ("Hämtas framför Mr Green", "Hämtas i baren").
+
+### Mystery Box: the book (2026-09-26)
+
+- New prize **Boken** (lila, 1 piece, sort 200), photo `public/butik/bok.jpg` (Simon's photo
+  turned a quarter and cropped to 900×675 like the others). Migration
+  `20260926000029_box_prize_book.sql`, checked against the local DB.
+
+**Manual step:** `npx supabase db push`, and deploy so the photo is served.
