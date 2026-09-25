@@ -7,7 +7,7 @@ export const VIRTUAL_POOL = 700
 /** House margin. */
 export const TAKEOUT = 0.87
 export const MIN_ODDS = 1.15
-export const MAX_ODDS = 80
+export const MAX_ODDS = 20
 /** How sharply strength turns into win chance. Shared by the morning line and the race sim. */
 export const STRENGTH_POWER = 3.2
 

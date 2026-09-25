@@ -84,7 +84,7 @@ GM (all take `password`): `gm_login`, `gm_create_race(field, stats, seed, dist, 
 ### Shared game logic (pure TS, ported from prototype)
 
 - `buildField(n, kusks, rng)`: same patterns and constraints (no duplicate names or final words, 2-4 named kuskar, no repeated comment/tip).
-- `computeOdds(field, pools)`: VIRTUAL_POOL 700, TAKEOUT 0.87, clamp 1.15..80. Invariant test: **money on a horse always shortens it.** Mirrored in SQL inside `place_bet`; Stage 2 adds a parity check on fixtures.
+- `computeOdds(field, pools)`: VIRTUAL_POOL 700, TAKEOUT 0.87, clamp 1.15..20. Invariant test: **money on a horse always shortens it.** Mirrored in SQL inside `place_bet`; Stage 2 adds a parity check on fixtures.
 - `simulateRace(field, stats, seed)`: returns the full tick timeline (positions, breaks, commentary events, finish order) deterministically, so the iPad can replay after a reload and "Snabbspola" just jumps to the end. Gap-based screen positions, MÅLFOTO under 1.6, 10% inquiry flag.
 
 ## Stages
