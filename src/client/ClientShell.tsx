@@ -17,6 +17,7 @@ import { Header } from './Header'
 import { Home } from './Home'
 import { Leaderboard } from './Leaderboard'
 import { LoanOffer } from './LoanOffer'
+import { MysteryBox } from './MysteryBox'
 import { Plinko } from './Plinko'
 import { PrizeReveal } from './PrizeReveal'
 import { ResultReveal } from './ResultReveal'
@@ -28,9 +29,9 @@ import { usePrizeCard } from './usePrizeCard'
 import { useResultReveal } from './useResultReveal'
 import { useSocialProof } from './useSocialProof'
 
-type Tab = 'home' | 'plinko' | 'bank' | 'butik' | 'board'
-const TABS: readonly Tab[] = ['home', 'plinko', 'bank', 'butik', 'board']
-const TAB_ICON: Record<Tab, string> = { home: '★', plinko: '●', bank: '¤', butik: '◆', board: '♛' }
+type Tab = 'home' | 'plinko' | 'box' | 'bank' | 'butik' | 'board'
+const TABS: readonly Tab[] = ['home', 'plinko', 'box', 'bank', 'butik', 'board']
+const TAB_ICON: Record<Tab, string> = { home: '★', plinko: '●', box: '▣', bank: '¤', butik: '◆', board: '♛' }
 
 export interface ClientShellProps {
   identity: Identity
@@ -105,6 +106,7 @@ export function ClientShell({ identity, player, forget, justJoined, cookiesAccep
               onScan={() => setScanning(true)}
             />
           )}
+          {tab === 'box' && <MysteryBox onConfirmChange={setBuying} />}
           {tab === 'butik' && <Butik onConfirmChange={setBuying} />}
           {tab === 'board' && <Leaderboard />}
         </main>

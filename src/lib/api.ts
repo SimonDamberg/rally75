@@ -242,6 +242,11 @@ export function createApi(db: SupabaseClient) {
       })
     },
 
+    /** Claims one physical receipt (a beer, a box prize) in front of whoever hands it over. */
+    claimPurchase(identity: Identity, purchaseId: string): Promise<PurchaseRow> {
+      return rpc('claim_purchase', { p_player_id: identity.playerId, p_token: identity.token, p_purchase_id: purchaseId })
+    },
+
     /** Claims every unclaimed marker at once. Only ever pressed in front of Mr Green. */
     claimMarkers(identity: Identity): Promise<MarkerClaim> {
       return rpc('claim_markers', { p_player_id: identity.playerId, p_token: identity.token })

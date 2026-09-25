@@ -139,7 +139,7 @@ export interface PurchaseRow {
   price: number;
   /** How many were bought at once; always 1 except for marker. */
   qty: number;
-  /** Marker only: when the guest claimed them in front of Mr Green; null until then. */
+  /** When the guest pressed Hämta (marker, bar items, box prizes); null until then, and for digital. */
   claimed_at: string | null;
   /** Set on a Mystery Box opening: what came out of the box (snapshots, like item_name). */
   prize_id: string | null;

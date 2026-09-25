@@ -838,6 +838,14 @@ await step("butiken", async () => {
   const pricey = await gm.upsertShopItem(pw, { ...beer, stock: 5, price: START + 1 });
   await expectCode(api.buyItem(fattig, pricey.id), "insufficient_balance");
 
+  // Hämta: once, by the buyer, and never for a digital receipt.
+  assert.equal(purchase.claimed_at, null);
+  await expectCode(api.claimPurchase(fattig, purchase.id), "purchase_not_found");
+  await expectCode(api.claimPurchase(rik, crowned.id), "nothing_to_claim");
+  const picked = await api.claimPurchase(rik, purchase.id);
+  assert.ok(picked.claimed_at, "the receipt is stamped");
+  await expectCode(api.claimPurchase(rik, purchase.id), "already_claimed");
+
   // Ångra puts the RM, the shelf and the receipt back where they were.
   const refunded = await gm.refundPurchase(pw, purchase.id);
   assert.equal(refunded.id, purchase.id);

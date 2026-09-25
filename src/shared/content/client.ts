@@ -7,6 +7,7 @@ export const CLIENT_TABS = {
   home: 'Rally75',
   plinko: 'Plånko',
   bank: 'Bank',
+  box: 'Lådan',
   butik: 'Butik',
   board: 'Topplista',
 } as const
@@ -227,7 +228,7 @@ export const BUTIK = {
   subtitle: 'Svarta marknaden. Öppet så länge Simon står upp.',
   spendable: (rm: string) => `${rm} att göra av med`,
   bar: 'Baren',
-  barHint: 'Hämtas på riktigt. Visa kvittot för Simon, så löser det sig.',
+  barHint: 'Hämtas på riktigt i baren. Köp här, tryck på Hämta när du står där.',
   empty: 'Hyllorna är tomma. Spelledaren fyller på.',
   buy: 'Köp',
   soldOut: 'Slutsålt',
@@ -241,7 +242,7 @@ export const BUTIK = {
   confirmBuy: (rm: string) => `Köp för ${rm}`,
   cancel: 'Nej tack',
   boughtTitle: 'Köpt!',
-  boughtPhysical: 'Visa den här rutan i baren, så får du din vara.',
+  boughtPhysical: 'Gå till baren och tryck på Hämta när du står där.',
   boughtDigital: 'Varan är levererad. Den finns inte, men den är levererad.',
   boughtEffect: (value: string) => `${value} sitter nu bredvid ditt namn på topplistan.`,
   boughtToast: (name: string) => `${name} är din.`,
@@ -263,7 +264,7 @@ export const BUTIK = {
   boxConfirmOk: (rm: string) => `Öppna för ${rm}`,
   boxSpinning: 'Lådan öppnas...',
   boxWonTitle: 'Du fick',
-  boxWonText: 'Visa den här rutan för Simon, så får du den.',
+  boxWonText: 'Gå till Simon och tryck på Hämta under Att hämta när du står där.',
   boxAgain: (rm: string) => `En till (${rm})`,
   boxToast: (name: string) => `${name} ur lådan!`,
   boxReceipt: (prize: string) => `Mystery Box: ${prize}`,
@@ -276,7 +277,6 @@ export const MARKER = {
   games: 'Triss, roulette och enarmade banditen.',
   each: (rm: string) => `${rm} styck`,
   howTo: 'Köp här, gå sedan till Mr Green och hämta dina marker i handen.',
-  claimWarning: 'Tryck på Hämta först när du står framför Mr Green. Hämtade marker kan inte hämtas igen.',
   qty: 'Antal',
   less: 'En färre',
   more: 'En till',
@@ -290,20 +290,40 @@ export const MARKER = {
   confirmOk: (rm: string) => `Köp för ${rm}`,
   boughtToast: (n: number) => `${n} marker väntar hos Mr Green.`,
   waiting: (n: number) => (n === 1 ? '1 marker att hämta' : `${n} marker att hämta`),
-  waitingHint: 'Gå till Mr Green. Tryck inte förrän du står där.',
-  claim: 'Hämta',
-  claimTitle: 'Står du framför Mr Green?',
-  claimText: 'Visa skärmen för Mr Green och tryck sedan. Knappen fungerar en gång, sedan är markerna hämtade.',
-  claimOk: 'Ja, hämta nu',
-  claimCancel: 'Inte än',
-  rainKicker: 'Utbetalning av marker',
   rainUnit: 'marker',
-  rainTo: (who: string) => `till ${who}`,
-  rainHint: 'Mr Green: räkna upp markerna. Skärmen rör sig, en skärmdump gör det inte.',
-  rainDone: 'Klart, jag har dem',
   receipt: (n: number) => `Marker × ${n}`,
+} as const
+
+/**
+ * Hämta: every physical thing is claimed on the guest's phone in front of whoever hands it over.
+ * Keyed by purchase kind, so a new kind needs a line in each of `at`, `by` and `ask`.
+ */
+export const PICKUP = {
+  title: 'Att hämta',
+  claim: 'Hämta',
+  /** "Tryck på Hämta först när du står ..." */
+  at: { marker: 'framför Mr Green', physical: 'i baren', box: 'framför Simon' },
+  by: { marker: 'Mr Green', physical: 'Baren', box: 'Simon' },
+  ask: { marker: 'Står du framför Mr Green?', physical: 'Står du i baren?', box: 'Står du framför Simon?' },
+  warning: (at: string) => `Tryck på Hämta först när du står ${at}. Knappen fungerar en gång.`,
+  askText: 'Visa skärmen och tryck sedan. Knappen fungerar en gång, sedan är det hämtat.',
+  ok: 'Ja, hämta nu',
+  cancel: 'Inte än',
+  kicker: 'Utlämning',
+  to: (who: string) => `till ${who}`,
+  hint: (by: string) => `${by}: lämna ut. Skärmen rör sig, en skärmdump gör det inte.`,
+  done: 'Klart, jag har det',
   claimed: (time: string) => `Hämtad ${time}`,
   unclaimed: 'Ej hämtad',
+} as const
+
+/** The Mystery Box tab. */
+export const BOX = {
+  title: 'Mystery Box',
+  subtitle: 'Lådan med okänt innehåll. Öppnas på egen risk, hämtas hos Simon.',
+  mineTitle: 'Mina vinster',
+  mineEmpty: 'Inga lådor öppnade än. Kniven väntar.',
+  mineTotal: 'Lagt på lådor',
 } as const
 
 export const PLINKO = {

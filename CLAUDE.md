@@ -172,7 +172,7 @@ Two devices, one password gate, one lazy-loaded chunk (`src/gm/GmApp.tsx` routes
 
 - `src/client/ClientApp.tsx`: no identity shows `Landing` (a parody casino homepage; every button
   leads on), then `Onboarding` (fake connect, KYC), otherwise
-  `ClientShell` (header, tabs Rally75 / Plånko / Bank / Butik / Topplista). `CookieBanner` floats over both.
+  `ClientShell` (header, tabs Rally75 / Plånko / Lådan / Bank / Butik / Topplista). `CookieBanner` floats over both.
 - The client is **Mr Green green**; the trotting surfaces are a **blue Rally75 inset panel**. The rule:
   anything showing a horse, a silk, odds or a race number carries `theme-rally75`. Today that is the
   race panel in `Home.tsx`, the `BetSlip` root (its confirm modal inherits) and the
@@ -182,7 +182,7 @@ Two devices, one password gate, one lazy-loaded chunk (`src/gm/GmApp.tsx` routes
   `ClientShell` > `main` > `RaceView` > `BetSlip` chain breaks the sticky slip's `flex-1`/`mt-auto`.
 - Game tabs are named after products (`Rally75`, `Plånko`), so the shelf reads as a shelf. The tab
   bar is `grid-flow-col auto-cols-fr`: adding a tab to `TABS` needs no class edit, but check the
-  labels at 390px, where the five tabs leave about 75px each (checked for Plånko).
+  labels at 390px, where the six tabs leave about 65px each (checked for Lådan and Topplista).
 - `ClientShell` fetches the player, the player's bets and the active race once and shares them via
   `useGuest()` (`src/client/guest.ts`). Guest RPCs go through `useGuestAction().run((api, identity) => ...)`:
   errors become toasts, `player_not_found`/`invalid_token` sign out.
@@ -241,7 +241,8 @@ Mr Green's own arcade game, the second product tab (`src/client/Plinko.tsx` + `P
 
 ## Butik (black market)
 
-Three things on sale (Simon's call): **Öl** and **Cider** ("Baren") on top, then the **Mystery Box**.
+The Butik tab sells **Marker** on top, then **Öl** and **Cider** ("Baren"). The **Mystery Box** has
+its own tab, **Lådan** (`src/client/MysteryBox.tsx`), since it plays like a minigame (Simon's calls).
 Photos are file names under `public/butik/` (`shop_items.image`, `box_prizes.image`); a missing
 file draws a gift tile (`ShopImage` in `src/ui/Prize.tsx`). A prize with `box_prizes.video` (the knife)
 loops it muted in the guest's reveal pop-up instead of the photo; transcode to H.264 with no audio
@@ -266,7 +267,15 @@ track (`ffmpeg -an ... -c:v libx264 -movflags +faststart`), iPhone HEVC does not
   (`buildReel` puts it at `REEL_STOP`). Until it lands, "Mina köp" hides that receipt
   (`visiblePurchases`), and the iPad holds its toast `BOX_SPIN_MS` plus a beat.
 - Rarity colours are `RARITY_COLOR` (`src/ui/rarity.ts`), not brand tokens: same on every surface.
-- No fulfilment status: a purchase is a receipt the guest shows in the bar. The control phone's
+- **Hämta.** Nothing physical is handed over on a receipt alone: the guest presses Hämta on the phone
+  in front of whoever gives it out (marker: Mr Green, bar items: the bar, box prizes: Simon; the
+  `PICKUP` copy in `client.ts`, keyed by purchase kind). `claim_purchase` claims one beer, cider or
+  prize (`*_claim_purchase.sql`); marker use `claim_markers` (below). `purchases.claimed_at` is the
+  authority, a second press gets `already_claimed`, and digital receipts have nothing to claim. The
+  flow is `useClaim` (confirm, then the full-screen `ClaimScreen` in `Pickup.tsx`: endless RM rain and
+  a clock ticking in seconds, so a screenshot is easy to tell apart from the real thing). "Att hämta"
+  (`ToCollect`) lists what is still waiting, oldest first (`toCollect` in `buy.ts`).
+- The control phone's
   Butik tab has the shelf, the box contents (edit, +1, Slut, chance per prize), the live "Sålt idag"
   feed and Ångra (`gm_refund_purchase`, which also puts a won prize back in the box).
   `gm_reset_night` keeps the catalogue and the prizes (like kuskar) and drops the receipts.
@@ -275,9 +284,8 @@ track (`ffmpeg -an ... -c:v libx264 -movflags +faststart`), iPhone HEVC does not
   total (rank neutral, like the Öl; `MARKER_MAX_QTY` mirrored in `*_markers.sql`); `buy_item` refuses
   it (`use_buy_markers`). The guest presses Hämta **in front of Mr Green** (a person at the party):
   `claim_markers` stamps `purchases.claimed_at` on every unclaimed marker receipt at once and returns
-  the count, and `MarkerClaim` shows it under endless RM rain with a ticking clock (proof it is live,
-  not a screenshot). `claimed_at` is the authority; a second press gets `nothing_to_claim`. The GM
-  feed shows Hämtad / Ej hämtad. Copy `MARKER` in `client.ts`; pure helpers in `src/client/buy.ts`.
+  the count for the same claim screen. A second press gets `nothing_to_claim`. The GM feed shows
+  Hämtad / Ej hämtad on every physical receipt. Copy `MARKER` in `client.ts`; pure helpers in `src/client/buy.ts`.
 - Guest copy is `BUTIK` in `client.ts`, GM copy `GM_SHOP` in `gm.ts`, display copy `ATTRACT`,
   tier names `RARITY_LABELS` in `ui.ts`. Pure logic: `src/client/buy.ts`, `src/shared/game/box.ts`,
   `parsePrice`/`parseStock` in `src/gm/parse.ts`.

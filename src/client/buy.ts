@@ -3,6 +3,7 @@
 // have to coexist on a case-insensitive filesystem.
 import type { BoxPrizeRow, PurchaseRow, ShopItemRow } from '../lib/types'
 import { boxLeft } from '../shared/game/box'
+import { BUTIK, MARKER } from '../shared/content/client'
 import { MARKER_MAX_QTY } from '../shared/game/economy'
 
 export type BuyCheck = 'ok' | 'inactive' | 'sold_out' | 'too_poor'
@@ -101,4 +102,39 @@ export function maxMarkers(player: { balance: number }, price: number): number {
 /** Marker bought but not yet handed over by Mr Green: what claim_markers would count out. */
 export function unclaimedMarkers(purchases: readonly PurchaseRow[]): number {
   return purchases.reduce((sum, p) => (p.kind === 'marker' && p.claimed_at === null ? sum + p.qty : sum), 0)
+}
+
+/** Kinds that are claimed with claim_purchase, one receipt at a time. Marker use claim_markers. */
+export type Claimable = 'physical' | 'box'
+
+/**
+ * Receipts of `kind` still waiting for Hämta, oldest first: the beer bought first is poured first.
+ * Pass `spinning` so a box prize stays hidden until its reel has landed.
+ */
+export function toCollect(purchases: readonly PurchaseRow[], kind: Claimable, spinning: string | null = null): PurchaseRow[] {
+  return visiblePurchases(purchases, spinning)
+    .filter((p) => p.kind === kind && p.claimed_at === null)
+    .sort((a, b) => a.created_at.localeCompare(b.created_at))
+}
+
+/** Whether a receipt has something to hand over at all (digital ones do not). */
+export function needsPickup(p: PurchaseRow): boolean {
+  return p.kind === 'physical' || p.kind === 'box' || p.kind === 'marker'
+}
+
+/** The line a receipt reads as, on the phone and in the GM feed. */
+export function receiptName(p: PurchaseRow): string {
+  if (p.prize_name) return BUTIK.boxReceipt(p.prize_name)
+  if (p.kind === 'marker') return MARKER.receipt(p.qty)
+  return p.item_name
+}
+
+/** The picture for a receipt: the prize's for a box opening, the item's otherwise ('' for none). */
+export function receiptImage(
+  p: PurchaseRow,
+  items: readonly ShopItemRow[] | undefined,
+  prizes: readonly BoxPrizeRow[] | undefined,
+): string {
+  if (p.prize_id) return prizes?.find((b) => b.id === p.prize_id)?.image ?? ''
+  return items?.find((i) => i.id === p.item_id)?.image ?? ''
 }

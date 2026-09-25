@@ -26,6 +26,8 @@ export const ERROR_MESSAGES = {
   use_buy_markers: 'Marker köps styckvis. Ladda om sidan.',
   not_markers: 'Det där är inga marker.',
   bad_qty: 'Välj mellan 1 och 100 marker.',
+  already_claimed: 'Den är redan hämtad. En vara, en hämtning.',
+  use_claim_markers: 'Marker hämtas alla på en gång. Ladda om sidan.',
   nothing_to_claim: 'Du har inga marker att hämta. Köp några först.',
   coupon_not_found: 'Vi hittar ingen kupong med den koden. Kontrollera koden och försök igen.',
   coupon_used: 'Kupongen är redan inlöst. En kupong gäller en gång.',

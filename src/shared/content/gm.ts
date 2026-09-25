@@ -201,7 +201,7 @@ export const GM_SHOP = {
   deleted: (name: string) => `${name} är raderad.`,
   empty: "Inga varor än. Lägg upp det som faktiskt står i kylen.",
   soldTitle: "Sålt idag",
-  soldHint: "Nyast först. Varje rad är något någon vill ha i handen.",
+  soldHint: "Nyast först. Ej hämtad betyder att gästen inte har tryckt på Hämta än.",
   soldEmpty: "Ingen har handlat än.",
   soldTotal: (rm: string) => `${rm} omsatt`,
   refund: "Ångra",

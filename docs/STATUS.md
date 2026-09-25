@@ -1669,3 +1669,28 @@ offer preview stage).
 
 **Manual steps:** `npx supabase db push`; drop a picture at `public/butik/marker.png` (until then the
 gift tile shows); set the price on the control phone if 10 RM is not it.
+
+### Hämta for everything, Lådan tab (2026-09-26)
+
+- Butik order: Marker on top, then Baren (Öl, Cider).
+- The Mystery Box moved to its own tab **Lådan** (`src/client/MysteryBox.tsx`, between Plånko and
+  Bank; six tabs checked at 390px). It has its own "Att hämta" and "Mina vinster"; Butik's "Mina köp"
+  no longer lists box openings.
+- Beer, cider and box prizes are claimed like marker: an "Att hämta" section with a Hämta button per
+  receipt, the "Står du ...?" confirm, then the full-screen claim screen (item picture, rarity ring
+  for a prize, RM rain, ticking clock). Who hands it over: Mr Green for marker, the bar for Öl and
+  Cider, Simon for box prizes (`PICKUP.at/by/ask` in `client.ts`; change it there).
+- Migration `20260925000028_claim_purchase.sql`: `claim_purchase(player, token, purchase)` for
+  one physical or box receipt (`purchase_not_found` for someone else's, `use_claim_markers`,
+  `nothing_to_claim` for digital, `already_claimed`). It also **stamps every existing Öl/Cider/box
+  receipt as claimed at purchase time**, since those were handed over under the old show-the-receipt
+  flow and would otherwise queue up as "Ej hämtad".
+- Code: `MarkerClaim.tsx` became `ClaimScreen` in `Pickup.tsx` (plus `ToCollect`, `Receipts`), the
+  flow is `useClaim.tsx`; `toCollect`, `needsPickup`, `receiptName`, `receiptImage` in `buy.ts` with
+  tests. The GM feed tags every physical receipt Hämtad / Ej hämtad.
+- Verified: build, test, lint; `claim_purchase` exercised against the local DB; the whole guest flow
+  driven headless at 390px against the local stack (buy beer and marker, claim each, open a box,
+  claim the prize, receipts tagged). Smoke gained claim checks in the Butik step (not run).
+
+**Manual step:** `npx supabase db push` **before** the new client deploys (the Hämta buttons call
+`claim_purchase`).

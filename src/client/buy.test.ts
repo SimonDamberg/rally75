@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { BoxPrizeRow, PurchaseRow, ShopItemRow } from '../lib/types'
 import { MARKER_MAX_QTY, netWorth, nightNet } from '../shared/game/economy'
-import { afterBuy, checkBuy, checkMarkers, maxMarkers, purchaseTotal, shelves, stockLeft, unclaimedMarkers, visiblePurchases } from './buy'
+import { afterBuy, checkBuy, checkMarkers, maxMarkers, needsPickup, purchaseTotal, receiptName, shelves, stockLeft, toCollect, unclaimedMarkers, visiblePurchases } from './buy'
 
 function item(over: Partial<ShopItemRow> = {}): ShopItemRow {
   return {
@@ -226,5 +226,50 @@ describe('marker', () => {
     const after = afterBuy(before, 10 * 12)
     expect(after.balance).toBe(280)
     expect(netWorth(after)).toBe(netWorth(before))
+  })
+})
+
+describe('pickup', () => {
+  const receipt = (over: Partial<PurchaseRow>): PurchaseRow => ({
+    id: 'r',
+    player_id: 'p1',
+    item_id: 'i1',
+    item_name: 'Öl',
+    kind: 'physical',
+    price: 500,
+    qty: 1,
+    claimed_at: null,
+    prize_id: null,
+    prize_name: null,
+    prize_rarity: null,
+    created_at: '2026-09-25T20:00:00Z',
+    ...over,
+  })
+  const list = [
+    receipt({ id: 'late', created_at: '2026-09-25T21:00:00Z' }),
+    receipt({ id: 'early', created_at: '2026-09-25T20:00:00Z' }),
+    receipt({ id: 'done', claimed_at: '2026-09-25T20:30:00Z' }),
+    receipt({ id: 'box', kind: 'box', item_name: 'Mystery Box', prize_name: 'Kniven', prize_rarity: 'guld' }),
+    receipt({ id: 'chips', kind: 'marker', item_name: 'Marker', qty: 5, price: 50 }),
+    receipt({ id: 'nft', kind: 'digital', item_name: 'NFT' }),
+  ]
+
+  it('lists what is still to be handed over, per counter, oldest first', () => {
+    expect(toCollect(list, 'physical').map((p) => p.id)).toEqual(['early', 'late'])
+    expect(toCollect(list, 'box').map((p) => p.id)).toEqual(['box'])
+  })
+
+  it('keeps a prize off the list while its reel is spinning', () => {
+    expect(toCollect(list, 'box', 'box')).toEqual([])
+  })
+
+  it('has nothing to hand over for a digital receipt', () => {
+    expect(list.filter(needsPickup).map((p) => p.id)).not.toContain('nft')
+  })
+
+  it('names a receipt by what was handed over', () => {
+    expect(receiptName(list[0])).toBe('Öl')
+    expect(receiptName(list[3])).toBe('Mystery Box: Kniven')
+    expect(receiptName(list[4])).toBe('Marker × 5')
   })
 })

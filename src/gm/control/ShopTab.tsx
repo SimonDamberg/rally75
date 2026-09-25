@@ -165,7 +165,7 @@ function SoldFeed({
                   {p.prize_name ? GM_SHOP.fromBox(p.prize_name) : p.kind === 'marker' ? GM_SHOP.markerReceipt(p.qty) : p.item_name}
                 </span>
                 {p.prize_rarity && <RarityChip rarity={p.prize_rarity} className="shrink-0" />}
-                {p.kind === 'marker' && (
+                {p.kind !== 'digital' && (
                   <span
                     className={cx(
                       'shrink-0 rounded-full px-2 py-0.5 text-sm font-black uppercase',
