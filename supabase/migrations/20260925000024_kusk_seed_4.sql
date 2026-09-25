@@ -37,9 +37,7 @@ insert into public.kusks (name, title, notes) values
     'GP sa "jag glum" om starten. Och om målet. Och om hästen.',
     'GP har pysslat mer på dräkten än hon har tränat. Det syns.',
     'GP hävdar att hon vunnit om man försummar luftmotståndet.',
-    'GP har inte alla hästar hemma. Två av dem står på fel bana.',
-    'GP räknade sina hästar inför loppet och kom fram till fyra. Hon har en.',
-    'GP har inte alla hästar hemma. Den här har hon lånat.'
+    'GP har inte alla hästar hemma. Två av dem står på fel bana.'
   ]),
   ('Emma', 'kör med slutna ögon', array[
     'Emma kör i foliehatt så att startbilen inte kan läsa hennes tankar.',
@@ -51,8 +49,9 @@ insert into public.kusks (name, title, notes) values
     'Emma läser startlistan på tre centimeters avstånd.',
     'Emma har förberett sig för allt utom själva loppet.',
     'Emma vägrar ligga bakom andra hästar. Hon är rädd för deras chemtrails.',
-    'Emma kör alltid i ledning. Längre bak andas man in det de sprayar.',
-    'Emma dejtar bara män som minns när travet var på riktigt. Den senaste mindes första världskriget.'
+    'Emma dejtar bara män som minns när travet var på riktigt.',
+    'Emmas pojkvän kom till banan med rollator. Han var ändå snabbare än hennes häst.',
+    'Emma kallar sin dejt för "en man med erfarenhet". Han var med när Solvalla byggdes.'
   ]),
   ('Axel', 'gentlemannen', array[
     'Axel anser att omkörningar är ohyfsat och undviker dem när det går.',
