@@ -62,6 +62,8 @@ export interface OfferCopy {
   image?: string;
   /** The CTA rings Stödlinjen instead of the toast or Spela. */
   call?: boolean;
+  /** The CTA opens this URL in a new tab instead of the toast or Spela. */
+  link?: string;
   /** Overrides OFFER_UI.decline. */
   decline?: string;
   /** Overrides OFFER_UI.expires. */
@@ -140,6 +142,18 @@ export const OFFERS: readonly OfferCopy[] = [
     call: true,
     decline: "Nej, jag har full kontroll",
     expires: "Hjälpen går ut om",
+  },
+  {
+    // Palm (the kusk) is between engagements. His own photo, his own LinkedIn.
+    id: "palm",
+    kicker: "Extra! Extra!",
+    title: "Palm söker nytt jobb",
+    text: "Palm har räknat på kvällens startpengar och siffrorna ljuger inte: det är dags för en karriärändring. Nätverka innan konkurrenterna hinner före.",
+    cta: "Lägg till Palm på LinkedIn",
+    accepted: null,
+    smallPrint: "Palm svarar på alla förfrågningar, men helst de med tjänstebil.",
+    image: "/kuskar/palm.jpg",
+    link: "https://www.linkedin.com/in/simon-h-palm/",
   },
 ];
 

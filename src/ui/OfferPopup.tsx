@@ -32,6 +32,7 @@ export function OfferPopup({ shown, onClose, onPlay, preview = false }: OfferPop
     onClose()
     if (preview) return
     if (offer.call) window.location.href = `tel:${STODLINJE.number}`
+    else if (offer.link) window.open(offer.link, '_blank', 'noopener')
     else if (offer.accepted === null) onPlay()
     else toast({ text: offer.accepted, tone: 'win' })
   }
@@ -61,7 +62,10 @@ export function OfferPopup({ shown, onClose, onPlay, preview = false }: OfferPop
             <img
               src={offer.image}
               alt=""
-              className="aspect-[4/3] max-h-[34dvh] w-full rounded-xl object-cover object-[50%_35%] ring-2 ring-drift"
+              className={cx(
+                'aspect-[4/3] max-h-[34dvh] w-full rounded-xl object-cover object-[50%_35%] ring-2',
+                offer.call ? 'ring-drift' : 'ring-sleaze',
+              )}
             />
           )}
           <p className="text-lg font-semibold">{offer.text}</p>
