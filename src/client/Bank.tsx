@@ -51,6 +51,15 @@ export function Bank({
     <div className="flex flex-1 flex-col gap-4 p-3">
       <h1 className="px-1 font-display text-4xl leading-none font-black text-plate uppercase">{BANK.title}</h1>
 
+      {/* The only way in: no typed-code fallback, a phone without a working camera is out of luck. */}
+      <section className="flex flex-col gap-3 rounded-2xl bg-tote/40 p-4 ring-1 ring-white/10 ring-inset">
+        <h2 className="font-display text-2xl leading-none font-black uppercase">{BANK.couponTitle}</h2>
+        <p className="text-sm text-ink-dim">{BANK.couponText}</p>
+        <Button variant="sleaze" block onClick={onScan}>
+          {BANK.scan}
+        </Button>
+      </section>
+
       <dl className="grid grid-cols-3 gap-2">
         {summary.map(([k, v, tone]) => (
           <div key={k} className="flex min-w-0 flex-col gap-1 rounded-xl bg-tote/50 px-3 py-2.5 ring-1 ring-white/10 ring-inset">
@@ -120,15 +129,6 @@ export function Bank({
           <p className="text-sm text-ink-dim">{BANK.debtFreeText}</p>
         </section>
       )}
-
-      {/* The only way in: no typed-code fallback, a phone without a working camera is out of luck. */}
-      <section className="flex flex-col gap-3 rounded-2xl bg-tote/40 p-4 ring-1 ring-white/10 ring-inset">
-        <h2 className="font-display text-2xl leading-none font-black uppercase">{BANK.couponTitle}</h2>
-        <p className="text-sm text-ink-dim">{BANK.couponText}</p>
-        <Button variant="sleaze" block onClick={onScan}>
-          {BANK.scan}
-        </Button>
-      </section>
 
       <section className="flex flex-col gap-2">
         <Button variant="sleaze" block disabled={!broke} onClick={onLoan}>

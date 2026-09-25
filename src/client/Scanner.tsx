@@ -97,12 +97,12 @@ export function Scanner({ onScan, onClose }: { onScan: (result: ScanResult) => v
       title={SKANNA.title}
       actions={
         <>
-          {(state === 'denied' || state === 'failed') && (
+          {state !== 'live' && (
             <Button variant="ghost" onClick={retry}>
               {SKANNA.retry}
             </Button>
           )}
-          <Button block={state === 'live' || state === 'starting' || state === 'nocam'} onClick={onClose}>
+          <Button block={state === 'live'} onClick={onClose}>
             {SKANNA.close}
           </Button>
         </>

@@ -343,9 +343,14 @@ function Mine({ purchases }: { purchases: readonly PurchaseRow[] | undefined }) 
             className="flex items-center gap-3 rounded-lg bg-tote/50 px-3 py-2 ring-1 ring-white/5 ring-inset"
             style={p.prize_rarity ? { boxShadow: `inset 3px 0 0 ${RARITY_COLOR[p.prize_rarity]}` } : undefined}
           >
-            <span className="min-w-0 flex-1 truncate font-bold">
-              {p.prize_name ? BUTIK.boxReceipt(p.prize_name) : p.item_name}
-            </span>
+            <div className="flex min-w-0 flex-1 flex-col leading-tight">
+              <span className="truncate font-bold">
+                {p.prize_name ? BUTIK.boxReceipt(p.prize_name) : p.item_name}
+              </span>
+              <span className="text-xs text-ink-dim tabular-nums">
+                {new Date(p.created_at).toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })}
+              </span>
+            </div>
             <span className="shrink-0 font-display text-lg font-black text-ink-dim tabular-nums">{fmtRm(p.price)}</span>
           </li>
         ))}
