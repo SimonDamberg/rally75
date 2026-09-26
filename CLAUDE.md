@@ -187,8 +187,9 @@ Two devices, one password gate, one lazy-loaded chunk (`src/gm/GmApp.tsx` routes
   `useGuest()` (`src/client/guest.ts`). Guest RPCs go through `useGuestAction().run((api, identity) => ...)`:
   errors become toasts, `player_not_found`/`invalid_token` sign out.
 - Pop-ups owned by the shell: bonus reveal after sign-up, result reveal (once per race, seen id in
-  localStorage, waits until the player's bets are settled), Snabblån (broke with no open bets,
-  never over a reveal or the bet confirm). Stage 6 pop-ups must respect the same `blocked` rule.
+  localStorage, waits until the player's bets are settled), Snabblån (only when the guest taps
+  the header or Bank button while broke with no open bets, never on its own; never over a reveal or
+  the bet confirm). Stage 6 pop-ups must respect the same `blocked` rule.
 - Pure logic with tests: `slip.ts` (chips, stake checks, `marketOdds` from open bets) and
   `outcome.ts` (bet outcome, reveal kind, totals).
 - The guest sees one race at a time: there is no "Mina spel" tab and no bet history. Bets on the
@@ -281,7 +282,7 @@ track (`ffmpeg -an ... -c:v libx264 -movflags +faststart`), iPhone HEVC does not
   `gm_reset_night` keeps the catalogue and the prizes (like kuskar) and drops the receipts.
 - **Marker** (chips for triss, roulette and the enarmade banditen) are the `kind = 'marker'` item,
   sold by the handful: `buy_markers(qty)` writes one receipt with `purchases.qty` and `price` = the
-  total (rank neutral, like the Öl; `MARKER_MAX_QTY` mirrored in `*_markers.sql`); `buy_item` refuses
+  total (rank neutral, like the Öl; `MARKER_MAX_QTY` mirrored in `*_markers.sql`; `MARKER_MIN_QTY` 3 is client side only); `buy_item` refuses
   it (`use_buy_markers`). The guest presses Hämta **in front of Mr Green** (a person at the party):
   `claim_markers` stamps `purchases.claimed_at` on every unclaimed marker receipt at once and returns
   the count for the same claim screen. A second press gets `nothing_to_claim`. The GM feed shows

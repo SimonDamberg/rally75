@@ -57,6 +57,12 @@ export type PrizeCardTier = (typeof PRIZE_CARD_TIERS)[number]['tier']
 /** Most marker (chips for the physical games) one buy_markers call may take. Mirrored in *_markers.sql. */
 export const MARKER_MAX_QTY = 100
 
+/**
+ * Fewest marker the Butik sells at once (a handful for one game). Client side only: buy_markers still
+ * accepts 1, so a stale phone cannot hit an error mid-party.
+ */
+export const MARKER_MIN_QTY = 3
+
 /** Seconds a guest waits between two vinstkort claims (any card). Stops a double scan of one flash. */
 export const PRIZE_CARD_COOLDOWN_S = 5
 

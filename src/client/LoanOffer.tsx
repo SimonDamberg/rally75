@@ -1,14 +1,11 @@
-// Snabblån: offered automatically when the guest is broke (and again after a cooldown), or on
-// demand from the header button.
-import { useEffect, useState } from 'react'
+// Snabblån: opens only on demand, from the header or Bank button while broke. It used to pop up by
+// itself at 0 RM, which cut into the Butik flow (Simon's call).
 import { LOAN } from '../shared/content/client'
 import { STODLINJE } from '../shared/content/parody'
 import { LOAN_AMOUNT, LOAN_DEBT } from '../shared/game/economy'
 import { fmtRm } from '../shared/game/format'
 import { Button, Modal, StodlinjeNote, toast } from '../ui'
 import { useGuestAction } from './guest'
-
-const COOLDOWN_MS = 90_000
 
 export interface LoanOfferProps {
   broke: boolean
@@ -21,20 +18,8 @@ export interface LoanOfferProps {
 
 export function LoanOffer({ broke, blocked, requested, onRequestHandled }: LoanOfferProps) {
   const { run, busy } = useGuestAction()
-  const [snoozed, setSnoozed] = useState(false)
-
-  useEffect(() => {
-    if (!snoozed) return
-    const t = setTimeout(() => setSnoozed(false), COOLDOWN_MS)
-    return () => clearTimeout(t)
-  }, [snoozed])
-
-  const open = broke && !blocked && (requested || !snoozed)
-
-  const dismiss = () => {
-    setSnoozed(true)
-    onRequestHandled()
-  }
+  const open = broke && !blocked && requested
+  const dismiss = onRequestHandled
 
   const accept = async () => {
     const player = await run((api, identity) => api.takeLoan(identity))

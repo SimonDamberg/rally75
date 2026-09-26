@@ -1,5 +1,5 @@
 // Signed-in guest: header, the tabs, and the pop-ups that can appear from any tab (bonus
-// reveal after sign-up, result reveal after a race, Snabblån when broke, pop-up offers), plus the
+// reveal after sign-up, result reveal after a race, Snabblån on request when broke, pop-up offers), plus the
 // fake social proof.
 import { useMemo, useState } from 'react'
 import type { ScanResult } from '../shared/game/scan'

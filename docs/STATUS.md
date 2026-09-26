@@ -1717,3 +1717,11 @@ gift tile shows); set the price on the control phone if 10 RM is not it.
 - **Kept:** all 120 printed kuponger (batch MUTA) with their codes, the 9 vinstkort with their codes
   (all active), the catalogue, kuskar, GM password. The one kupong redeemed in rehearsal was reset
   to unredeemed so every printed ticket pays at the party.
+
+## Quick fixes: Snabblån pop-up, marker minimum (2026-09-26)
+
+- The Snabblån modal no longer opens by itself at 0 RM (it cut into the Butik flow). It opens only
+  from the blinking header button or Bank's button. `LoanOffer` lost its snooze timer.
+- Marker: default quantity 3, quick buttons 3 / 6 / 9 (plus Max), and 3 is the least you can buy
+  (`MARKER_MIN_QTY` in `economy.ts`). Client side only: `buy_markers` still accepts 1, so no
+  migration or `db push` is needed.

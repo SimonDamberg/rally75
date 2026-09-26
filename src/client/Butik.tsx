@@ -10,6 +10,7 @@ import { usePlayerPurchases } from '../lib/hooks'
 import type { PurchaseRow, ShopItemRow } from '../lib/types'
 import { BUTIK, MARKER } from '../shared/content/client'
 import { UI_LABELS } from '../shared/content/ui'
+import { MARKER_MIN_QTY } from '../shared/game/economy'
 import { fmtRm } from '../shared/game/format'
 import { Button, cx, Modal, ShopImage, SmallPrint, toast } from '../ui'
 import { afterBuy, checkBuy, checkMarkers, maxMarkers, shelves, stockLeft, toCollect, unclaimedMarkers, type BuyCheck } from './buy'
@@ -24,7 +25,7 @@ export function Butik({ onConfirmChange }: { onConfirmChange: (open: boolean) =>
   const claim = useClaim(reloadPurchases)
   const [picked, setPicked] = useState<ShopItemRow | null>(null)
   const [receipt, setReceipt] = useState<{ purchase: PurchaseRow; item: ShopItemRow } | null>(null)
-  const [markerQty, setMarkerQty] = useState(10)
+  const [markerQty, setMarkerQty] = useState(MARKER_MIN_QTY)
   const [buyingMarkers, setBuyingMarkers] = useState(false)
 
   // Offers and the Snabblån stay away while a confirm or a claim screen is up.
@@ -251,7 +252,7 @@ function MarkerCard({
   const price = marker.price
   const max = maxMarkers({ balance }, price)
   const check = checkMarkers({ balance }, price, qty)
-  const set = (n: number) => onQty(Math.max(1, Math.min(Math.max(1, max), n)))
+  const set = (n: number) => onQty(Math.max(MARKER_MIN_QTY, Math.min(Math.max(MARKER_MIN_QTY, max), n)))
 
   return (
     <section className="flex flex-col gap-3 rounded-2xl bg-tote/40 p-4 ring-1 ring-plate/40 ring-inset">
@@ -276,7 +277,7 @@ function MarkerCard({
         <div className="flex items-center justify-between gap-3">
           <span className="text-xs font-black tracking-wide text-ink-dim uppercase">{MARKER.qty}</span>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" aria-label={MARKER.less} disabled={qty <= 1} onClick={() => set(qty - 1)} className="min-h-11! w-11! px-0! text-2xl!">
+            <Button variant="ghost" aria-label={MARKER.less} disabled={qty <= MARKER_MIN_QTY} onClick={() => set(qty - 1)} className="min-h-11! w-11! px-0! text-2xl!">
               −
             </Button>
             <span className="w-14 text-center font-display text-4xl leading-none font-black tabular-nums">{qty}</span>
@@ -302,11 +303,11 @@ function MarkerCard({
           ))}
           <button
             type="button"
-            disabled={max < 1}
+            disabled={max < MARKER_MIN_QTY}
             onClick={() => set(max)}
             className={cx(
               'flex-1 rounded-full py-1.5 text-sm font-black uppercase ring-1 ring-inset disabled:opacity-40',
-              qty === max && max > 0 ? 'bg-plate text-night ring-plate' : 'bg-tote/60 ring-white/15',
+              qty === max && max >= MARKER_MIN_QTY ? 'bg-plate text-night ring-plate' : 'bg-tote/60 ring-white/15',
             )}
           >
             {MARKER.max}

@@ -4,7 +4,7 @@
 import type { BoxPrizeRow, PurchaseRow, ShopItemRow } from '../lib/types'
 import { boxLeft } from '../shared/game/box'
 import { BUTIK, MARKER } from '../shared/content/client'
-import { MARKER_MAX_QTY } from '../shared/game/economy'
+import { MARKER_MAX_QTY, MARKER_MIN_QTY } from '../shared/game/economy'
 
 export type BuyCheck = 'ok' | 'inactive' | 'sold_out' | 'too_poor'
 
@@ -86,17 +86,18 @@ export function purchaseTotal(purchases: readonly PurchaseRow[]): number {
 
 export type MarkerCheck = 'ok' | 'bad_qty' | 'too_poor'
 
-/** Whether `qty` marker at `price` each can be bought, mirroring buy_markers. */
+/** Whether `qty` marker at `price` each can be bought, mirroring buy_markers plus MARKER_MIN_QTY. */
 export function checkMarkers(player: { balance: number }, price: number, qty: number): MarkerCheck {
-  if (!Number.isInteger(qty) || qty < 1 || qty > MARKER_MAX_QTY) return 'bad_qty'
+  if (!Number.isInteger(qty) || qty < MARKER_MIN_QTY || qty > MARKER_MAX_QTY) return 'bad_qty'
   if (player.balance < price * qty) return 'too_poor'
   return 'ok'
 }
 
-/** The most marker the balance covers, capped at MARKER_MAX_QTY (0 when not even one). */
+/** The most marker the balance covers, capped at MARKER_MAX_QTY (0 when not even MARKER_MIN_QTY). */
 export function maxMarkers(player: { balance: number }, price: number): number {
   if (price <= 0) return MARKER_MAX_QTY
-  return Math.max(0, Math.min(MARKER_MAX_QTY, Math.floor(player.balance / price)))
+  const n = Math.min(MARKER_MAX_QTY, Math.floor(player.balance / price))
+  return n < MARKER_MIN_QTY ? 0 : n
 }
 
 /** Marker bought but not yet handed over by Mr Green: what claim_markers would count out. */

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { BoxPrizeRow, PurchaseRow, ShopItemRow } from '../lib/types'
-import { MARKER_MAX_QTY, netWorth, nightNet } from '../shared/game/economy'
+import { MARKER_MAX_QTY, MARKER_MIN_QTY, netWorth, nightNet } from '../shared/game/economy'
 import { afterBuy, checkBuy, checkMarkers, maxMarkers, needsPickup, purchaseTotal, receiptName, shelves, stockLeft, toCollect, unclaimedMarkers, visiblePurchases } from './buy'
 
 function item(over: Partial<ShopItemRow> = {}): ShopItemRow {
@@ -199,6 +199,8 @@ describe('marker', () => {
     expect(checkMarkers({ balance: 70 }, 10, 7)).toBe('ok')
     expect(checkMarkers({ balance: 69 }, 10, 7)).toBe('too_poor')
     expect(checkMarkers({ balance: 0 }, 10, 0)).toBe('bad_qty')
+    expect(checkMarkers({ balance: 1e6 }, 10, MARKER_MIN_QTY - 1)).toBe('bad_qty')
+    expect(checkMarkers({ balance: 30 }, 10, MARKER_MIN_QTY)).toBe('ok')
     expect(checkMarkers({ balance: 1e6 }, 10, MARKER_MAX_QTY + 1)).toBe('bad_qty')
     expect(checkMarkers({ balance: 1e6 }, 10, 2.5)).toBe('bad_qty')
   })
@@ -206,6 +208,8 @@ describe('marker', () => {
   it('caps the most you can buy at the balance and the SQL limit', () => {
     expect(maxMarkers({ balance: 75 }, 10)).toBe(7)
     expect(maxMarkers({ balance: 5 }, 10)).toBe(0)
+    expect(maxMarkers({ balance: 29 }, 10)).toBe(0) // two is under the minimum
+    expect(maxMarkers({ balance: 30 }, 10)).toBe(MARKER_MIN_QTY)
     expect(maxMarkers({ balance: 1e6 }, 10)).toBe(MARKER_MAX_QTY)
   })
 

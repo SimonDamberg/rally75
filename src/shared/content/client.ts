@@ -280,7 +280,7 @@ export const MARKER = {
   qty: 'Antal',
   less: 'En färre',
   more: 'En till',
-  quick: [5, 10, 20] as const,
+  quick: [3, 6, 9] as const,
   max: 'Max',
   total: (rm: string) => `Totalt ${rm}`,
   buy: (n: number, rm: string) => `Köp ${n} marker (${rm})`,
