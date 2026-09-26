@@ -1080,8 +1080,9 @@ await step("kuponger", async () => {
   assert.equal(after.balance, paid!.balance + tier.amount);
   assert.equal(after.spent, paid!.spent, "a kupong is not Butik spending");
   assert.equal(after.debt, paid!.debt);
-  // Unlike a purchase or a repayment, kupong RM is meant to move you up the Topplista.
-  assert.equal(netWorth(after), netWorth(paid!) + tier.amount);
+  // Spendable, but not Topplista winnings: coupon_rm takes it back off.
+  assert.equal(after.coupon_rm, paid!.coupon_rm + tier.amount);
+  assert.equal(netWorth(after), netWorth(paid!), "a printed kupong does not move the Topplista");
 
   // One ticket, one claim: not by the same guest, not by the next one to find the code.
   await expectCode(api.redeemCoupon(vinnare, code), "coupon_used");
@@ -1103,6 +1104,7 @@ await step("kuponger", async () => {
 
   // Ångra: the RM comes back off the balance and the ticket is claimable again, by someone else.
   const freed = await gm.voidClaim(pw!, claimed.id);
+  assert.equal((await api.getPlayer(vinnare.playerId))!.coupon_rm, paid!.coupon_rm, "voiding takes coupon_rm back too");
   assert.equal(freed.redeemed_at, null);
   assert.equal(freed.redeemed_by, null);
   assert.equal(

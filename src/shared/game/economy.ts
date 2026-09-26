@@ -21,10 +21,10 @@ export const MAX_NAME_LENGTH = 24
  * Printed kupong tiers (`*_coupons.sql` mirrors the caps below, not these amounts: the GM page sends
  * the value with the call, so the tiers are a starting point Simon can override).
  *
- * A kupong is the one thing in the game that is **not** rank neutral. Its RM lands in
- * `players.balance` and nowhere else, so unlike a Butik purchase or a debt repayment it does move
- * you on Toppen and on `nightNet`. Winning at dart is meant to be worth something, which is also
- * why the value and the batch size are capped in SQL: this is the only RM the GM can mint at will.
+ * A kupong's RM lands in `players.balance` and is spendable like any other, but it is also counted
+ * in `players.coupon_rm`, which netWorth takes back off: printed kuponger do not move the Topplista
+ * (Simon's call; vinstkort do). The value and the batch size are still capped in SQL, since this is
+ * the only RM the GM can mint at will.
  */
 export const COUPON_TIERS = [
   { tier: 1, amount: 250 },
@@ -66,24 +66,38 @@ export const MARKER_MIN_QTY = 3
 /** Seconds a guest waits between two vinstkort claims (any card). Stops a double scan of one flash. */
 export const PRIZE_CARD_COOLDOWN_S = 5
 
-/**
- * What a player actually owns: the balance with the debt taken off and the Butik spending added
- * back. This is what the Topplista ranks on, so a stack of Snabblån cannot buy a place at the top,
- * and a round of beers or a Mystery Box cannot cost you one: the money leaves the balance but never
- * the rank. Marker are the exception: buy_markers leaves `spent` alone, so chips for the other
- * games cost you like a bet (Simon's call, *_markers_count.sql).
- */
-export function netWorth(player: { balance: number; debt: number; spent: number }): number {
-  return player.balance - player.debt + player.spent
+/** What the Topplista reads off a player row. */
+export interface Standing {
+  balance: number
+  debt: number
+  spent: number
+  /** Snabblån taken. Treated as 0 when absent. */
+  loans_taken?: number
+  /** RM paid in from printed kuponger (players.coupon_rm). Treated as 0 when absent. */
+  coupon_rm?: number
 }
 
 /**
- * How far ahead or behind a player is for the night, counted from zero.
+ * The Topplista score plus the welcome bonus: total gained for the night, from WELCOME_BONUS
+ * (Simon's call). What counts is Rally75, Plånko and vinstkort winnings, minus LOAN_AMOUNT per
+ * Snabblån, minus the marker. Everything else is taken back out of the balance:
  *
- * The welcome bonus is not winnings, so it has to come back off: someone who never placed a bet
- * sits on WELCOME_BONUS and is break even, not 100 RM up. Debt counts against you in full (you
- * received LOAN_AMOUNT but owe LOAN_DEBT), which is the joke.
+ * - Butik spending on the bar and the Mystery Box is added back (`spent`). Marker never enter
+ *   `spent` (*_markers_count.sql), so they cost you like a bet.
+ * - A Snabblån hands over LOAN_AMOUNT and books LOAN_DEBT. The debt comes off and each loan adds
+ *   LOAN_DEBT - LOAN_AMOUNT back, so taking one is neutral and losing it costs LOAN_AMOUNT.
+ *   Repaying moves the same RM out of balance and debt, which nets to nothing.
+ * - Printed kuponger pay into the balance but are not winnings here (`coupon_rm`, *_coupon_rm.sql).
  */
-export function nightNet(player: { balance: number; debt: number; spent: number }): number {
+export function netWorth(player: Standing): number {
+  const loans = player.loans_taken ?? 0
+  return player.balance - player.debt + player.spent + (LOAN_DEBT - LOAN_AMOUNT) * loans - (player.coupon_rm ?? 0)
+}
+
+/**
+ * How far ahead or behind a player is for the night, counted from zero: the Topplista number.
+ * The welcome bonus is not winnings, so someone who never placed a bet is break even.
+ */
+export function nightNet(player: Standing): number {
   return netWorth(player) - WELCOME_BONUS
 }

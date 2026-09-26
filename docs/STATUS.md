@@ -1731,3 +1731,10 @@ gift tile shows); set the price on the control phone if 10 RM is not it.
   `spent` alone, makes Ångra on a marker receipt leave `spent` alone, and takes the marker already
   sold back out of `spent`. **Manual step:** `npx supabase db push` (migrations 29 and 30 are not
   on the local stack yet either). Checked in a rolled-back transaction on the local DB; smoke not re-run.
+- Correction, same day: the Topplista score is now exactly Simon's formula, `nightNet` = Rally75 +
+  Plånko + vinstkort winnings − `LOAN_AMOUNT` (100) per Snabblån − marker. The debt (1 337) no longer
+  counts: each loan adds `LOAN_DEBT − LOAN_AMOUNT` back, so taking one is neutral and losing it costs
+  100; repaying stays neutral. Printed kuponger are off the list: new `players.coupon_rm`
+  (migration `20260926000031_coupon_rm.sql`, kept by `redeem_coupon` and `gm_void_claim`, backfilled
+  from redeemed tickets) is subtracted. Bank's "netto idag" uses the same number. The frontend reads
+  a missing `coupon_rm` as 0, so it is safe to deploy before `npx supabase db push` (30 and 31).

@@ -34,7 +34,7 @@ export function applyChange<T extends { id: string }>(
   return next
 }
 
-/** Richest first, counting the debt against you (see netWorth); ties by name. */
+/** Most gained first (see netWorth); ties by name. */
 export function byNetWorth(players: readonly PlayerRow[]): PlayerRow[] {
   return players.slice().sort((a, b) => netWorth(b) - netWorth(a) || a.name.localeCompare(b.name, 'sv'))
 }

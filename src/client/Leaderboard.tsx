@@ -1,6 +1,6 @@
-// "Topplista": total gained for the night, from zero (saldo minus skuld plus det som gått i
-// Butiken, minus the welcome bonus), high to low on Toppen and low to high on "Dagens största
-// förlorare". The bar and the Mystery Box move you on neither; marker count, like a bet.
+// "Topplista": total gained for the night, from zero (nightNet: Rally75, Plånko and vinstkort,
+// minus LOAN_AMOUNT per Snabblån, minus the marker), high to low on Toppen and low to high on
+// "Dagens största förlorare". The bar, the Mystery Box and printed kuponger move you on neither.
 import { useState } from 'react'
 import { useHouseTake, useLeaderboard } from '../lib/hooks'
 import type { PlayerRow } from '../lib/types'
@@ -74,8 +74,7 @@ export function Leaderboard() {
 function Row({ player, rank, view, mine }: { player: PlayerRow; rank: number; view: View; mine: boolean }) {
   // Counted from zero: the welcome bonus is not a win, so break even shows as 0, not 100 RM.
   const net = nightNet(player)
-  // Both lists show total gained (debt against you, Butik spending except marker added back);
-  // Toppen ranks it high to low, the förlorarlista low to high.
+  // Both lists show total gained; Toppen ranks it high to low, the förlorarlista low to high.
   const value = net
   return (
     <li

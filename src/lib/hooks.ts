@@ -260,7 +260,7 @@ export function usePlayer(): PlayerState {
 
 export interface Leaderboard {
   players: PlayerRow[]
-  /** Richest first, with each player's debt counted against them (see netWorth). */
+  /** Most gained first (see netWorth). */
   top: PlayerRow[]
   /** "Dagens största förlorare": lowest balance minus debt first. */
   losers: PlayerRow[]

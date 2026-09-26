@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { nightNet, WELCOME_BONUS } from '../shared/game/economy'
+import { LOAN_AMOUNT, LOAN_DEBT, nightNet, WELCOME_BONUS } from '../shared/game/economy'
 import { applyChange, byLosses, byNetWorth, freshBets } from './realtime'
 import { toBet, type BetRow, type PlayerRow } from './types'
 
@@ -49,20 +49,21 @@ describe('leaderboard sorting', () => {
     debt,
     loans_taken,
     spent,
+    coupon_rm: 0,
     title: '',
     badge: '',
     created_at: '',
   })
 
   it('ranks by net worth and by net losses', () => {
-    // Cia is holding the most cash after Bo, but the Snabblan debt drops her below everyone.
-    const players = [p('Anna', 500), p('Bo', 1500), p('Cia', 900, 1337, 1), p('Dan', 0)]
+    // Cia borrowed once and has 50 of the loan left: the Snabblån costs her LOAN_AMOUNT, not the debt.
+    const players = [p('Anna', 500), p('Bo', 1500), p('Cia', 50, LOAN_DEBT, 1), p('Dan', 0)]
     expect(byNetWorth(players).map((x) => x.name)).toEqual(['Bo', 'Anna', 'Dan', 'Cia'])
     expect(byLosses(players).map((x) => x.name)).toEqual(['Cia', 'Dan', 'Anna', 'Bo'])
   })
 
   it('breaks net worth ties by name', () => {
-    const players = [p('Bosse', 900), p('Anna', 900), p('Cia', 2237, 1337, 1)]
+    const players = [p('Bosse', 900), p('Anna', 900), p('Cia', 900 + LOAN_AMOUNT, LOAN_DEBT, 1)]
     expect(byNetWorth(players).map((x) => x.name)).toEqual(['Anna', 'Bosse', 'Cia'])
   })
 
@@ -75,8 +76,10 @@ describe('leaderboard sorting', () => {
   })
 
   it('breaks ties on losses by who borrowed most', () => {
-    const a = p('Låntagare', 1337, 1337, 2)
-    const b = p('Snål', 1337, 1337, 0)
+    // Both at -LOAN_AMOUNT: one lost the bonus, the other borrowed twice and has one loan's worth left.
+    const a = p('Låntagare', WELCOME_BONUS + LOAN_AMOUNT, 2 * LOAN_DEBT, 2)
+    const b = p('Snål', WELCOME_BONUS - LOAN_AMOUNT)
+    expect(nightNet(a)).toBe(nightNet(b))
     expect(byLosses([b, a]).map((x) => x.name)).toEqual(['Låntagare', 'Snål'])
   })
 

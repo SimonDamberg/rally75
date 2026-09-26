@@ -19,6 +19,8 @@ export interface PlayerRow {
   loans_taken: number;
   /** RM left in the Butik, marker excepted. Added back by netWorth, so buying never costs you a place. */
   spent: number;
+  /** RM paid in from printed kuponger. Taken back off by netWorth: kuponger are not Topplista winnings. */
+  coupon_rm: number;
   /** Bought in the Butik: a title under the name on the Topplista. '' when nothing is bought. */
   title: string;
   /** Bought in the Butik: an emoji in front of the name. '' when nothing is bought. */

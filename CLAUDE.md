@@ -257,7 +257,9 @@ track (`ffmpeg -an ... -c:v libx264 -movflags +faststart`), iPhone HEVC does not
 - **Buying is rank neutral, except marker.** `buy_item` and `open_box` move the price from
   `players.balance` to `players.spent`, and `netWorth` adds `spent` back, so the bar and the box
   cannot move you on Toppen or the förlorarlista. `buy_markers` leaves `spent` alone (Simon's call,
-  `*_markers_count.sql`): marker cost you like a bet. Both lists show total gained (`nightNet`).
+  `*_markers_count.sql`): marker cost you like a bet. Both lists show total gained (`nightNet`):
+  Rally75, Plånko and vinstkort winnings, minus `LOAN_AMOUNT` per Snabblån (not the debt; repaying
+  is neutral), minus marker. Printed kuponger are taken back off via `players.coupon_rm`.
   There is no third list. Asserted in `buy.test.ts`, `economy.test.ts` and smoke.
 - **The Mystery Box** is the `kind = 'box'` item. Its contents are `box_prizes` (physical, counted,
   `rarity` bla/lila/rosa/rod/guld, public read, Realtime). `open_box` draws on the server with
@@ -307,8 +309,9 @@ Printed tickets the guests running the physical games hand out, scanned at `/k/<
 - Codes are 8 Crockford base32 characters from `gen_random_bytes` (one byte per character, 256 is a
   multiple of 32 so there is no bias). `normalizeCode` in `src/shared/game/coupon.ts` and
   `private.clean_coupon_code` in SQL must stay in step: both map I and L to 1, O to 0.
-- **A kupong is not rank neutral**, unlike a Butik purchase or a repayment: the RM lands in
-  `balance` alone, so it lifts Toppen and `nightNet`. It is the only RM the GM can mint, hence the
+- **A kupong is rank neutral** (Simon's call, `*_coupon_rm.sql`): the RM lands in `balance` and is
+  spendable, but `redeem_coupon` also adds it to `players.coupon_rm` (`gm_void_claim` takes it off)
+  and `netWorth` subtracts that, so it moves neither Toppen nor `nightNet`. Vinstkort do count. It is the only RM the GM can mint, hence the
   `COUPON_MAX_AMOUNT` / `COUPON_MAX_BATCH` caps in `economy.ts`, mirrored in SQL and tested.
 - `/gm/kuponger` (`src/gm/coupons/`) is a third GM surface behind the same password: a laptop page
   for minting a run, printing A4 sheets (12 per page), reprinting a lost one, and the "Inlösta

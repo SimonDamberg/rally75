@@ -137,71 +137,48 @@ describe('coupon tiers', () => {
     expect(amounts).toEqual([...amounts].sort((a, b) => a - b))
   })
 
-  /**
-   * The one place RM is created outside the welcome bonus and the Snabblån, and deliberately the
-   * only one that moves you up a leaderboard. Butik spending and repayments are both neutral.
-   */
-  it('lifts netWorth, unlike a purchase or a repayment', () => {
-    const before = { balance: WELCOME_BONUS, debt: 0, spent: 0 }
-    const after = { ...before, balance: before.balance + COUPON_TIERS[2].amount }
-    expect(netWorth(after)).toBe(netWorth(before) + COUPON_TIERS[2].amount)
-    expect(nightNet(after)).toBe(COUPON_TIERS[2].amount)
+  it('does not count a printed kupong on the Topplista, unlike a vinstkort', () => {
+    const before = { balance: WELCOME_BONUS, debt: 0, spent: 0, coupon_rm: 0 }
+    const kupong = { ...before, balance: before.balance + COUPON_TIERS[2].amount, coupon_rm: COUPON_TIERS[2].amount }
+    expect(nightNet(kupong)).toBe(nightNet(before))
+    const vinstkort = { ...before, balance: before.balance + PRIZE_CARD_TIERS[0].amount }
+    expect(nightNet(vinstkort)).toBe(PRIZE_CARD_TIERS[0].amount)
   })
 })
 
-describe('netWorth', () => {
-  it('takes the debt off the balance', () => {
-    expect(netWorth({ balance: 2000, debt: 0, spent: 0 })).toBe(2000)
-    expect(netWorth({ balance: 2000, debt: LOAN_DEBT, spent: 0 })).toBe(2000 - LOAN_DEBT)
-  })
+describe('the Topplista score (nightNet)', () => {
+  const start = { balance: WELCOME_BONUS, debt: 0, spent: 0, loans_taken: 0, coupon_rm: 0 }
 
-  it('goes negative when the debt is larger than the balance', () => {
-    // A Snabblån hands over LOAN_AMOUNT but books LOAN_DEBT, so one loan alone puts you under.
-    expect(netWorth({ balance: LOAN_AMOUNT, debt: LOAN_DEBT, spent: 0 })).toBe(LOAN_AMOUNT - LOAN_DEBT)
-    expect(netWorth({ balance: LOAN_AMOUNT, debt: LOAN_DEBT, spent: 0 })).toBeLessThan(0)
-  })
-
-  it('is nightNet plus the welcome bonus', () => {
-    const player = { balance: 1750, debt: LOAN_DEBT, spent: 0 }
-    expect(netWorth(player) - WELCOME_BONUS).toBe(nightNet(player))
-  })
-})
-
-describe('netWorth with Butik spending', () => {
-  it('adds spent back, so buying cannot cost you a place', () => {
-    const before = { balance: 3000, debt: 0, spent: 0 }
-    const after = { balance: 2500, debt: 0, spent: 500 }
-    expect(netWorth(after)).toBe(netWorth(before))
-  })
-
-  it('still counts the debt against you while spending is neutral', () => {
-    expect(netWorth({ balance: 1000, debt: LOAN_DEBT, spent: 2000 })).toBe(3000 - LOAN_DEBT)
-  })
-})
-
-describe('nightNet', () => {
   it('counts from zero, not from the welcome bonus', () => {
-    expect(nightNet({ balance: WELCOME_BONUS, debt: 0, spent: 0 })).toBe(0)
-    expect(nightNet({ balance: WELCOME_BONUS + 250, debt: 0, spent: 0 })).toBe(250)
-    expect(nightNet({ balance: 0, debt: 0, spent: 0 })).toBe(-WELCOME_BONUS)
+    expect(nightNet(start)).toBe(0)
+    expect(nightNet({ ...start, balance: WELCOME_BONUS + 250 })).toBe(250)
+    expect(nightNet({ ...start, balance: 0 })).toBe(-WELCOME_BONUS)
+    expect(netWorth(start) - WELCOME_BONUS).toBe(nightNet(start))
   })
 
-  it('counts a Snabblån as a loss of the full debt', () => {
-    // Borrowed once and did not bet: up LOAN_AMOUNT in hand, but owing LOAN_DEBT.
-    const borrowed = { balance: WELCOME_BONUS + LOAN_AMOUNT, debt: LOAN_DEBT, spent: 0 }
-    expect(nightNet(borrowed)).toBe(LOAN_AMOUNT - LOAN_DEBT)
-    expect(nightNet(borrowed)).toBeLessThan(0)
+  it('makes taking a Snabblån neutral and losing it cost LOAN_AMOUNT', () => {
+    const borrowed = { ...start, balance: WELCOME_BONUS + LOAN_AMOUNT, debt: LOAN_DEBT, loans_taken: 1 }
+    expect(nightNet(borrowed)).toBe(0)
+    expect(nightNet({ ...borrowed, balance: WELCOME_BONUS })).toBe(-LOAN_AMOUNT)
+    const twice = { ...start, balance: 0, debt: 2 * LOAN_DEBT, loans_taken: 2 }
+    expect(nightNet(twice)).toBe(-WELCOME_BONUS - 2 * LOAN_AMOUNT)
   })
 
-  it('ignores Butik spending, the same as netWorth', () => {
-    const saved = { balance: WELCOME_BONUS + 900, debt: 0, spent: 0 }
-    const spent = { balance: WELCOME_BONUS + 400, debt: 0, spent: 500 }
+  it('ignores repayments', () => {
+    const owing = { ...start, balance: 900, debt: LOAN_DEBT, loans_taken: 1 }
+    const repaid = { ...owing, balance: 400, debt: LOAN_DEBT - 500 }
+    expect(nightNet(repaid)).toBe(nightNet(owing))
+  })
+
+  it('adds Butik spending back (the bar and the box)', () => {
+    const saved = { ...start, balance: WELCOME_BONUS + 900 }
+    const spent = { ...start, balance: WELCOME_BONUS + 400, spent: 500 }
     expect(nightNet(spent)).toBe(nightNet(saved))
   })
 
-  it('puts a broke borrower below someone merely broke', () => {
-    const broke = nightNet({ balance: 0, debt: 0, spent: 0 })
-    const brokeAndOwing = nightNet({ balance: 0, debt: LOAN_DEBT, spent: 0 })
-    expect(brokeAndOwing).toBeLessThan(broke)
+  it('reads the formula: balance growth minus kuponger minus LOAN_AMOUNT per loan', () => {
+    // The balance grew by 900 over the night, 250 of it a printed kupong, after two loans.
+    const player = { balance: WELCOME_BONUS + 900, debt: 2 * LOAN_DEBT, spent: 0, loans_taken: 2, coupon_rm: 250 }
+    expect(nightNet(player)).toBe(900 - 250 - 2 * LOAN_AMOUNT)
   })
 })
