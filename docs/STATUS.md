@@ -1725,3 +1725,9 @@ gift tile shows); set the price on the control phone if 10 RM is not it.
 - Marker: default quantity 3, quick buttons 3 / 6 / 9 (plus Max), and 3 is the least you can buy
   (`MARKER_MIN_QTY` in `economy.ts`). Client side only: `buy_markers` still accepts 1, so no
   migration or `db push` is needed.
+- Topplistan is total gained for the night (`nightNet`, from zero) on both lists; Toppen used to
+  print the balance after debt. Öl, Cider and the Mystery Box stay rank neutral, but **marker now
+  count against you**: migration `20260926000030_markers_count.sql` makes `buy_markers` leave
+  `spent` alone, makes Ångra on a marker receipt leave `spent` alone, and takes the marker already
+  sold back out of `spent`. **Manual step:** `npx supabase db push` (migrations 29 and 30 are not
+  on the local stack yet either). Checked in a rolled-back transaction on the local DB; smoke not re-run.

@@ -356,8 +356,8 @@ export const BOARD = {
   debt: (rm: string) => `Skuld ${rm}`,
   loans: (n: number) => (n === 1 ? '1 snabblån' : `${n} snabblån`),
   net: 'Netto',
-  /** The top list counts the debt off, so the number needs saying out loud. */
-  worth: 'Efter skuld',
+  /** Toppen: won for the night, from zero, with the debt counted off and the marker paid for. */
+  gained: 'Totalt vunnet',
   houseTitle: 'Huset idag',
   houseHint: 'Vinst från Rally75, Plånko och Butiken.',
 } as const

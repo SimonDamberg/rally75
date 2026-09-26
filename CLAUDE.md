@@ -254,9 +254,11 @@ track (`ffmpeg -an ... -c:v libx264 -movflags +faststart`), iPhone HEVC does not
   snapshotted). Both are public read, written only by the RPCs, and both are in the Realtime
   publication so stock drops on every phone. The digital shelf is gone from the UI; old titles and
   badges stay on the players, and the columns remain.
-- **Buying is rank neutral.** `buy_item` and `open_box` move the price from `players.balance` to
-  `players.spent`, and `netWorth` adds `spent` back, so nothing bought can move you on Toppen or the
-  förlorarlista. There is no third list. Asserted in `buy.test.ts`, `economy.test.ts` and smoke.
+- **Buying is rank neutral, except marker.** `buy_item` and `open_box` move the price from
+  `players.balance` to `players.spent`, and `netWorth` adds `spent` back, so the bar and the box
+  cannot move you on Toppen or the förlorarlista. `buy_markers` leaves `spent` alone (Simon's call,
+  `*_markers_count.sql`): marker cost you like a bet. Both lists show total gained (`nightNet`).
+  There is no third list. Asserted in `buy.test.ts`, `economy.test.ts` and smoke.
 - **The Mystery Box** is the `kind = 'box'` item. Its contents are `box_prizes` (physical, counted,
   `rarity` bla/lila/rosa/rod/guld, public read, Realtime). `open_box` draws on the server with
   `gen_random_bytes` (a tier by `BOX_TIER_WEIGHTS` over the tiers with stock, then a prize by
@@ -282,7 +284,8 @@ track (`ffmpeg -an ... -c:v libx264 -movflags +faststart`), iPhone HEVC does not
   `gm_reset_night` keeps the catalogue and the prizes (like kuskar) and drops the receipts.
 - **Marker** (chips for triss, roulette and the enarmade banditen) are the `kind = 'marker'` item,
   sold by the handful: `buy_markers(qty)` writes one receipt with `purchases.qty` and `price` = the
-  total (rank neutral, like the Öl; `MARKER_MAX_QTY` mirrored in `*_markers.sql`; `MARKER_MIN_QTY` 3 is client side only); `buy_item` refuses
+  total (**not** rank neutral: off the balance, never into `spent`; `MARKER_MAX_QTY` mirrored in
+  `*_markers.sql`; `MARKER_MIN_QTY` 3 is client side only); `buy_item` refuses
   it (`use_buy_markers`). The guest presses Hämta **in front of Mr Green** (a person at the party):
   `claim_markers` stamps `purchases.claimed_at` on every unclaimed marker receipt at once and returns
   the count for the same claim screen. A second press gets `nothing_to_claim`. The GM feed shows

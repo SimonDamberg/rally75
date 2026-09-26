@@ -79,6 +79,17 @@ export function afterBuy(
   return { balance: player.balance - price, debt: player.debt, spent: player.spent + price }
 }
 
+/**
+ * What the player's numbers become after buying marker. Unlike afterBuy the total leaves the
+ * balance alone and spent stays put, like buy_markers: marker count against you on the Topplista.
+ */
+export function afterMarkers(
+  player: { balance: number; debt: number; spent: number },
+  total: number,
+): { balance: number; debt: number; spent: number } {
+  return { ...player, balance: player.balance - total }
+}
+
 /** Total on the receipts, for the "Spenderat idag" line. */
 export function purchaseTotal(purchases: readonly PurchaseRow[]): number {
   return purchases.reduce((sum, p) => sum + p.price, 0)

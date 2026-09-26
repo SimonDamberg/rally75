@@ -957,8 +957,8 @@ await step("marker", async () => {
   assert.equal(three.claimed_at, null);
   const after = (await api.getPlayer(guest.playerId))!;
   assert.equal(after.balance, before.balance - marker.price * 7);
-  assert.equal(after.spent, before.spent + marker.price * 7);
-  assert.equal(netWorth(after), netWorth(before), "marker are rank neutral");
+  assert.equal(after.spent, before.spent, "marker stay out of spent");
+  assert.equal(netWorth(after), netWorth(before) - marker.price * 7, "marker count on the Topplista");
   if (marker.price > 0) {
     await expectCode(api.buyMarkers(guest, marker.id, Math.floor(after.balance / marker.price) + 1), "insufficient_balance");
   }
@@ -972,7 +972,9 @@ await step("marker", async () => {
 
   // Ångra gives the RM back for a single receipt.
   await gm.refundPurchase(pw, four.id);
-  assert.equal((await api.getPlayer(guest.playerId))!.balance, before.balance - marker.price * 3);
+  const undone = (await api.getPlayer(guest.playerId))!;
+  assert.equal(undone.balance, before.balance - marker.price * 3);
+  assert.equal(undone.spent, before.spent, "a marker refund leaves spent alone");
   await gm.refundPurchase(pw, three.id);
 });
 

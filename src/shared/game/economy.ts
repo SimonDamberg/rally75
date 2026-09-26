@@ -69,8 +69,9 @@ export const PRIZE_CARD_COOLDOWN_S = 5
 /**
  * What a player actually owns: the balance with the debt taken off and the Butik spending added
  * back. This is what the Topplista ranks on, so a stack of Snabblån cannot buy a place at the top,
- * and a round of beers from the svarta marknaden cannot cost you one: the money leaves the balance
- * but never the rank.
+ * and a round of beers or a Mystery Box cannot cost you one: the money leaves the balance but never
+ * the rank. Marker are the exception: buy_markers leaves `spent` alone, so chips for the other
+ * games cost you like a bet (Simon's call, *_markers_count.sql).
  */
 export function netWorth(player: { balance: number; debt: number; spent: number }): number {
   return player.balance - player.debt + player.spent

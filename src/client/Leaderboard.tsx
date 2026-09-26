@@ -1,12 +1,12 @@
-// "Topplista": richest guests (saldo minus skuld plus det som gått i Butiken) and "Dagens största
-// förlorare" (how far behind you are, from zero). Butik spending moves you on neither, which is
-// the whole point of it being rank neutral.
+// "Topplista": total gained for the night, from zero (saldo minus skuld plus det som gått i
+// Butiken, minus the welcome bonus), high to low on Toppen and low to high on "Dagens största
+// förlorare". The bar and the Mystery Box move you on neither; marker count, like a bet.
 import { useState } from 'react'
 import { useHouseTake, useLeaderboard } from '../lib/hooks'
 import type { PlayerRow } from '../lib/types'
 import { BOARD } from '../shared/content/client'
 import { UI_LABELS } from '../shared/content/ui'
-import { netWorth, nightNet } from '../shared/game/economy'
+import { nightNet } from '../shared/game/economy'
 import { badgedLabel, fmtRm } from '../shared/game/format'
 import { cx, SmallPrint } from '../ui'
 import { useGuest } from './guest'
@@ -74,9 +74,9 @@ export function Leaderboard() {
 function Row({ player, rank, view, mine }: { player: PlayerRow; rank: number; view: View; mine: boolean }) {
   // Counted from zero: the welcome bonus is not a win, so break even shows as 0, not 100 RM.
   const net = nightNet(player)
-  // The top list counts the debt against you, so a pile of Snabblån cannot buy a place up there.
-  const worth = netWorth(player)
-  const value = view === 'top' ? worth : net
+  // Both lists show total gained (debt against you, Butik spending except marker added back);
+  // Toppen ranks it high to low, the förlorarlista low to high.
+  const value = net
   return (
     <li
       className={cx(
@@ -108,11 +108,9 @@ function Row({ player, rank, view, mine }: { player: PlayerRow; rank: number; vi
         )}
       </span>
       <span className="flex shrink-0 flex-col items-end leading-none">
-        {(view === 'losers' || player.debt > 0) && (
-          <span className="text-[0.6rem] font-bold tracking-[0.14em] text-ink-dim uppercase">
-            {view === 'losers' ? BOARD.net : BOARD.worth}
-          </span>
-        )}
+        <span className="text-[0.6rem] font-bold tracking-[0.14em] text-ink-dim uppercase">
+          {view === 'losers' ? BOARD.net : BOARD.gained}
+        </span>
         <span
           className={cx(
             'font-display text-xl font-black tabular-nums',
@@ -125,7 +123,7 @@ function Row({ player, rank, view, mine }: { player: PlayerRow; rank: number; vi
                   : 'text-ink-dim',
           )}
         >
-          {view === 'top' ? fmtRm(worth) : `${net > 0 ? '+' : ''}${fmtRm(net)}`}
+          {`${net > 0 ? '+' : ''}${fmtRm(net)}`}
         </span>
       </span>
     </li>

@@ -1,7 +1,7 @@
 // "Butik": the black market. Marker for the bordsspel on top, then Öl and Cider from the bar. The
 // Mystery Box has its own tab (MysteryBox.tsx). Buying moves RM from balance to spent, and netWorth
-// adds spent back, so nothing bought here can cost you a place on the Topplista (see buy.test.ts).
-// The small print says so out loud.
+// adds spent back, so the bar cannot cost you a place on the Topplista (see buy.test.ts). Marker
+// are the exception: they stay out of spent and count against you like a bet.
 //
 // Nothing is handed over on the strength of a receipt: the guest presses Hämta in front of whoever
 // gives it out (Pickup.tsx). Marker go to Mr Green all at once, a beer or a cider one at a time.
@@ -13,7 +13,7 @@ import { UI_LABELS } from '../shared/content/ui'
 import { MARKER_MIN_QTY } from '../shared/game/economy'
 import { fmtRm } from '../shared/game/format'
 import { Button, cx, Modal, ShopImage, SmallPrint, toast } from '../ui'
-import { afterBuy, checkBuy, checkMarkers, maxMarkers, shelves, stockLeft, toCollect, unclaimedMarkers, type BuyCheck } from './buy'
+import { afterBuy, afterMarkers, checkBuy, checkMarkers, maxMarkers, shelves, stockLeft, toCollect, unclaimedMarkers, type BuyCheck } from './buy'
 import { useGuest, useGuestAction } from './guest'
 import { Receipts, ToCollect } from './Pickup'
 import { useClaim } from './useClaim'
@@ -165,7 +165,7 @@ export function Butik({ onConfirmChange }: { onConfirmChange: (open: boolean) =>
             <p className="text-lg">{MARKER.howTo}</p>
             <p className="text-ink-dim">{MARKER.confirmText(fmtRm(marker.price * markerQty))}</p>
             <p className="font-display text-xl font-black tabular-nums">
-              {BUTIK.confirmAfter(fmtRm(afterBuy(player, marker.price * markerQty).balance))}
+              {BUTIK.confirmAfter(fmtRm(afterMarkers(player, marker.price * markerQty).balance))}
             </p>
           </div>
         )}

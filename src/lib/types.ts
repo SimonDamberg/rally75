@@ -17,7 +17,7 @@ export interface PlayerRow {
   balance: number;
   debt: number;
   loans_taken: number;
-  /** RM left in the Butik. Added back by netWorth, so buying never costs you a place. */
+  /** RM left in the Butik, marker excepted. Added back by netWorth, so buying never costs you a place. */
   spent: number;
   /** Bought in the Butik: a title under the name on the Topplista. '' when nothing is bought. */
   title: string;

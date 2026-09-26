@@ -56,6 +56,8 @@ describe('economy constants', () => {
     const sql = latestDefining('buy_markers')
     expect(sql).toContain(`MARKER_MAX_QTY ${MARKER_MAX_QTY}.`)
     expect(sql).toContain(`p_qty < 1 or p_qty > ${MARKER_MAX_QTY} then`)
+    // Marker count on the Topplista: the total leaves the balance and never enters spent.
+    expect(sql).toContain('set balance = balance - v_total\n  where')
   })
 
   /**

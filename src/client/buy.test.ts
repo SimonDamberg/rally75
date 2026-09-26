@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { BoxPrizeRow, PurchaseRow, ShopItemRow } from '../lib/types'
 import { MARKER_MAX_QTY, MARKER_MIN_QTY, netWorth, nightNet } from '../shared/game/economy'
-import { afterBuy, checkBuy, checkMarkers, maxMarkers, needsPickup, purchaseTotal, receiptName, shelves, stockLeft, toCollect, unclaimedMarkers, visiblePurchases } from './buy'
+import { afterBuy, afterMarkers, checkBuy, checkMarkers, maxMarkers, needsPickup, purchaseTotal, receiptName, shelves, stockLeft, toCollect, unclaimedMarkers, visiblePurchases } from './buy'
 
 function item(over: Partial<ShopItemRow> = {}): ShopItemRow {
   return {
@@ -225,11 +225,13 @@ describe('marker', () => {
     expect(unclaimedMarkers([])).toBe(0)
   })
 
-  it('is rank neutral: a handful of marker is just a purchase', () => {
+  it('counts marker on the Topplista, unlike the bar', () => {
     const before = { balance: 400, debt: 0, spent: 0 }
-    const after = afterBuy(before, 10 * 12)
+    const after = afterMarkers(before, 10 * 12)
     expect(after.balance).toBe(280)
-    expect(netWorth(after)).toBe(netWorth(before))
+    expect(after.spent).toBe(0)
+    expect(netWorth(after)).toBe(netWorth(before) - 120)
+    expect(netWorth(afterBuy(before, 120))).toBe(netWorth(before))
   })
 })
 
